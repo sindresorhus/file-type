@@ -1,0 +1,69 @@
+{
+  "name": "file-type",
+  "version": "0.0.0",
+  "description": "Detect the file type of a Buffer/Uint8Array",
+  "license": "MIT",
+  "repository": "sindresorhus/file-type",
+  "bin": {
+    "file-type": "cli.js"
+  },
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "http://sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha",
+    "browser": "browserify -s $npm_package_name -o browser.js ."
+  },
+  "files": [
+    "index.js",
+    "cli.js"
+  ],
+  "keywords": [
+    "file",
+    "type",
+    "archive",
+    "image",
+    "img",
+    "pic",
+    "picture",
+    "photo",
+    "type",
+    "detect",
+    "check",
+    "is",
+    "exif",
+    "binary",
+    "buffer",
+    "uint8array",
+    "cli",
+    "bin",
+    "png",
+    "jpg",
+    "gif",
+    "webp",
+    "tif",
+    "bmp",
+    "jxr",
+    "psd",
+    "7z",
+    "bz2",
+    "gz",
+    "rar",
+    "tar",
+    "zip"
+  ],
+  "dependencies": {
+    "archive-type": "^0.1.1",
+    "image-type": "^0.1.1",
+    "read-chunk": "^0.1.0"
+  },
+  "devDependencies": {
+    "browserify": "^3.0.0",
+    "mocha": "*"
+  }
+}
