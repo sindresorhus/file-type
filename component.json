@@ -9,7 +9,8 @@
   ],
   "dependencies": {
     "sindresorhus/image-type": "^0.1.1",
-    "kevva/archive-type": "^0.1.1"
+    "kevva/archive-type": "^0.1.1",
+    "kevva/is-pdf": "^0.1.0"
   },
   "keywords": [
     "file",

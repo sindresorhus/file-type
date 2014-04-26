@@ -4,5 +4,9 @@ module.exports = function (buf) {
 		return false;
 	}
 
+	if (require('is-pdf')(buf)) {
+		return 'pdf';
+	}
+
 	return require('image-type')(buf) || require('archive-type')(buf) || false;
 };

@@ -95,6 +95,7 @@ Example
 - [`rar`](https://github.com/kevva/is-rar)
 - [`tar`](https://github.com/kevva/is-tar)
 - [`zip`](https://github.com/kevva/is-zip)
+- [`pdf`](https://github.com/kevva/is-pdf)
 
 *PR welcome for additional file types*
 

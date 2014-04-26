@@ -5,10 +5,14 @@ module.exports = function (buf) {
 		return false;
 	}
 
+	if (_dereq_('is-pdf')(buf)) {
+		return 'pdf';
+	}
+
 	return _dereq_('image-type')(buf) || _dereq_('archive-type')(buf) || false;
 };
 
-},{"archive-type":2,"image-type":9}],2:[function(_dereq_,module,exports){
+},{"archive-type":2,"image-type":9,"is-pdf":18}],2:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -297,6 +301,24 @@ module.exports = function (buf) {
 		buf[9] === 69 &&
 		buf[10] === 66 &&
 		buf[11] === 80;
+};
+
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Check if a Buffer/Uint8Array is a PDF file
+ *
+ * @param {Buffer} buf
+ * @api public
+ */
+
+module.exports = function (buf) {
+    if (!buf || buf.length < 4) {
+        return false;
+    }
+
+    return buf[0] === 37 && buf[1] === 80 && buf[2] === 68 && buf[3] === 70;
 };
 
 },{}]},{},[1])
