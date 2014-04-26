@@ -25,7 +25,7 @@ $ component install sindresorhus/file-type
 ```js
 var readChunk = require('read-chunk'); // npm install read-chunk
 var fileType = require('file-type');
-var buffer = readChunk('unicorn.png', 0, 58);
+var buffer = readChunk.sync('unicorn.png', 0, 58);
 
 fileType(buffer);
 //=> png
