@@ -1,7 +1,7 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.fileType=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
-	if (!buf || buf.length < 12) {
+	if (!buf) {
 		return false;
 	}
 
@@ -9,10 +9,14 @@ module.exports = function (buf) {
 		return 'pdf';
 	}
 
+	if (_dereq_('is-epub')(buf)) {
+		return 'epub';
+	}
+
 	return _dereq_('image-type')(buf) || _dereq_('archive-type')(buf) || false;
 };
 
-},{"archive-type":2,"image-type":9,"is-pdf":18}],2:[function(_dereq_,module,exports){
+},{"archive-type":2,"image-type":9,"is-epub":18,"is-pdf":19}],2:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -304,6 +308,17 @@ module.exports = function (buf) {
 };
 
 },{}],18:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf || buf.length < 58) {
+		return false;
+	}
+
+	return buf[0] === 80 && buf[1] === 75 && buf[2] === 3 && buf[3] === 4 &&
+		buf.slice(30, 58).toString() === 'mimetypeapplication/epub+zip';
+};
+
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 /**

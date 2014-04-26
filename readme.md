@@ -25,7 +25,7 @@ $ component install sindresorhus/file-type
 ```js
 var readChunk = require('read-chunk'); // npm install read-chunk
 var fileType = require('file-type');
-var buffer = readChunk('unicorn.png', 0, 12);
+var buffer = readChunk('unicorn.png', 0, 58);
 
 fileType(buffer);
 //=> png
@@ -57,7 +57,7 @@ Returns one of the [supported file types](#supported-file-types) or `false`.
 
 Type: `buffer` *(Node.js)*, `uint8array`
 
-It only needs the first 12 bytes.
+It only needs the first 58 bytes.
 
 
 ## CLI
@@ -96,6 +96,7 @@ Example
 - [`tar`](https://github.com/kevva/is-tar)
 - [`zip`](https://github.com/kevva/is-zip)
 - [`pdf`](https://github.com/kevva/is-pdf)
+- [`epub`](https://github.com/sindresorhus/is-epub)
 
 *PR welcome for additional file types*
 

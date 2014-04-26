@@ -60,6 +60,7 @@
   "dependencies": {
     "archive-type": "^0.1.1",
     "image-type": "^0.1.1",
+    "is-epub": "^0.1.0",
     "is-pdf": "^0.1.0",
     "read-chunk": "^0.1.0"
   },
