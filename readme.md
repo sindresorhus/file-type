@@ -102,6 +102,7 @@ Example
 - [`flac`](https://github.com/hemanth/is-flac)
 - [`wav`](https://github.com/hemanth/is-wav)
 - [`ogg`](https://github.com/hemanth/is-ogg)
+- [`m4a`](https://github.com/hemanth/is-m4a)
 
 
 *PR welcome for additional file types*
