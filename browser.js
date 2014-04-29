@@ -13,10 +13,14 @@ module.exports = function (buf) {
 		return 'epub';
 	}
 
+	if (_dereq_('is-exe')(buf)) {
+		return 'exe';
+	}
+
 	return _dereq_('image-type')(buf) || _dereq_('archive-type')(buf) || false;
 };
 
-},{"archive-type":2,"image-type":9,"is-epub":18,"is-pdf":19}],2:[function(_dereq_,module,exports){
+},{"archive-type":2,"image-type":9,"is-epub":18,"is-exe":19,"is-pdf":20}],2:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -141,7 +145,7 @@ module.exports = function (buf) {
  */
 
 module.exports = function (buf) {
-    if (!buf || buf.length < 4) {
+    if (!buf || buf.length < 262) {
         return false;
     }
 
@@ -169,7 +173,7 @@ module.exports = function (buf) {
 },{}],9:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
-	if (!buf || buf.length < 12) {
+	if (!buf) {
 		return false;
 	}
 
@@ -233,14 +237,13 @@ module.exports = function (buf) {
 },{}],12:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
-	if (!buf || buf.length < 4) {
+	if (!buf || buf.length < 3) {
 		return false;
 	}
 
 	return buf[0] === 255 &&
 		buf[1] === 216 &&
-		buf[2] === 255 &&
-		(buf[3] === 224 || buf[3] === 225);
+		buf[2] === 255;
 };
 
 },{}],13:[function(_dereq_,module,exports){
@@ -319,6 +322,24 @@ module.exports = function (buf) {
 };
 
 },{}],19:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Check if a Buffer/Uint8Array is a EXE file
+ *
+ * @param {Buffer} buf
+ * @api public
+ */
+
+module.exports = function (buf) {
+    if (!buf || buf.length < 2) {
+        return false;
+    }
+
+    return buf[0] === 77 && buf[1] === 90;
+};
+
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 /**

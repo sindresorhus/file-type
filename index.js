@@ -12,5 +12,9 @@ module.exports = function (buf) {
 		return 'epub';
 	}
 
+	if (require('is-exe')(buf)) {
+		return 'exe';
+	}
+
 	return require('image-type')(buf) || require('archive-type')(buf) || false;
 };

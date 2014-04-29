@@ -97,6 +97,7 @@ Example
 - [`zip`](https://github.com/kevva/is-zip)
 - [`pdf`](https://github.com/kevva/is-pdf)
 - [`epub`](https://github.com/sindresorhus/is-epub)
+- [`exe`](https://github.com/kevva/is-exe)
 
 *PR welcome for additional file types*
 

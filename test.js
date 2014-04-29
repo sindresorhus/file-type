@@ -10,4 +10,5 @@ function check(filename) {
 it('should detect file type from Buffer', function () {
 	assert.strictEqual(check('fixture.png'), 'png');
 	assert.strictEqual(check('fixture.zip'), 'zip');
+	assert.strictEqual(check('fixture.exe'), 'exe');
 });

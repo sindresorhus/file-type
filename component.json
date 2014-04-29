@@ -8,10 +8,11 @@
     "index.js"
   ],
   "dependencies": {
-    "sindresorhus/image-type": "^0.1.1",
     "kevva/archive-type": "^0.1.1",
+    "kevva/is-exe": "^0.1.0",
     "kevva/is-pdf": "^0.1.0",
-    "sindresorhus/is-epub": "^0.1.0"
+    "sindresorhus/is-epub": "^0.1.0",
+    "sindresorhus/image-type": "^0.1.1",
   },
   "keywords": [
     "file",
@@ -27,6 +28,7 @@
     "check",
     "is",
     "exif",
+    "exe",
     "binary",
     "buffer",
     "uint8array",
