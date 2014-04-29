@@ -98,6 +98,10 @@ Example
 - [`pdf`](https://github.com/kevva/is-pdf)
 - [`epub`](https://github.com/sindresorhus/is-epub)
 - [`exe`](https://github.com/kevva/is-exe)
+- [`mp3`](https://github.com/hemanth/is-mp3)
+- [`flac`](https://github.com/hemanth/is-flac)
+- [`wav`](https://github.com/hemanth/is-wav)
+- [`ogg`](https://github.com/hemanth/is-ogg)
 
 *PR welcome for additional file types*
 

@@ -60,6 +60,7 @@
   ],
   "dependencies": {
     "archive-type": "^0.1.1",
+    "audio-type": "^0.1.0",
     "image-type": "^0.1.1",
     "is-epub": "^0.1.0",
     "is-exe": "^0.1.0",

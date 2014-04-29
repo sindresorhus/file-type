@@ -17,10 +17,12 @@ module.exports = function (buf) {
 		return 'exe';
 	}
 
-	return _dereq_('image-type')(buf) || _dereq_('archive-type')(buf) || false;
+	return _dereq_('image-type')(buf) || _dereq_('archive-type')(buf) ||
+	       _dereq_ ('audio-type')(buf)|| false;
+
 };
 
-},{"archive-type":2,"image-type":9,"is-epub":18,"is-exe":19,"is-pdf":20}],2:[function(_dereq_,module,exports){
+},{"archive-type":2,"audio-type":9,"image-type":14,"is-epub":23,"is-exe":24,"is-pdf":25}],2:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -177,6 +179,91 @@ module.exports = function (buf) {
 		return false;
 	}
 
+	if (_dereq_('is-mp3')(buf)) {
+		return 'mp3';
+	}
+
+	if (_dereq_('is-wav')(buf)) {
+		return 'wav';
+	}
+
+	if (_dereq_('is-ogg')(buf)) {
+		return 'oga';
+	}
+
+	if (_dereq_('is-flac')(buf)) {
+		return 'flac';
+	}
+
+	return false;
+};
+
+},{"is-flac":10,"is-mp3":11,"is-ogg":12,"is-wav":13}],10:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf || buf.length < 3) {
+		return false;
+	}
+
+	return buf[0] === 102 &&
+    buf[1] === 76 &&
+    buf[2] === 97 &&
+    buf[3] === 67 
+};
+
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf || buf.length < 3) {
+		return false;
+	}
+
+	return (buf[0] === 73 &&
+		buf[1] === 68 &&
+		buf[2] === 51) || ( 
+      buf[0] === 255 &&
+      buf[1] === 251
+    )
+  
+};
+
+},{}],12:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf || buf.length < 3) {
+		return false;
+	}
+
+	return buf[0] === 79 &&
+		buf[1] === 103 &&
+		buf[2] === 103 &&
+    buf[3] === 83
+};
+
+},{}],13:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf || buf.length < 3) {
+		return false;
+	}
+
+	return buf[0] === 82 &&
+		buf[1] === 73 &&
+		buf[2] === 70 &&
+    buf[3] === 70 &&
+    buf[8] === 87 &&
+    buf[9] === 65 &&
+    buf[10] === 86 &&
+    buf[11] === 69
+};
+
+},{}],14:[function(_dereq_,module,exports){
+'use strict';
+module.exports = function (buf) {
+	if (!buf) {
+		return false;
+	}
+
 	if (_dereq_('is-jpg')(buf)) {
 		return 'jpg';
 	}
@@ -212,7 +299,7 @@ module.exports = function (buf) {
 	return false;
 };
 
-},{"is-bmp":10,"is-gif":11,"is-jpg":12,"is-jxr":13,"is-png":14,"is-psd":15,"is-tif":16,"is-webp":17}],10:[function(_dereq_,module,exports){
+},{"is-bmp":15,"is-gif":16,"is-jpg":17,"is-jxr":18,"is-png":19,"is-psd":20,"is-tif":21,"is-webp":22}],15:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 2) {
@@ -222,7 +309,7 @@ module.exports = function (buf) {
 	return buf[0] === 66 && buf[1] === 77;
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 3) {
@@ -234,7 +321,7 @@ module.exports = function (buf) {
 		buf[2] === 70;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 3) {
@@ -246,7 +333,7 @@ module.exports = function (buf) {
 		buf[2] === 255;
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 3) {
@@ -258,7 +345,7 @@ module.exports = function (buf) {
 		buf[2] === 188;
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 4) {
@@ -271,7 +358,7 @@ module.exports = function (buf) {
 		buf[3] === 71;
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 4) {
@@ -284,7 +371,7 @@ module.exports = function (buf) {
 		buf[3] === 83;
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 4) {
@@ -297,7 +384,7 @@ module.exports = function (buf) {
 		buf[3] === 0;
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 12) {
@@ -310,7 +397,7 @@ module.exports = function (buf) {
 		buf[11] === 80;
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 module.exports = function (buf) {
 	if (!buf || buf.length < 58) {
@@ -321,7 +408,7 @@ module.exports = function (buf) {
 		buf.slice(30, 58).toString() === 'mimetypeapplication/epub+zip';
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -339,7 +426,7 @@ module.exports = function (buf) {
     return buf[0] === 77 && buf[1] === 90;
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 /**
