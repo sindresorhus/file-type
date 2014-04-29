@@ -25,7 +25,7 @@ $ component install sindresorhus/file-type
 ```js
 var readChunk = require('read-chunk'); // npm install read-chunk
 var fileType = require('file-type');
-var buffer = readChunk.sync('unicorn.png', 0, 58);
+var buffer = readChunk.sync('unicorn.png', 0, 262);
 
 fileType(buffer);
 //=> png
@@ -57,7 +57,7 @@ Returns one of the [supported file types](#supported-file-types) or `false`.
 
 Type: `buffer` *(Node.js)*, `uint8array`
 
-It only needs the first 58 bytes.
+It only needs the first 262 bytes.
 
 
 ## CLI
