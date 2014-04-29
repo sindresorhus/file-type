@@ -103,6 +103,7 @@ Example
 - [`wav`](https://github.com/hemanth/is-wav)
 - [`ogg`](https://github.com/hemanth/is-ogg)
 
+
 *PR welcome for additional file types*
 
 

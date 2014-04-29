@@ -3,13 +3,14 @@
   "version": "0.2.0",
   "description": "Detect the file type of a Buffer/Uint8Array",
   "license": "MIT",
-  "repo": "sindresorhus/file-type",
+  "repository": "sindresorhus/file-type",
   "scripts": [
     "index.js"
   ],
   "dependencies": {
     "kevva/archive-type": "^0.1.1",
     "kevva/is-exe": "^0.1.0",
+    "hemanth/audio-type": "^0.1.0",
     "kevva/is-pdf": "^0.1.0",
     "sindresorhus/is-epub": "^0.1.0",
     "sindresorhus/image-type": "^0.1.1",
