@@ -2,6 +2,8 @@
 
 > Detect the file type of a Buffer/Uint8Array
 
+The file type is detected by checking the [magic number](http://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
 
 ## Install
 
