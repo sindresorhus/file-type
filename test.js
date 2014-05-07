@@ -12,4 +12,5 @@ it('should detect file type from Buffer', function () {
 	assert.strictEqual(check('fixture.zip'), 'zip');
 	assert.strictEqual(check('fixture.exe'), 'exe');
 	assert.strictEqual(check('fixture.oga'), 'oga');
+	assert.strictEqual(check('fixture.mp4'), 'mp4');	
 });
