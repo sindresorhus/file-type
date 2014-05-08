@@ -14,6 +14,7 @@
     "kevva/is-pdf": "^0.1.0",
     "sindresorhus/image-type": "^0.1.1",
     "sindresorhus/is-epub": "^0.1.0",
+    "deepak1556/is-mp4": "^0.1.0"
   },
   "keywords": [
     "file",
@@ -24,6 +25,7 @@
     "pic",
     "picture",
     "photo",
+    "video",
     "type",
     "detect",
     "check",
@@ -48,6 +50,7 @@
     "gz",
     "rar",
     "tar",
-    "zip"
+    "zip",
+    "mp4"
   ]
 }

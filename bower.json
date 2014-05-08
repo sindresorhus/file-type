@@ -19,6 +19,7 @@
     "pic",
     "picture",
     "photo",
+    "video",
     "type",
     "detect",
     "check",
@@ -43,7 +44,8 @@
     "gz",
     "rar",
     "tar",
-    "zip"
+    "zip",
+    "mp4"
   ],
   "ignore": [
     ".*",
