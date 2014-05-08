@@ -105,6 +105,7 @@ Example
 - [`wav`](https://github.com/hemanth/is-wav)
 - [`ogg`](https://github.com/hemanth/is-ogg)
 - [`m4a`](https://github.com/hemanth/is-m4a)
+- [`mp4`](https://github.com/deepak1556/is-mp4)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 

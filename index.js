@@ -16,5 +16,9 @@ module.exports = function (buf) {
 		return 'exe';
 	}
 
+	if (require('is-mp4')(buf)) {
+		return 'mp4';
+	}	
+
 	return require('image-type')(buf) || require('archive-type')(buf) || require ('audio-type')(buf)|| false;
 };
