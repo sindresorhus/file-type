@@ -31,6 +31,7 @@
     "img",
     "pic",
     "picture",
+    "flash",
     "photo",
     "video",
     "type",
@@ -56,6 +57,7 @@
     "bz2",
     "gz",
     "rar",
+    "swf",
     "tar",
     "zip",
     "mp4"
@@ -66,9 +68,10 @@
     "image-type": "^0.1.1",
     "is-epub": "^0.1.0",
     "is-exe": "^0.1.0",
+    "is-mp4": "^0.1.0",
     "is-pdf": "^0.1.0",
-    "read-chunk": "^0.1.0",
-    "is-mp4": "^0.1.0"
+    "is-swf": "^0.1.0",
+    "read-chunk": "^0.1.0"
   },
   "devDependencies": {
     "browserify": "^3.0.0",

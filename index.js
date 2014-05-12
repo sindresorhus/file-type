@@ -20,5 +20,9 @@ module.exports = function (buf) {
 		return 'mp4';
 	}
 
+	if (require('is-swf')(buf)) {
+		return 'swf';
+	}
+
 	return require('image-type')(buf) || require('archive-type')(buf) || require ('audio-type')(buf) || false;
 };
