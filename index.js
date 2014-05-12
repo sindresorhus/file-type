@@ -18,7 +18,7 @@ module.exports = function (buf) {
 
 	if (require('is-mp4')(buf)) {
 		return 'mp4';
-	}	
+	}
 
-	return require('image-type')(buf) || require('archive-type')(buf) || require ('audio-type')(buf)|| false;
+	return require('image-type')(buf) || require('archive-type')(buf) || require ('audio-type')(buf) || false;
 };
