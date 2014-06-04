@@ -126,7 +126,7 @@ Example
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
-*PR welcome for additional commonly used file types*
+*PR welcome for additional commonly used file types.*
 
 
 ## License
