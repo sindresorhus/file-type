@@ -24,6 +24,7 @@
     "cli.js"
   ],
   "keywords": [
+    "mime",
     "file",
     "type",
     "archive",
