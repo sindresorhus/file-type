@@ -18,6 +18,7 @@
     "deepak1556/is-mp4": "^0.1.0"
   },
   "keywords": [
+    "mime",
     "file",
     "type",
     "archive",
