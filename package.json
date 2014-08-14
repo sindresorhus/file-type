@@ -66,7 +66,7 @@
     "archive-type": "^0.1.4",
     "audio-type": "^0.1.4",
     "image-type": "^1.0.0",
-    "is-epub": "^0.1.2",
+    "is-epub": "^1.0.0",
     "is-exe": "^0.1.0",
     "is-mp4": "^0.1.0",
     "is-pdf": "^0.1.0",
