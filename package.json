@@ -4,20 +4,19 @@
   "description": "Detect the file type of a Buffer/Uint8Array",
   "license": "MIT",
   "repository": "sindresorhus/file-type",
-  "bin": {
-    "file-type": "cli.js"
-  },
   "author": {
     "name": "Sindre Sorhus",
     "email": "sindresorhus@gmail.com",
     "url": "http://sindresorhus.com"
   },
+  "bin": {
+    "file-type": "cli.js"
+  },
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "mocha",
-    "browser": "browserify -s $npm_package_name -o browser.js ."
+    "test": "mocha"
   },
   "files": [
     "index.js",
@@ -64,18 +63,17 @@
     "mp4"
   ],
   "dependencies": {
-    "archive-type": "^0.1.1",
-    "audio-type": "^0.1.0",
-    "image-type": "^0.1.1",
-    "is-epub": "^0.1.0",
+    "archive-type": "^0.1.4",
+    "audio-type": "^0.1.4",
+    "image-type": "^1.0.0",
+    "is-epub": "^0.1.2",
     "is-exe": "^0.1.0",
     "is-mp4": "^0.1.0",
     "is-pdf": "^0.1.0",
-    "is-swf": "^0.1.0",
-    "read-chunk": "^0.1.0"
+    "is-swf": "^0.1.0"
   },
   "devDependencies": {
-    "browserify": "^3.0.0",
-    "mocha": "*"
+    "mocha": "*",
+    "read-chunk": "^1.0.0"
   }
 }

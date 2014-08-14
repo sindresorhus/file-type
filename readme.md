@@ -11,14 +11,6 @@ The file type is detected by checking the [magic number](http://en.wikipedia.org
 $ npm install --save file-type
 ```
 
-```sh
-$ bower install --save file-type
-```
-
-```sh
-$ component install sindresorhus/file-type
-```
-
 
 ## Usage
 
@@ -87,13 +79,13 @@ $ npm install --global file-type
 ```sh
 $ file-type --help
 
-Usage
-  $ cat <filename> | file-type
-  $ file-type <filename>
+  Usage
+    file-type <filename>
+    cat <filename> | file-type
 
-Example
-  $ cat unicorn.png | file-type
-  png
+  Example
+    cat unicorn.png | file-type
+    png
 ```
 
 
