@@ -2,19 +2,23 @@
 'use strict';
 var readChunk = require('read-chunk');
 var pkg = require('./package.json');
-var fileType = require('./index');
-var input = process.argv[2];
+var fileType = require('./');
+var argv = process.argv.slice(2);
+var input = argv[0];
 
 function help() {
-	console.log(pkg.description);
-	console.log('');
-	console.log('Usage');
-	console.log('  $ cat <filename> | file-type');
-	console.log('  $ file-type <filename>');
-	console.log('');
-	console.log('Example');
-	console.log('  $ cat unicorn.png | file-type');
-	console.log('  png');
+	console.log([
+		'',
+		'  ' + pkg.description,
+		'',
+		'  Usage',
+		'    file-type <filename>',
+		'    cat <filename> | file-type',
+		'',
+		'  Example',
+		'    cat unicorn.png | file-type',
+		'    png'
+	].join('\n'));
 }
 
 function init(data) {
@@ -28,12 +32,12 @@ function init(data) {
 	}
 }
 
-if (process.argv.indexOf('-h') !== -1 || process.argv.indexOf('--help') !== -1) {
+if (argv.indexOf('--help') !== -1) {
 	help();
 	return;
 }
 
-if (process.argv.indexOf('-v') !== -1 || process.argv.indexOf('--version') !== -1) {
+if (argv.indexOf('--version') !== -1) {
 	console.log(pkg.version);
 	return;
 }
@@ -44,9 +48,7 @@ if (process.stdin.isTTY) {
 		return;
 	}
 
-	init(readChunk.sync(input, 0, 12));
+	init(readChunk.sync(input, 0, 262));
 } else {
-	process.stdin.once('data', function (data) {
-		init(data);
-	});
+	process.stdin.once('data', init);
 }
