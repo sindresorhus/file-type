@@ -63,7 +63,7 @@
     "mp4"
   ],
   "dependencies": {
-    "archive-type": "^0.1.4",
+    "archive-type": "^1.0.0",
     "audio-type": "^0.1.4",
     "image-type": "^1.0.0",
     "is-epub": "^1.0.0",
