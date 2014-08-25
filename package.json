@@ -16,7 +16,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "node test.js"
   },
   "files": [
     "index.js",
@@ -73,7 +73,7 @@
     "is-swf": "^1.0.0"
   },
   "devDependencies": {
-    "mocha": "*",
+    "ava": "0.0.4",
     "read-chunk": "^1.0.0"
   }
 }
