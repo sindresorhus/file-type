@@ -1,54 +1,39 @@
 #!/usr/bin/env node
 'use strict';
 var readChunk = require('read-chunk');
-var pkg = require('./package.json');
+var meow = require('meow');
 var fileType = require('./');
-var argv = process.argv.slice(2);
-var input = argv[0];
 
-function help() {
-	console.log([
+var cli = meow({
+	help: [
+		'Usage',
+		'  file-type <filename>',
+		'  file-type < <filename>',
 		'',
-		'  ' + pkg.description,
-		'',
-		'  Usage',
-		'    file-type <filename>',
-		'    cat <filename> | file-type',
-		'',
-		'  Example',
-		'    cat unicorn.png | file-type',
-		'    png'
-	].join('\n'));
-}
+		'Example',
+		'  file-type < unicorn.png',
+		'  png'
+	].join('\n')
+});
 
 function init(data) {
 	var type = fileType(data);
 
-	if (type) {
-		console.log(type);
-	} else {
+	if (!type) {
 		console.error('Unrecognized file type');
 		process.exit(65);
 	}
-}
 
-if (argv.indexOf('--help') !== -1) {
-	help();
-	return;
-}
-
-if (argv.indexOf('--version') !== -1) {
-	console.log(pkg.version);
-	return;
+	console.log(type);
 }
 
 if (process.stdin.isTTY) {
-	if (!input) {
-		help();
-		return;
+	if (cli.input.length === 0) {
+		console.error('Specify a filename');
+		process.exit(1);
 	}
 
-	init(readChunk.sync(input, 0, 262));
+	init(readChunk.sync(cli.input[0], 0, 262));
 } else {
 	process.stdin.once('data', init);
 }
