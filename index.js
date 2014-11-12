@@ -24,5 +24,9 @@ module.exports = function (buf) {
 		return 'swf';
 	}
 
+	if (require('is-rtf')(buf)) {
+		return 'rtf';
+	}
+
 	return require('image-type')(buf) || require('archive-type')(buf) || require ('audio-type')(buf) || false;
 };
