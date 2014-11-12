@@ -60,12 +60,8 @@
     "swf",
     "tar",
     "zip",
-<<<<<<< HEAD
-    "mp4",
-    "rtf"
-=======
+    "rtf",
     "mp4"
->>>>>>> f421972c3c1eba52814be9281a2268b81826b0a3
   ],
   "dependencies": {
     "archive-type": "^1.0.0",
