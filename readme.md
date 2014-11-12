@@ -115,6 +115,7 @@ $ file-type --help
 - [`m4a`](https://github.com/hemanth/is-m4a)
 - [`mp4`](https://github.com/deepak1556/is-mp4)
 - [`swf`](https://github.com/kevva/is-swf)
+- [`rtf`](https://github.com/veacks/is-rtf)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
