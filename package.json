@@ -60,6 +60,7 @@
     "swf",
     "tar",
     "zip",
+    "rtf",
     "mp4"
   ],
   "dependencies": {
@@ -71,6 +72,7 @@
     "is-mp4": "^0.1.0",
     "is-pdf": "^1.0.0",
     "is-swf": "^1.0.0",
+    "is-rtf": "^1.0.0",
     "meow": "^2.0.0"
   },
   "devDependencies": {
