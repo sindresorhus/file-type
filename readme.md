@@ -61,7 +61,7 @@ xhr.send();
 
 ### fileType(buffer)
 
-Returns one of the [supported file types](#supported-file-types) or `false`.
+Returns one of the [supported file types](#supported-file-types) or `null`.
 
 #### buffer
 

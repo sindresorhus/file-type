@@ -1,7 +1,7 @@
 'use strict';
 module.exports = function (buf) {
-	if (!buf) {
-		return false;
+	if (!(buf && buf.length > 1)) {
+		return null;
 	}
 
 	if (buf[0] === 255 && buf[1] === 216 && buf[2] === 255) {
@@ -106,5 +106,5 @@ module.exports = function (buf) {
 		return 'rtf';
 	}
 
-	return false;
+	return null;
 };
