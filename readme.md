@@ -91,31 +91,31 @@ $ file-type --help
 
 ## Supported file types
 
-- [`png`](https://github.com/sindresorhus/is-png)
-- [`jpg`](https://github.com/sindresorhus/is-jpg)
-- [`gif`](https://github.com/sindresorhus/is-gif)
-- [`webp`](https://github.com/sindresorhus/is-webp)
-- [`tif`](https://github.com/sindresorhus/is-tif)
-- [`bmp`](https://github.com/sindresorhus/is-bmp)
-- [`jxr`](https://github.com/sindresorhus/is-jxr)
-- [`psd`](https://github.com/sindresorhus/is-psd)
-- [`7z`](https://github.com/kevva/is-7zip)
-- [`bz2`](https://github.com/kevva/is-bzip2)
-- [`gz`](https://github.com/kevva/is-gzip)
-- [`rar`](https://github.com/kevva/is-rar)
-- [`tar`](https://github.com/kevva/is-tar)
-- [`zip`](https://github.com/kevva/is-zip)
-- [`pdf`](https://github.com/kevva/is-pdf)
-- [`epub`](https://github.com/sindresorhus/is-epub)
-- [`exe`](https://github.com/kevva/is-exe)
-- [`mp3`](https://github.com/hemanth/is-mp3)
-- [`flac`](https://github.com/hemanth/is-flac)
-- [`wav`](https://github.com/hemanth/is-wav)
-- [`ogg`](https://github.com/hemanth/is-ogg)
-- [`m4a`](https://github.com/hemanth/is-m4a)
-- [`mp4`](https://github.com/deepak1556/is-mp4)
-- [`swf`](https://github.com/kevva/is-swf)
-- [`rtf`](https://github.com/veacks/is-rtf)
+- `jpg`
+- `png`
+- `gif`
+- `webp`
+- `tif`
+- `bmp`
+- `jxr`
+- `psd`
+- `zip`
+- `tar`
+- `rar`
+- `gz`
+- `bz2`
+- `7z`
+- `mp3`
+- `m4a`
+- `ogg`
+- `flac`
+- `wav`
+- `pdf`
+- `epub`
+- `exe`
+- `mp4`
+- `swf`
+- `rtf`
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
