@@ -4,69 +4,69 @@ module.exports = function (buf) {
 		return null;
 	}
 
-	if (buf[0] === 255 && buf[1] === 216 && buf[2] === 255) {
+	if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
 		return 'jpg';
 	}
 
-	if (buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71) {
+	if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
 		return 'png';
 	}
 
-	if (buf[0] === 71 && buf[1] === 73 && buf[2] === 70) {
+	if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) {
 		return 'gif';
 	}
 
-	if (buf[8] === 87 && buf[9] === 69 && buf[10] === 66 && buf[11] === 80) {
+	if (buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50) {
 		return 'webp';
 	}
 
-	if ((buf[0] === 73 && buf[1] === 73 && buf[2] === 42 && buf[3] === 0) || (buf[0] === 77 && buf[1] === 77 && buf[2] === 0 && buf[3] === 42)) {
+	if ((buf[0] === 0x49 && buf[1] === 0x49 && buf[2] === 0x2a && buf[3] === 0x0) || (buf[0] === 0x4d && buf[1] === 0x4d && buf[2] === 0x0 && buf[3] === 0x2a)) {
 		return 'tif';
 	}
 
-	if (buf[0] === 66 && buf[1] === 77) {
+	if (buf[0] === 0x42 && buf[1] === 0x4d) {
 		return 'bmp';
 	}
 
-	if (buf[0] === 73 && buf[1] === 73 && buf[2] === 188) {
+	if (buf[0] === 0x49 && buf[1] === 0x49 && buf[2] === 0xbc) {
 		return 'jxr';
 	}
 
-	if (buf[0] === 56 && buf[1] === 66 && buf[2] === 80 && buf[3] === 83) {
+	if (buf[0] === 0x38 && buf[1] === 0x42 && buf[2] === 0x50 && buf[3] === 0x53) {
 		return 'psd';
 	}
 
 	// needs to be before `zip` check
-	if (buf[0] === 80 && buf[1] === 75 && buf[2] === 3 && buf[3] === 4 &&
+	if (buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x3 && buf[3] === 0x4 &&
 		buf.slice(30, 58).toString() === 'mimetypeapplication/epub+zip') {
 		return 'epub';
 	}
 
-	if (buf[0] === 80 && buf[1] === 75 && (buf[2] === 3 || buf[2] === 5 || buf[2] === 7) && (buf[3] === 4 || buf[3] === 6 || buf[3] === 8)) {
+	if (buf[0] === 0x50 && buf[1] === 0x4b && (buf[2] === 0x3 || buf[2] === 0x5 || buf[2] === 0x7) && (buf[3] === 0x4 || buf[3] === 0x6 || buf[3] === 0x8)) {
 		return 'zip';
 	}
 
-	if (buf[257] === 117 && buf[258] === 115 && buf[259] === 116 && buf[260] === 97 && buf[261] === 114) {
+	if (buf[257] === 0x75 && buf[258] === 0x73 && buf[259] === 0x74 && buf[260] === 0x61 && buf[261] === 0x72) {
 		return 'tar';
 	}
 
-	if (buf[0] === 82 && buf[1] === 97 && buf[2] === 114 && buf[3] === 33 && buf[4] === 26 && buf[5] === 7 && (buf[6] === 0 || buf[6] === 1)) {
+	if (buf[0] === 0x52 && buf[1] === 0x61 && buf[2] === 0x72 && buf[3] === 0x21 && buf[4] === 0x1a && buf[5] === 0x7 && (buf[6] === 0x0 || buf[6] === 0x1)) {
 		return 'rar';
 	}
 
-	if (buf[0] === 31 && buf[1] === 139 && buf[2] === 8) {
+	if (buf[0] === 0x1f && buf[1] === 0x8b && buf[2] === 0x8) {
 		return 'gz';
 	}
 
-	if (buf[0] === 66 && buf[1] === 90 && buf[2] === 104) {
+	if (buf[0] === 0x42 && buf[1] === 0x5a && buf[2] === 0x68) {
 		return 'bz2';
 	}
 
-	if (buf[0] === 55 && buf[1] === 122 && buf[2] === 188 && buf[3] === 175 && buf[4] === 39 && buf[5] === 28) {
+	if (buf[0] === 0x37 && buf[1] === 0x7a && buf[2] === 0xbc && buf[3] === 0xaf && buf[4] === 0x27 && buf[5] === 0x1c) {
 		return '7z';
 	}
 
-	if ((buf[0] === 0 && buf[1] === 0 && buf[2] === 0 && (buf[3] === 24 || buf[3] === 32) && buf[4] === 102 && buf[5] === 116 && buf[6] === 121 && buf[7] === 112) || (buf[0] === 51 && buf[1] === 103 && buf[2] === 112 && buf[3] === 53)) {
+	if ((buf[0] === 0x0 && buf[1] === 0x0 && buf[2] === 0x0 && (buf[3] === 0x18 || buf[3] === 0x20) && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) || (buf[0] === 0x33 && buf[1] === 0x67 && buf[2] === 0x70 && buf[3] === 0x35)) {
 		return 'mp4';
 	}
 
@@ -75,11 +75,11 @@ module.exports = function (buf) {
 		return 'mkv';
 	}
 
-	if (buf[0] === 26 && buf[1] === 69 && buf[2] === 223 && buf[3] === 163) {
+	if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) {
 		return 'webm';
 	}
 
-	if (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0x00 && buf[3] === 0x14 && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) {
+	if (buf[0] === 0x0 && buf[1] === 0x0 && buf[2] === 0x0 && buf[3] === 0x14 && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) {
 		return 'mov';
 	}
 
@@ -91,43 +91,43 @@ module.exports = function (buf) {
 		return 'wmv';
 	}
 
-	if (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0x01 && buf[3].toString(16)[0] === 'b') {
+	if (buf[0] === 0x0 && buf[1] === 0x0 && buf[2] === 0x1 && buf[3].toString(16)[0] === 'b') {
 		return 'mpg';
 	}
 
-	if ((buf[0] === 73 && buf[1] === 68 && buf[2] === 51) || (buf[0] === 255 && buf[1] === 251)) {
+	if ((buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) || (buf[0] === 0xff && buf[1] === 0xfb)) {
 		return 'mp3';
 	}
 
-	if ((buf[4] === 102 && buf[5] === 116 && buf[6] === 121 && buf[7] === 112) || (buf[0] === 77 && buf[1] === 52 && buf[2] === 65 && buf[3] === 32)) {
+	if ((buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) || (buf[0] === 0x4d && buf[1] === 0x34 && buf[2] === 0x41 && buf[3] === 0x20)) {
 		return 'm4a';
 	}
 
-	if (buf[0] === 79 && buf[1] === 103 && buf[2] === 103 && buf[3] === 83) {
+	if (buf[0] === 0x4f && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53) {
 		return 'ogg';
 	}
 
-	if (buf[0] === 102 && buf[1] === 76 && buf[2] === 97 && buf[3] === 67) {
+	if (buf[0] === 0x66 && buf[1] === 0x4c && buf[2] === 0x61 && buf[3] === 0x43) {
 		return 'flac';
 	}
 
-	if (buf[0] === 82 && buf[1] === 73 && buf[2] === 70 && buf[3] === 70 && buf[8] === 87 && buf[9] === 65 && buf[10] === 86 && buf[11] === 69) {
+	if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 && buf[8] === 0x57 && buf[9] === 0x41 && buf[10] === 0x56 && buf[11] === 0x45) {
 		return 'wav';
 	}
 
-	if (buf[0] === 37 && buf[1] === 80 && buf[2] === 68 && buf[3] === 70) {
+	if (buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46) {
 		return 'pdf';
 	}
 
-	if (buf[0] === 77 && buf[1] === 90) {
+	if (buf[0] === 0x4d && buf[1] === 0x5a) {
 		return 'exe';
 	}
 
-	if ((buf[0] === 67 || buf[0] === 70) && buf[1] === 87 && buf[2] === 83) {
+	if ((buf[0] === 0x43 || buf[0] === 0x46) && buf[1] === 0x57 && buf[2] === 0x53) {
 		return 'swf';
 	}
 
-	if (buf[0] === 123 && buf[1] === 92 && buf[2] === 114 && buf[3] === 116 && buf[4] === 102) {
+	if (buf[0] === 0x7b && buf[1] === 0x5c && buf[2] === 0x72 && buf[3] === 0x74 && buf[4] === 0x66) {
 		return 'rtf';
 	}
 
