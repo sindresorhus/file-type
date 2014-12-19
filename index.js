@@ -66,8 +66,33 @@ module.exports = function (buf) {
 		return '7z';
 	}
 
-	if ((buf[0] === 0 && buf[1] === 0 && buf[2] === 0 && buf[3] === 24 && buf[4] === 102 && buf[5] === 116 && buf[6] === 121 && buf[7] === 112) || (buf[0] === 51 && buf[1] === 103 && buf[2] === 112 && buf[3] === 53)) {
+	if ((buf[0] === 0 && buf[1] === 0 && buf[2] === 0 && (buf[3] === 24 || buf[3] === 32) && buf[4] === 102 && buf[5] === 116 && buf[6] === 121 && buf[7] === 112) || (buf[0] === 51 && buf[1] === 103 && buf[2] === 112 && buf[3] === 53)) {
 		return 'mp4';
+	}
+
+	// needs to be before the `webm` check
+	if (buf.slice(31, 39).toString() === 'matroska') {
+		return 'mkv';
+	}
+
+	if (buf[0] === 26 && buf[1] === 69 && buf[2] === 223 && buf[3] === 163) {
+		return 'webm';
+	}
+
+	if (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0x00 && buf[3] === 0x14 && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) {
+		return 'mov';
+	}
+
+	if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 && buf[8] === 0x41 && buf[9] === 0x56 && buf[10] === 0x49) {
+		return 'avi';
+	}
+
+	if (buf[0] === 0x30 && buf[1] === 0x26 && buf[2] === 0xb2 && buf[3] === 0x75 && buf[4] === 0x8e && buf[5] === 0x66 && buf[6] === 0xcf && buf[7] === 0x11 && buf[8] === 0xa6 && buf[9] === 0xd9) {
+		return 'wmv';
+	}
+
+	if (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0x01 && buf[3].toString(16)[0] === 'b') {
+		return 'mpg';
 	}
 
 	if ((buf[0] === 73 && buf[1] === 68 && buf[2] === 51) || (buf[0] === 255 && buf[1] === 251)) {

@@ -105,6 +105,12 @@ $ file-type --help
 - `gz`
 - `bz2`
 - `7z`
+- `mp4`
+- `mkv`
+- `webm`
+- `mov`
+- `avi`
+- `mpg`
 - `mp3`
 - `m4a`
 - `ogg`
@@ -113,7 +119,6 @@ $ file-type --help
 - `pdf`
 - `epub`
 - `exe`
-- `mp4`
 - `swf`
 - `rtf`
 
