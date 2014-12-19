@@ -6,7 +6,7 @@ var fileType = require('./');
 
 function check(ext, name) {
 	var file = path.join(__dirname, 'fixture', (name || 'fixture') + '.' + ext);
-	return fileType(readChunk.sync(file, 0, 262));
+	return fileType(readChunk.sync(file, 0, 262)).ext;
 }
 
 test('detect file type from a buffer', function (t) {
