@@ -22,7 +22,7 @@ var fileType = require('file-type');
 var buffer = readChunk.sync('unicorn.png', 0, 262);
 
 fileType(buffer);
-//=> png
+//=> {ext: 'png', mime: 'image/png'}
 ```
 
 or from a remote location:
@@ -36,7 +36,7 @@ http.get(url, function (res) {
 	res.once('data', function (chunk) {
 		res.destroy();
 		console.log(fileType(chunk));
-		//=> gif
+		//=> {ext: 'gif', mime: 'image/gif'}
 	});
 });
 ```
@@ -50,7 +50,7 @@ xhr.responseType = 'arraybuffer';
 
 xhr.onload = function () {
 	fileType(new Uint8Array(this.response));
-	//=> png
+	//=> {ext: 'png', mime: 'image/png'}
 };
 
 xhr.send();
@@ -61,7 +61,10 @@ xhr.send();
 
 ### fileType(buffer)
 
-Returns one of the [supported file types](#supported-file-types) or `null`.
+Returns an object (or `null` when no match) with:
+
+- `ext` - one of the [supported file types](#supported-file-types)
+- `mime` - the [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
 
 #### buffer
 
