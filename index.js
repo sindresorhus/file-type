@@ -7,7 +7,7 @@ module.exports = function (buf) {
 	if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
 		return {
 			ext: 'jpg',
-			mime: 'image/jpg'
+			mime: 'image/jpeg'
 		};
 	}
 
