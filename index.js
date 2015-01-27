@@ -50,7 +50,7 @@ module.exports = function (buf) {
 		return {
 			ext: 'jxr',
 			mime: 'image/vnd.ms-photo'
-		}
+		};
 	}
 
 	if (buf[0] === 0x38 && buf[1] === 0x42 && buf[2] === 0x50 && buf[3] === 0x53) {
@@ -119,7 +119,7 @@ module.exports = function (buf) {
 	}
 
 	// needs to be before the `webm` check
-	if (buf.slice(31, 39).toString() === 'matroska') {
+	if (buf[31] === 0x6d && buf[32] === 0x61 && buf[33] === 0x74 && buf[34] === 0x72 && buf[35] === 0x6f && buf[36] === 0x73 && buf[37] === 0x6b && buf[38] === 0x61) {
 		return {
 			ext: 'mkv',
 			mime: 'video/x-matroska'
@@ -172,7 +172,7 @@ module.exports = function (buf) {
 		return {
 			ext: 'm4a',
 			mime: 'audio/m4a'
-		}
+		};
 	}
 
 	if (buf[0] === 0x4f && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53) {
