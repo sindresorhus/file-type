@@ -223,5 +223,29 @@ module.exports = function (buf) {
 		};
 	}
 
+	// http://www.w3.org/TR/WOFF/#WOFFHeader
+	if (buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x46 && buf[4] === 0x00 && buf[5] === 0x01 && buf[6] === 0x00 && buf[7] === 0x00) {
+		return {
+			ext: 'woff',
+			mime: 'application/x-font-woff'
+		};
+	}
+
+	// http://www.w3.org/TR/WOFF2/#woff20Header
+	if (buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32 && buf[4] === 0x00 && buf[5] === 0x01 && buf[6] === 0x00 && buf[7] === 0x00) {
+		return {
+			ext: 'woff2',
+			mime: 'application/x-font-woff'
+		};
+	}
+
+	// http://www.w3.org/Submission/EOT/#FileFormat
+	if (buf[34] === 0x4c && buf[35] === 0x50 && ((buf[8] === 0x02 && buf[9] === 0x00 && buf[10] === 0x01) || (buf[8] === 0x01 && buf[9] === 0x00 && buf[10] === 0x00) || (buf[8] === 0x02 && buf[9] === 0x00 && buf[10] === 0x02))) {
+		return {
+			ext: 'eot',
+			mime: 'application/octet-stream'
+		};
+	}
+
 	return null;
 };

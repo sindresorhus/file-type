@@ -9,38 +9,65 @@ function check(ext, name) {
 	return fileType(readChunk.sync(file, 0, 262)).ext;
 }
 
-test('detect file type from a buffer', function (t) {
-	t.assert(check('jpg') === 'jpg');
-	t.assert(check('png') === 'png');
-	t.assert(check('gif') === 'gif');
-	t.assert(check('webp') === 'webp');
-	t.assert(check('tif', 'fixture-big-endian') === 'tif');
-	t.assert(check('tif', 'fixture-little-endian') === 'tif');
-	t.assert(check('bmp') === 'bmp');
-	t.assert(check('jxr') === 'jxr');
-	t.assert(check('psd') === 'psd');
-	t.assert(check('zip') === 'zip');
-	t.assert(check('tar') === 'tar');
-	t.assert(check('rar') === 'rar');
-	t.assert(check('tar.gz') === 'gz');
-	t.assert(check('bz2') === 'bz2');
-	t.assert(check('7z') === '7z');
-	t.assert(check('mp4') === 'mp4');
-	t.assert(check('mkv') === 'mkv');
-	t.assert(check('webm') === 'webm');
-	t.assert(check('mov') === 'mov');
-	t.assert(check('avi') === 'avi');
-	t.assert(check('mpg') === 'mpg');
-	t.assert(check('wmv') === 'wmv');
-	t.assert(check('mp3') === 'mp3');
-	t.assert(check('m4a') === 'm4a');
-	t.assert(check('ogg') === 'ogg');
-	t.assert(check('flac') === 'flac');
-	t.assert(check('wav') === 'wav');
-	t.assert(check('pdf') === 'pdf');
-	t.assert(check('epub') === 'epub');
-	t.assert(check('exe') === 'exe');
-	t.assert(check('swf') === 'swf');
-	t.assert(check('rtf') === 'rtf');
-	t.end();
+var types = [
+	'jpg',
+	'png',
+	'gif',
+	'webp',
+	'tif',
+	'bmp',
+	'jxr',
+	'psd',
+	'zip',
+	'tar',
+	'rar',
+	'gz',
+	'bz2',
+	'7z',
+	'mp4',
+	'mkv',
+	'webm',
+	'mov',
+	'avi',
+	'wmv',
+	'mpg',
+	'mp3',
+	'm4a',
+	'ogg',
+	'flac',
+	'wav',
+	'pdf',
+	'epub',
+	'exe',
+	'swf',
+	'rtf',
+	'woff',
+	'woff2',
+	'eot'
+];
+
+var names = {
+	'tif': ['fixture-big-endian', 'fixture-little-endian'],
+	'gz': ['fixture.tar']
+};
+
+function testFile(type, name) {
+	test('detect file type .' + type + ' from a buffer', function(t) {
+		t.assert(check(type, name) === type);
+		t.end();
+	});
+}
+
+types.forEach(function(type) {
+
+	if (names.hasOwnProperty(type)) {
+
+		names[type].forEach(function(name) {
+			testFile(type, name);
+		});
+
+	} else {
+		testFile(type);
+	}
+
 });
