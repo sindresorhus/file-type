@@ -113,6 +113,7 @@ $ file-type --help
 - `webm`
 - `mov`
 - `avi`
+- `wmv`
 - `mpg`
 - `mp3`
 - `m4a`
@@ -124,6 +125,9 @@ $ file-type --help
 - `exe`
 - `swf`
 - `rtf`
+- `woff`
+- `woff2`
+- `eot`
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
