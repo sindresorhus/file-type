@@ -77,7 +77,9 @@
     "rtf",
     "woff",
     "woff2",
-    "eot"
+    "eot",
+    "ttf",
+    "otf"
   ],
   "dependencies": {
     "meow": "^3.0.0"
