@@ -43,7 +43,9 @@ var types = [
 	'rtf',
 	'woff',
 	'woff2',
-	'eot'
+	'eot',
+	'ttf',
+	'otf'
 ];
 
 var names = {
