@@ -52,22 +52,18 @@ var names = {
 };
 
 function testFile(type, name) {
-	test('detect file type .' + type + ' from a buffer', function(t) {
+	test(type, function (t) {
 		t.assert(check(type, name) === type);
 		t.end();
 	});
 }
 
-types.forEach(function(type) {
-
+types.forEach(function (type) {
 	if (names.hasOwnProperty(type)) {
-
-		names[type].forEach(function(name) {
+		names[type].forEach(function (name) {
 			testFile(type, name);
 		});
-
 	} else {
 		testFile(type);
 	}
-
 });

@@ -7,7 +7,7 @@
   "author": {
     "name": "Sindre Sorhus",
     "email": "sindresorhus@gmail.com",
-    "url": "http://sindresorhus.com"
+    "url": "sindresorhus.com"
   },
   "bin": {
     "file-type": "cli.js"
@@ -80,7 +80,7 @@
     "eot"
   ],
   "dependencies": {
-    "meow": "^2.0.0"
+    "meow": "^3.0.0"
   },
   "devDependencies": {
     "ava": "0.0.4",

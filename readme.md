@@ -7,7 +7,7 @@ The file type is detected by checking the [magic number](http://en.wikipedia.org
 
 ## Install
 
-```sh
+```
 $ npm install --save file-type
 ```
 
@@ -75,7 +75,7 @@ It only needs the first 262 bytes.
 
 ## CLI
 
-```sh
+```
 $ npm install --global file-type
 ```
 
