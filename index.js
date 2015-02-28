@@ -258,5 +258,12 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x00 && buf[1] === 0x00 && buf[2] === 0x01 && buf[3] === 0x00) {
+		return {
+			ext: 'ico',
+			mime: 'image/x-icon'
+		};
+	}
+
 	return null;
 };

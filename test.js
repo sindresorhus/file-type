@@ -45,7 +45,8 @@ var types = [
 	'woff2',
 	'eot',
 	'ttf',
-	'otf'
+	'otf',
+	'ico'
 ];
 
 var names = {
