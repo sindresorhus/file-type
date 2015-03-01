@@ -130,6 +130,7 @@ $ file-type --help
 - `eot`
 - `ttf`
 - `otf`
+- `ico`
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
