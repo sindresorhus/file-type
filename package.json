@@ -80,7 +80,8 @@
     "eot",
     "ttf",
     "otf",
-    "ico"
+    "ico",
+    "flv"
   ],
   "dependencies": {
     "meow": "^3.0.0"
