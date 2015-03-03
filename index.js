@@ -265,5 +265,12 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x46 && buf[1] === 0x4c && buf[2] === 0x56 && buf[3] === 0x01) {
+		return {
+			ext: 'flv',
+			mime: 'video/x-flv'
+		};
+	}
+
 	return null;
 };
