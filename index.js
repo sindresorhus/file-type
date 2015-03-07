@@ -272,5 +272,12 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x25 && buf[1] === 0x21) {
+		return {
+			ext: 'ps',
+			mime: 'application/postscript'
+		};
+	}
+
 	return null;
 };

@@ -47,7 +47,8 @@ var types = [
 	'ttf',
 	'otf',
 	'ico',
-	'flv'
+	'flv',
+	'ps'
 ];
 
 var names = {

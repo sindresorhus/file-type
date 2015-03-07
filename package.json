@@ -81,7 +81,8 @@
     "ttf",
     "otf",
     "ico",
-    "flv"
+    "flv",
+    "ps"
   ],
   "dependencies": {
     "meow": "^3.0.0"
