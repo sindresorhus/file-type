@@ -48,12 +48,14 @@ var types = [
 	'otf',
 	'ico',
 	'flv',
-	'ps'
+	'ps',
+	'xz'
 ];
 
 var names = {
 	'tif': ['fixture-big-endian', 'fixture-little-endian'],
-	'gz': ['fixture.tar']
+	'gz': ['fixture.tar'],
+	'xz': ['fixture.tar']
 };
 
 function testFile(type, name) {
