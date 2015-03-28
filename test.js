@@ -53,9 +53,9 @@ var types = [
 ];
 
 var names = {
-	'tif': ['fixture-big-endian', 'fixture-little-endian'],
-	'gz': ['fixture.tar'],
-	'xz': ['fixture.tar']
+	tif: ['fixture-big-endian', 'fixture-little-endian'],
+	gz: ['fixture.tar'],
+	xz: ['fixture.tar']
 };
 
 function testFile(type, name) {
