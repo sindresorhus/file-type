@@ -9,9 +9,7 @@
     "email": "sindresorhus@gmail.com",
     "url": "sindresorhus.com"
   },
-  "bin": {
-    "file-type": "cli.js"
-  },
+  "bin": "cli.js",
   "engines": {
     "node": ">=0.10.0"
   },
@@ -23,6 +21,8 @@
     "cli.js"
   ],
   "keywords": [
+    "cli-app",
+    "cli",
     "mime",
     "file",
     "type",
@@ -43,8 +43,6 @@
     "binary",
     "buffer",
     "uint8array",
-    "cli",
-    "bin",
     "jpg",
     "png",
     "gif",
