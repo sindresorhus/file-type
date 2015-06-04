@@ -31,6 +31,7 @@ var types = [
 	'avi',
 	'wmv',
 	'mpg',
+	'm4v',
 	'mp3',
 	'm4a',
 	'ogg',
