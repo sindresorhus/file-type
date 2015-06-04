@@ -109,6 +109,7 @@ $ file-type --help
 - `bz2`
 - `7z`
 - `mp4`
+- `m4v`
 - `mkv`
 - `webm`
 - `mov`

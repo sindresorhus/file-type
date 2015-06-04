@@ -25,6 +25,7 @@ var types = [
 	'bz2',
 	'7z',
 	'mp4',
+	'm4v',
 	'mkv',
 	'webm',
 	'mov',
