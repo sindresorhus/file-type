@@ -131,6 +131,13 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x4D && buf[1] === 0x54 && buf[2] === 0x68 && buf[3] === 0x64) {
+		return {
+			ext: 'mid',
+			mime: 'audio/midi'
+		};
+	}
+
 	// needs to be before the `webm` check
 	if (buf[31] === 0x6D && buf[32] === 0x61 && buf[33] === 0x74 && buf[34] === 0x72 && buf[35] === 0x6f && buf[36] === 0x73 && buf[37] === 0x6B && buf[38] === 0x61) {
 		return {
