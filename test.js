@@ -14,6 +14,7 @@ var types = [
 	'png',
 	'gif',
 	'webp',
+	'CR2',
 	'tif',
 	'bmp',
 	'jxr',
