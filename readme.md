@@ -98,6 +98,7 @@ $ file-type --help
 - `png`
 - `gif`
 - `webp`
+- `cr2`
 - `tif`
 - `bmp`
 - `jxr`
