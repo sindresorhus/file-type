@@ -28,6 +28,7 @@ var types = [
 	'7z',
 	'mp4',
 	'm4v',
+	'mid',
 	'mkv',
 	'webm',
 	'mov',
