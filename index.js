@@ -70,8 +70,8 @@ module.exports = function (buf) {
 
 	if (buf[0] === 0x53 && buf[1] === 0x51 && buf[2] === 0x4C && buf[3] === 0x69) {
 		return {
-			ext: 'sketch',
-			mime: 'application/octet-stream'
+			ext: 'sqlite',
+			mime: 'application/x-sqlite3'
 		};
 	}
 
