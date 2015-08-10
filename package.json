@@ -52,7 +52,6 @@
     "bmp",
     "jxr",
     "psd",
-    "sketch",
     "zip",
     "tar",
     "rar",
@@ -85,7 +84,8 @@
     "ico",
     "flv",
     "ps",
-    "xz"
+    "xz",
+    "sqlite"
   ],
   "dependencies": {
     "meow": "^3.3.0"

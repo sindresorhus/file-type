@@ -19,7 +19,6 @@ var types = [
 	'bmp',
 	'jxr',
 	'psd',
-	'sketch',
 	'zip',
 	'tar',
 	'rar',
@@ -53,7 +52,8 @@ var types = [
 	'ico',
 	'flv',
 	'ps',
-	'xz'
+	'xz',
+	'sqlite'
 ];
 
 var names = {

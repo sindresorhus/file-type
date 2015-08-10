@@ -103,7 +103,6 @@ $ file-type --help
 - `bmp`
 - `jxr`
 - `psd`
-- `sketch`
 - `zip`
 - `tar`
 - `rar`
@@ -138,6 +137,7 @@ $ file-type --help
 - `flv`
 - `ps`
 - `xz`
+- `sqlite`
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
