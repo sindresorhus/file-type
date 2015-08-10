@@ -19,7 +19,7 @@ var types = [
 	'bmp',
 	'jxr',
 	'psd',
-	'sketch',
+	'sqlite',
 	'zip',
 	'tar',
 	'rar',
