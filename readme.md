@@ -79,7 +79,7 @@ It only needs the first 262 bytes.
 $ npm install --global file-type
 ```
 
-```sh
+```
 $ file-type --help
 
   Usage
