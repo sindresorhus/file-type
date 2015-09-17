@@ -57,6 +57,7 @@ var types = [
 ];
 
 var names = {
+	mp4: ['fixture-imovie'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
 	xz: ['fixture.tar']
