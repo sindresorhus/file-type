@@ -1,15 +1,14 @@
-'use strict';
-var path = require('path');
-var test = require('ava');
-var readChunk = require('read-chunk');
-var fileType = require('./');
+import path from 'path';
+import test from 'ava';
+import readChunk from 'read-chunk';
+import fileType from './';
 
 function check(ext, name) {
-	var file = path.join(__dirname, 'fixture', (name || 'fixture') + '.' + ext);
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 	return fileType(readChunk.sync(file, 0, 262)).ext;
 }
 
-var types = [
+const types = [
 	'jpg',
 	'png',
 	'gif',
@@ -56,7 +55,7 @@ var types = [
 	'sqlite'
 ];
 
-var names = {
+const names = {
 	mp4: ['fixture-imovie'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
@@ -64,17 +63,15 @@ var names = {
 };
 
 function testFile(type, name) {
-	test(type, function (t) {
-		t.assert(check(type, name) === type);
+	test(type, t => {
+		t.is(check(type, name), type);
 		t.end();
 	});
 }
 
-types.forEach(function (type) {
+types.forEach(type => {
 	if (names.hasOwnProperty(type)) {
-		names[type].forEach(function (name) {
-			testFile(type, name);
-		});
+		names[type].forEach(name => testFile(type, name));
 	} else {
 		testFile(type);
 	}
