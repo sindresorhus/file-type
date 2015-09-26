@@ -24,6 +24,7 @@ const types = [
 	'gz',
 	'bz2',
 	'7z',
+	'dmg',
 	'mp4',
 	'm4v',
 	'mid',
