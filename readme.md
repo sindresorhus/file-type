@@ -73,25 +73,6 @@ Type: `buffer` *(Node.js)*, `uint8array`
 It only needs the first 262 bytes.
 
 
-## CLI
-
-```
-$ npm install --global file-type
-```
-
-```
-$ file-type --help
-
-  Usage
-    file-type <filename>
-    cat <filename> | file-type
-
-  Example
-    cat unicorn.png | file-type
-    png
-```
-
-
 ## Supported file types
 
 - `jpg`
@@ -143,6 +124,11 @@ $ file-type --help
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
 *PR welcome for additional commonly used file types.*
+
+
+## Related
+
+- [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
 
 
 ## License

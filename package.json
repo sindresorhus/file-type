@@ -9,7 +9,6 @@
     "email": "sindresorhus@gmail.com",
     "url": "sindresorhus.com"
   },
-  "bin": "cli.js",
   "engines": {
     "node": ">=0.10.0"
   },
@@ -17,12 +16,9 @@
     "test": "xo && ava"
   },
   "files": [
-    "index.js",
-    "cli.js"
+    "index.js"
   ],
   "keywords": [
-    "cli-app",
-    "cli",
     "mime",
     "file",
     "type",
@@ -88,12 +84,9 @@
     "xz",
     "sqlite"
   ],
-  "dependencies": {
-    "meow": "^3.3.0",
-    "read-chunk": "^1.0.1"
-  },
   "devDependencies": {
     "ava": "*",
+    "read-chunk": "^1.0.1",
     "xo": "*"
   }
 }
