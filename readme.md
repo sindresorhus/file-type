@@ -17,9 +17,9 @@ $ npm install --save file-type
 ##### Node.js
 
 ```js
-var readChunk = require('read-chunk'); // npm install read-chunk
-var fileType = require('file-type');
-var buffer = readChunk.sync('unicorn.png', 0, 262);
+const readChunk = require('read-chunk'); // npm install read-chunk
+const fileType = require('file-type');
+const buffer = readChunk.sync('unicorn.png', 0, 262);
 
 fileType(buffer);
 //=> {ext: 'png', mime: 'image/png'}
@@ -28,12 +28,12 @@ fileType(buffer);
 or from a remote location:
 
 ```js
-var http = require('http');
-var fileType = require('file-type');
-var url = 'http://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
+const http = require('http');
+const fileType = require('file-type');
+const url = 'http://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
 
-http.get(url, function (res) {
-	res.once('data', function (chunk) {
+http.get(url, res => {
+	res.once('data', chunk => {
 		res.destroy();
 		console.log(fileType(chunk));
 		//=> {ext: 'gif', mime: 'image/gif'}
@@ -44,11 +44,11 @@ http.get(url, function (res) {
 ##### Browser
 
 ```js
-var xhr = new XMLHttpRequest();
+const xhr = new XMLHttpRequest();
 xhr.open('GET', 'unicorn.png');
 xhr.responseType = 'arraybuffer';
 
-xhr.onload = function () {
+xhr.onload = () => {
 	fileType(new Uint8Array(this.response));
 	//=> {ext: 'png', mime: 'image/png'}
 };
