@@ -105,6 +105,7 @@ It only needs the first 262 bytes.
 - `ogg`
 - `flac`
 - `wav`
+- `amr`
 - `pdf`
 - `epub`
 - `exe`
