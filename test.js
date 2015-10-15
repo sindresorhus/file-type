@@ -39,6 +39,7 @@ const types = [
 	'ogg',
 	'flac',
 	'wav',
+	'amr',
 	'pdf',
 	'epub',
 	'exe',

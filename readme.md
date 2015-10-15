@@ -105,6 +105,7 @@ It only needs the first 262 bytes.
 - `ogg`
 - `flac`
 - `wav`
+- [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec)
 - `pdf`
 - `epub`
 - `exe`
