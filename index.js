@@ -334,5 +334,19 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x4E && buf[1] === 0x45 && buf[2] === 0x53 && buf[3] === 0x1A) {
+		return {
+			ext: 'nes',
+			mime: 'application/x-nintendo-nes-rom'
+		};
+	}
+
+	if (buf[0] === 0x43 && buf[1] === 0x72 && buf[2] === 0x32 && buf[3] === 0x34) {
+		return {
+			ext: 'crx',
+			mime: 'application/x-google-chrome-extension'
+		};
+	}
+
 	return null;
 };
