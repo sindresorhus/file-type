@@ -58,7 +58,7 @@ const types = [
 ];
 
 const names = {
-	mp4: ['fixture-imovie'],
+	mp4: ['fixture-imovie', 'fixture-isom'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
 	xz: ['fixture.tar']
