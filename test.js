@@ -54,7 +54,8 @@ const types = [
 	'flv',
 	'ps',
 	'xz',
-	'sqlite'
+	'sqlite',
+	'nes'
 ];
 
 const names = {
