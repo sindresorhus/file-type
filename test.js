@@ -55,7 +55,8 @@ const types = [
 	'ps',
 	'xz',
 	'sqlite',
-	'nes'
+	'nes',
+	'crx'
 ];
 
 const names = {
