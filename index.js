@@ -1,6 +1,3 @@
-// notes:
-// for compound types, order matters for the first few bytes
-
 'use strict';
 module.exports = function (buf) {
 	if (!(buf && buf.length > 1)) {
