@@ -370,11 +370,20 @@ module.exports = function (buf) {
 		};
 	}
 
+	// needs to be before 'ar' check
 	// sig for deb (as:!<arch> debian-binary): 21 3C 61 72 63 68 3E 0A 64 65 62 69 61 6E 2D 62 69 6E 61 72 79
 	if (buf[0] === 0x21 && buf[1] === 0x3C && buf[2] === 0x61 && buf[3] === 0x72 && buf[4] === 0x63 && buf[5] === 0x68 && buf[6] === 0x3E && buf[7] === 0x0A && buf[8] === 0x64 && buf[9] === 0x65 && buf[10] === 0x62 && buf[11] === 0x69 && buf[12] === 0x61 && buf[13] === 0x6E && buf[14] === 0x2D && buf[15] === 0x62 && buf[16] === 0x69 && buf[17] === 0x6E && buf[18] === 0x61 && buf[19] === 0x72 && buf[20] === 0x79) {
 		return {
 			ext: 'deb',
 			mime: 'application/x-deb'
+		};
+	}
+
+	// sig for ar (as: !<arch>): 21 3C 61 72 63 68 3E
+	if (buf[0] === 0x21 && buf[1] === 0x3C && buf[2] === 0x61 && buf[3] === 0x72 && buf[4] === 0x63 && buf[5] === 0x68 && buf[6] === 0x3E) {
+		return {
+			ext: 'ar',
+			mime: 'application/x-unix-archive'
 		};
 	}
 

@@ -59,7 +59,8 @@ const types = [
 	'crx',
 	'xpi',
 	'cab',
-	'deb'
+	'deb',
+	'ar'
 ];
 
 const names = {
