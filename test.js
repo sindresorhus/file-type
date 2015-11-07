@@ -57,7 +57,9 @@ const types = [
 	'sqlite',
 	'nes',
 	'crx',
-    'xpi',
+	'xpi',
+	'cab',
+	'deb'
 ];
 
 const names = {
