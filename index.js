@@ -1,3 +1,6 @@
+// notes:
+// for compound types, order matters for the first few bytes
+
 'use strict';
 module.exports = function (buf) {
 	if (!(buf && buf.length > 1)) {
@@ -73,6 +76,15 @@ module.exports = function (buf) {
 		return {
 			ext: 'epub',
 			mime: 'application/epub+zip'
+		};
+	}
+
+    // Assumes signed .xpi from addons.mozilla.org
+    // tests for META-INF/mozilla.rsa (offset 30)
+    if (buf[0] === 0x50 && buf[1] === 0x4B && buf[2] === 0x3 && buf[3] === 0x4 && buf[30] === 0x4D && buf[31] === 0x45 && buf[32] === 0x54 && buf[33] === 0x41 && buf[34] === 0x2D && buf[35] === 0x49 && buf[36] === 0x4E && buf[37] === 0x46 && buf[38] === 0x2F && buf[39] === 0x6D && buf[40] === 0x6F && buf[41] === 0x7A && buf[42] === 0x69 && buf[43] === 0x6C && buf[44] === 0x6C && buf[45] === 0x61 && buf[46] === 0x2E && buf[47] === 0x72 && buf[48] === 0x73 && buf[49] === 0x61) {
+		return {
+			ext: 'xpi',
+			mime: 'application/x-xpinstall'
 		};
 	}
 
