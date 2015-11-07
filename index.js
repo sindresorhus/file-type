@@ -97,7 +97,8 @@ module.exports = function (buf) {
 
 	if (buf[257] === 0x75 && buf[258] === 0x73 && buf[259] === 0x74 && buf[260] === 0x61 && buf[261] === 0x72) {
 		return {
-			ext: 'tar', mime: 'application/x-tar'
+			ext: 'tar',
+			mime: 'application/x-tar'
 		};
 	}
 
