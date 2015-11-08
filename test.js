@@ -56,14 +56,22 @@ const types = [
 	'xz',
 	'sqlite',
 	'nes',
-	'crx'
+	'crx',
+	'xpi',
+	'cab',
+	'deb',
+	'ar',
+	'Z',
+	'lz'
 ];
 
 const names = {
 	mp4: ['fixture-imovie', 'fixture-isom'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
-	xz: ['fixture.tar']
+	xz: ['fixture.tar'],
+	lz: ['fixture.tar'],
+	Z: ['fixture.tar']
 };
 
 function testFile(type, name) {
