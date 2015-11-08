@@ -83,7 +83,13 @@
     "flv",
     "ps",
     "xz",
-    "sqlite"
+    "sqlite",
+    "xpi",
+    "cab",
+    "deb",
+    "ar",
+    "Z",
+    "lz"
   ],
   "devDependencies": {
     "ava": "*",
