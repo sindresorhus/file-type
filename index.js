@@ -290,9 +290,9 @@ module.exports = function (buf) {
 	if (
 		(buf[34] === 0x4C && buf[35] === 0x50) &&
 		(
-			buf.readUInt32LE(8) === 0x10000 ||
-			buf.readUInt32LE(8) === 0x20001 ||
-			buf.readUInt32LE(8) === 0x20002
+			(buf[8] === 0x00 && buf[9] === 0x00 && buf[10] === 0x01) ||
+			(buf[8] === 0x01 && buf[9] === 0x00 && buf[10] === 0x02) ||
+			(buf[8] === 0x02 && buf[9] === 0x00 && buf[10] === 0x02)
 		)
 	) {
 		return {
