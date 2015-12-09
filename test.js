@@ -80,7 +80,6 @@ const names = {
 function testFile(type, name) {
 	test(type, t => {
 		t.is(check(type, name), type);
-		t.end();
 	});
 }
 
