@@ -13,7 +13,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "xo && ava"
+    "test": "./node_modules/xo/cli.js && ./node_modules/ava/cli.js"
   },
   "files": [
     "index.js"
@@ -92,8 +92,8 @@
     "lz"
   ],
   "devDependencies": {
-    "ava": "*",
+    "ava": "^0.9.1",
     "read-chunk": "^1.0.1",
-    "xo": "*"
+    "xo": "^0.12.1"
   }
 }
