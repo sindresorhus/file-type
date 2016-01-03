@@ -69,7 +69,7 @@ const types = [
 
 const names = {
 	eot: ['fixture', 'fixture-0x20001'],
-	mp4: ['fixture-imovie', 'fixture-isom'],
+	mp4: ['fixture-imovie', 'fixture-isom', 'fixture-isomv2'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
 	xz: ['fixture.tar'],
