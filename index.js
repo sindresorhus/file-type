@@ -390,6 +390,13 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0xED && buf[1] === 0xAB && buf[2] === 0xEE && buf[3] === 0xDB) {
+		return {
+			ext: 'rpm',
+			mime: 'application/x-rpm'
+		};
+	}
+
 	if (
 		(buf[0] === 0x1F && buf[1] === 0xA0) ||
 		(buf[0] === 0x1F && buf[1] === 0x9D)

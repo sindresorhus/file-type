@@ -63,6 +63,7 @@ const types = [
 	'cab',
 	'deb',
 	'ar',
+	'rpm',
 	'Z',
 	'lz'
 ];

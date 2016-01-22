@@ -127,6 +127,7 @@ It only needs the first 262 bytes.
 - `cab`
 - `deb`
 - `ar`
+- `rpm`
 - `Z`
 - `lz`
 
