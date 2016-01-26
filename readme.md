@@ -130,6 +130,7 @@ It only needs the first 262 bytes.
 - `rpm`
 - `Z`
 - `lz`
+- [`msi`](http://www.filesignatures.net/index.php?page=search&search=MSI&mode=EXT)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 

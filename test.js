@@ -65,7 +65,8 @@ const types = [
 	'ar',
 	'rpm',
 	'Z',
-	'lz'
+	'lz',
+	'msi'
 ];
 
 const names = {
