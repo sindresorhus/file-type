@@ -90,7 +90,8 @@
     "ar",
     "rpm",
     "Z",
-    "lz"
+    "lz",
+    "msi"
   ],
   "devDependencies": {
     "ava": "*",
