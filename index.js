@@ -218,6 +218,14 @@ module.exports = function (buf) {
 		};
 	}
 
+	// needs to be before `ogg` check
+	if (buf[28] === 0x4F && buf[29] === 0x70 && buf[30] === 0x75 && buf[31] === 0x73 && buf[32] === 0x48 && buf[33] === 0x65 && buf[34] === 0x61 && buf[35] === 0x64) {
+		return {
+			ext: 'opus',
+			mime: 'audio/ogg; codecs=opus'
+		};
+	}
+
 	if (buf[0] === 0x4F && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53) {
 		return {
 			ext: 'ogg',

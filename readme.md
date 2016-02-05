@@ -103,6 +103,7 @@ It only needs the first 262 bytes.
 - [`mp3`](https://en.wikipedia.org/wiki/MP3)
 - [`m4a`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#.MP4_versus_.M4A)
 - [`ogg`](https://en.wikipedia.org/wiki/Ogg)
+- [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format))
 - [`flac`](https://en.wikipedia.org/wiki/FLAC)
 - [`wav`](https://en.wikipedia.org/wiki/WAV)
 - [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec)
