@@ -39,6 +39,7 @@ const types = [
 	'mp3',
 	'm4a',
 	'ogg',
+	'opus',
 	'flac',
 	'wav',
 	'amr',
