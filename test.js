@@ -71,6 +71,8 @@ const types = [
 ];
 
 const names = {
+	woff2: ['fixture', 'fixture-otto'],
+	woff: ['fixture', 'fixture-otto'],
 	eot: ['fixture', 'fixture-0x20001'],
 	mp4: ['fixture-imovie', 'fixture-isom', 'fixture-isomv2'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
