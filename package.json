@@ -102,8 +102,8 @@
     "xo": "*"
   },
   "dependencies": {
-    "is-docx": "0.0.2",
-    "is-pptx": "0.0.1",
-    "is-xlsx": "0.0.1"
+    "is-docx": "0.0.3",
+    "is-pptx": "0.0.2",
+    "is-xlsx": "0.0.2"
   }
 }
