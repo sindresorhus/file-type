@@ -1,4 +1,9 @@
 'use strict';
+
+var isDocx = require('is-docx');
+var isPptx = require('is-pptx');
+var isXlsx = require('is-xlsx');
+
 module.exports = function (buf) {
 	if (!(buf && buf.length > 1)) {
 		return null;
@@ -82,6 +87,30 @@ module.exports = function (buf) {
 		return {
 			ext: 'xpi',
 			mime: 'application/x-xpinstall'
+		};
+	}
+
+	// needs to be before `zip` check
+	if (isDocx(buf)) {
+		return {
+			ext: 'docx',
+			mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+		};
+	}
+
+	// needs to be before `zip` check
+	if (isPptx(buf)) {
+		return {
+			ext: 'pptx',
+			mime: '	application/vnd.openxmlformats-officedocument.presentationml.presentation'
+		};
+	}
+
+	// needs to be before `zip` check
+	if (isXlsx(buf)) {
+		return {
+			ext: 'xlsx',
+			mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 		};
 	}
 

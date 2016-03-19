@@ -1,11 +1,11 @@
 import path from 'path';
 import test from 'ava';
-import readChunk from 'read-chunk';
+import fs from 'fs';
 import fileType from './';
 
 function check(ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const fileInfo = fileType(readChunk.sync(file, 0, 262)) || {};
+	const fileInfo = fileType(fs.readFileSync(file)) || {};
 
 	return fileInfo.ext;
 }
@@ -67,7 +67,10 @@ const types = [
 	'rpm',
 	'Z',
 	'lz',
-	'msi'
+	'msi',
+	'docx',
+	'xlsx',
+	'pptx'
 ];
 
 const names = {

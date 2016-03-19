@@ -132,6 +132,7 @@ It only needs the first 262 bytes.
 - [`Z`](http://fileinfo.com/extension/z)
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
 - [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
+- [`docx`, `xlsx`, `pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
