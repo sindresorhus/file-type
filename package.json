@@ -92,11 +92,18 @@
     "rpm",
     "Z",
     "lz",
-    "msi"
+    "msi",
+    "docx",
+    "pptx",
+    "xlsx"
   ],
   "devDependencies": {
     "ava": "*",
-    "read-chunk": "^1.0.1",
     "xo": "*"
+  },
+  "dependencies": {
+    "is-docx": "0.0.3",
+    "is-pptx": "0.0.2",
+    "is-xlsx": "0.0.2"
   }
 }
