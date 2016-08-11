@@ -61,14 +61,14 @@ xhr.send();
 
 ### fileType(buffer)
 
-Returns an object (or `null` when no match) with:
+Returns an `Object` (or `null` when no match) with:
 
 - `ext` - one of the [supported file types](#supported-file-types)
 - `mime` - the [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
 
 #### buffer
 
-Type: `buffer` *(Node.js)*, `uint8array`
+Type: `Buffer` `Uint8Array`
 
 It only needs the first 262 bytes.
 
@@ -145,4 +145,4 @@ It only needs the first 262 bytes.
 
 ## License
 
-MIT © [Sindre Sorhus](http://sindresorhus.com)
+MIT © [Sindre Sorhus](https://sindresorhus.com)

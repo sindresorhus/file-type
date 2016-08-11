@@ -89,7 +89,7 @@ function testFile(type, name) {
 }
 
 types.forEach(type => {
-	if (names.hasOwnProperty(type)) {
+	if ({}.hasOwnProperty.call(names, type)) {
 		names[type].forEach(name => testFile(type, name));
 	} else {
 		testFile(type);

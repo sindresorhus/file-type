@@ -96,7 +96,7 @@
   ],
   "devDependencies": {
     "ava": "*",
-    "read-chunk": "^1.0.1",
+    "read-chunk": "^2.0.0",
     "xo": "*"
   }
 }
