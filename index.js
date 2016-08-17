@@ -4,7 +4,12 @@ module.exports = function (buf) {
 		return null;
 	}
 
-	if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) {
+	if (
+    (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) ||
+    (buf[0] === 0x45 && buf[1] === 0x78 && buf[2] === 0x69 && buf[3] === 0x66) ||
+    (buf[0] === 0xFF && buf[1] === 0xE0) ||
+    (buf[0] === 0xDD && buf[1] === 0xE1)
+  ) {
 		return {
 			ext: 'jpg',
 			mime: 'image/jpeg'
