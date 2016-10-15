@@ -79,6 +79,7 @@ It only needs the first 262 bytes.
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics)
 - [`gif`](https://en.wikipedia.org/wiki/GIF)
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
+- [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
 - [`cr2`](http://fileinfo.com/extension/cr2)
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
