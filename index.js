@@ -32,6 +32,13 @@ module.exports = function (buf) {
 		};
 	}
 
+	if (buf[0] === 0x46 && buf[1] === 0x4C && buf[2] === 0x49 && buf[3] === 0x46) {
+		return {
+			ext: 'flif',
+			mime: 'image/flif'
+		};
+	}
+
 	// needs to be before `tif` check
 	if (((buf[0] === 0x49 && buf[1] === 0x49 && buf[2] === 0x2A && buf[3] === 0x0) || (buf[0] === 0x4D && buf[1] === 0x4D && buf[2] === 0x0 && buf[3] === 0x2A)) && buf[8] === 0x43 && buf[9] === 0x52) {
 		return {

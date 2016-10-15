@@ -15,6 +15,7 @@ const types = [
 	'png',
 	'gif',
 	'webp',
+	'flif',
 	'cr2',
 	'tif',
 	'bmp',
