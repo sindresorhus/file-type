@@ -6,7 +6,6 @@ import fileType from './';
 function check(ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 	const fileInfo = fileType(readChunk.sync(file, 0, 262)) || {};
-
 	return fileInfo.ext;
 }
 
@@ -83,16 +82,16 @@ const names = {
 	Z: ['fixture.tar']
 };
 
-function testFile(type, name) {
-	test(type, t => {
-		t.is(check(type, name), type);
-	});
+function testFile(t, type, name) {
+	t.is(check(type, name), type);
 }
 
-types.forEach(type => {
-	if ({}.hasOwnProperty.call(names, type)) {
-		names[type].forEach(name => testFile(type, name));
+for (const type of types) {
+	if (Object.prototype.hasOwnProperty.call(names, type)) {
+		for (const name of names[type]) {
+			test(type, testFile, type, name);
+		}
 	} else {
-		testFile(type);
+		test(type, testFile, type);
 	}
-});
+}

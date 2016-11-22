@@ -1,5 +1,5 @@
 'use strict';
-module.exports = function (buf) {
+module.exports = buf => {
 	if (!(buf && buf.length > 1)) {
 		return null;
 	}

@@ -17,7 +17,7 @@ $ npm install --save file-type
 ##### Node.js
 
 ```js
-const readChunk = require('read-chunk'); // npm install read-chunk
+const readChunk = require('read-chunk');
 const fileType = require('file-type');
 const buffer = readChunk.sync('unicorn.png', 0, 262);
 
@@ -25,7 +25,7 @@ fileType(buffer);
 //=> {ext: 'png', mime: 'image/png'}
 ```
 
-or from a remote location:
+Or from a remote location:
 
 ```js
 const http = require('http');
@@ -61,10 +61,12 @@ xhr.send();
 
 ### fileType(buffer)
 
-Returns an `Object` (or `null` when no match) with:
+Returns an `Object` with:
 
 - `ext` - one of the [supported file types](#supported-file-types)
 - `mime` - the [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
+
+Or `null` when no match.
 
 #### buffer
 
