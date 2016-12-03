@@ -1,5 +1,7 @@
 'use strict';
-module.exports = buf => {
+module.exports = input => {
+	const buf = new Uint8Array(input);
+
 	if (!(buf && buf.length > 1)) {
 		return null;
 	}
