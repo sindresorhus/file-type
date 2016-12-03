@@ -173,7 +173,7 @@ module.exports = input => {
 	// https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
 	if (buf[0] === 0x1A && buf[1] === 0x45 && buf[2] === 0xDF && buf[3] === 0xA3) {
 		const sliced = buf.subarray(4, 4 + 4096);
-		const idPos = sliced.findIndex((e, i, a) => a[i] === 0x42 && a[i + 1] === 0x82);
+		const idPos = sliced.findIndex((el, i, arr) => arr[i] === 0x42 && arr[i + 1] === 0x82);
 
 		if (idPos >= 0) {
 			const docTypePos = idPos + 3;
