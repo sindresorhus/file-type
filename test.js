@@ -5,7 +5,7 @@ import fileType from './';
 
 function check(ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const fileInfo = fileType(readChunk.sync(file, 0, 262)) || {};
+	const fileInfo = fileType(readChunk.sync(file, 0, 4 + 4096)) || {};
 	return fileInfo.ext;
 }
 
