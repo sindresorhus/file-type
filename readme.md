@@ -19,7 +19,7 @@ $ npm install --save file-type
 ```js
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-const buffer = readChunk.sync('unicorn.png', 0, 262);
+const buffer = readChunk.sync('unicorn.png', 0, 4100);
 
 fileType(buffer);
 //=> {ext: 'png', mime: 'image/png'}
@@ -72,7 +72,7 @@ Or `null` when no match.
 
 Type: `Buffer` `Uint8Array`
 
-It only needs the first 262 bytes.
+It only needs the first 4100 bytes.
 
 
 ## Supported file types

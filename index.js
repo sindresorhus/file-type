@@ -1,5 +1,7 @@
 'use strict';
-module.exports = buf => {
+module.exports = input => {
+	const buf = new Uint8Array(input);
+
 	if (!(buf && buf.length > 1)) {
 		return null;
 	}
@@ -168,19 +170,28 @@ module.exports = buf => {
 		};
 	}
 
-	// needs to be before the `webm` check
-	if (buf[31] === 0x6D && buf[32] === 0x61 && buf[33] === 0x74 && buf[34] === 0x72 && buf[35] === 0x6f && buf[36] === 0x73 && buf[37] === 0x6B && buf[38] === 0x61) {
-		return {
-			ext: 'mkv',
-			mime: 'video/x-matroska'
-		};
-	}
-
+	// https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
 	if (buf[0] === 0x1A && buf[1] === 0x45 && buf[2] === 0xDF && buf[3] === 0xA3) {
-		return {
-			ext: 'webm',
-			mime: 'video/webm'
-		};
+		const sliced = buf.subarray(4, 4 + 4096);
+		const idPos = sliced.findIndex((el, i, arr) => arr[i] === 0x42 && arr[i + 1] === 0x82);
+
+		if (idPos >= 0) {
+			const docTypePos = idPos + 3;
+			const findDocType = type => Array.from(type).every((c, i) => sliced[docTypePos + i] === c.charCodeAt(0));
+
+			if (findDocType('matroska')) {
+				return {
+					ext: 'mkv',
+					mime: 'video/x-matroska'
+				};
+			}
+			if (findDocType('webm')) {
+				return {
+					ext: 'webm',
+					mime: 'video/webm'
+				};
+			}
+		}
 	}
 
 	if (buf[0] === 0x0 && buf[1] === 0x0 && buf[2] === 0x0 && buf[3] === 0x14 && buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) {
