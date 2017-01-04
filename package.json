@@ -12,8 +12,14 @@
   "engines": {
     "node": ">=4"
   },
+  "main": "bin/index.js",
   "scripts": {
-    "test": "xo && ava"
+    "build": "node_modules/.bin/babel index.js --out-dir bin/",
+    "test": "xo && ava",
+    "preversion": "npm run build"
+  },
+  "babel": {
+    "presets": ["es2015"]
   },
   "files": [
     "index.js"
@@ -97,6 +103,8 @@
   ],
   "devDependencies": {
     "ava": "*",
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
     "read-chunk": "^2.0.0",
     "xo": "*"
   },
