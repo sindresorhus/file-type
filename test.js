@@ -80,7 +80,8 @@ const names = {
 	xz: ['fixture.tar'],
 	lz: ['fixture.tar'],
 	Z: ['fixture.tar'],
-	mkv: ['fixture', 'fixture2']
+	mkv: ['fixture', 'fixture2'],
+	json: ['fixture-array-null', 'fixture-array-number', 'fixture-array-string', 'fixture-array-whitespace', 'fixture-object-property', 'fixture-object-whitespace']
 };
 
 function testFile(t, type, name) {
