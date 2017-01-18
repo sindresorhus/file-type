@@ -459,5 +459,12 @@ module.exports = input => {
 		};
 	}
 
+	if (buf[0] === 0x06 && buf[1] === 0x0E && buf[2] === 0x2B && buf[3] === 0x34 && buf[4] === 0x02 && buf[5] === 0x05 && buf[6] === 0x01 && buf[7] === 0x01 && buf[8] === 0x0D && buf[9] === 0x01 && buf[10] === 0x02 && buf[11] === 0x01 && buf[12] === 0x01 && buf[13] === 0x02) {
+		return {
+			ext: 'mxf',
+			mime: 'application/mxf'
+		};
+	}
+
 	return null;
 };

@@ -67,7 +67,8 @@ const types = [
 	'rpm',
 	'Z',
 	'lz',
-	'msi'
+	'msi',
+	'mxf'
 ];
 
 const names = {
@@ -80,7 +81,8 @@ const names = {
 	xz: ['fixture.tar'],
 	lz: ['fixture.tar'],
 	Z: ['fixture.tar'],
-	mkv: ['fixture', 'fixture2']
+	mkv: ['fixture', 'fixture2'],
+	mxf: ['fixture']
 };
 
 function testFile(t, type, name) {
