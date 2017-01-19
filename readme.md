@@ -59,16 +59,16 @@ xhr.send();
 
 ## API
 
-### fileType(buffer)
+### fileType(input)
 
 Returns an `Object` with:
 
-- `ext` - one of the [supported file types](#supported-file-types)
-- `mime` - the [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
+- `ext` - One of the [supported file types](#supported-file-types)
+- `mime` - The [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
 
 Or `null` when no match.
 
-#### buffer
+#### input
 
 Type: `Buffer` `Uint8Array`
 
@@ -139,7 +139,7 @@ It only needs the first 4100 bytes.
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
-*PR welcome for additional commonly used file types.*
+*Pull request welcome for additional commonly used file types.*
 
 
 ## Related
