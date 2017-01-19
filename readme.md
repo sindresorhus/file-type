@@ -135,6 +135,7 @@ It only needs the first 4100 bytes.
 - [`Z`](http://fileinfo.com/extension/z)
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
 - [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
+- [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
