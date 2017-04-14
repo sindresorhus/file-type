@@ -300,6 +300,13 @@ module.exports = input => {
 		};
 	}
 
+	if (buf[0] === 0x00 && buf[1] === 0x61 && buf[2] === 0x73 && buf[3] === 0x6d) {
+		return {
+			ext: 'wasm',
+			mime: 'application/wasm'
+		};
+	}
+
 	if (
 		(buf[0] === 0x77 && buf[1] === 0x4F && buf[2] === 0x46 && buf[3] === 0x46) &&
 		(

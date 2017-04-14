@@ -48,6 +48,7 @@ const types = [
 	'exe',
 	'swf',
 	'rtf',
+	'wasm',
 	'woff',
 	'woff2',
 	'eot',
