@@ -100,8 +100,5 @@
     "ava": "*",
     "read-chunk": "^2.0.0",
     "xo": "*"
-  },
-  "xo": {
-    "esnext": true
   }
 }
