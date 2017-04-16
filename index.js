@@ -300,7 +300,8 @@ module.exports = input => {
 		};
 	}
 
-	if (buf[0] === 0x00 && buf[1] === 0x61 && buf[2] === 0x73 && buf[3] === 0x6d) {
+	// The Magic number is  0x6d736100 (i.e., '\0asm') see https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md#high-level-structure
+	if (buf[0] === 0x00 && buf[1] === 0x61 && buf[2] === 0x73 && buf[3] === 0x6D) {
 		return {
 			ext: 'wasm',
 			mime: 'application/wasm'
