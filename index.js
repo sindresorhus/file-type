@@ -1,10 +1,21 @@
 'use strict';
+
 module.exports = input => {
 	const buf = new Uint8Array(input);
 
 	if (!(buf && buf.length > 1)) {
 		return null;
 	}
+
+	const check = header => {
+		for (let i = 0; i < header.length; i++) {
+			if (header[i] !== buf[i]) {
+				return false;
+			}
+		}
+
+		return true;
+	};
 
 	if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) {
 		return {
@@ -13,7 +24,7 @@ module.exports = input => {
 		};
 	}
 
-	if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
+	if (check([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {
 		return {
 			ext: 'png',
 			mime: 'image/png'
