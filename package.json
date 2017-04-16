@@ -94,7 +94,9 @@
     "Z",
     "lz",
     "msi",
-    "mxf"
+    "mxf",
+    "wasm",
+    "webassembly"
   ],
   "devDependencies": {
     "ava": "*",
