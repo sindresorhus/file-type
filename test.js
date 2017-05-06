@@ -76,6 +76,7 @@ const names = {
 	woff2: ['fixture', 'fixture-otto'],
 	woff: ['fixture', 'fixture-otto'],
 	eot: ['fixture', 'fixture-0x20001'],
+	mov: ['fixture', 'fixture-mjpeg'],
 	mp4: ['fixture-imovie', 'fixture-isom', 'fixture-isomv2'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
