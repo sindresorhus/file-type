@@ -96,7 +96,8 @@
     "msi",
     "mxf",
     "wasm",
-    "webassembly"
+    "webassembly",
+    "blend"
   ],
   "devDependencies": {
     "ava": "*",
