@@ -69,7 +69,8 @@ const types = [
 	'Z',
 	'lz',
 	'msi',
-	'mxf'
+	'mxf',
+	'blend'
 ];
 
 const names = {
