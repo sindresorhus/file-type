@@ -377,7 +377,7 @@ module.exports = input => {
 	) {
 		return {
 			ext: 'woff',
-			mime: 'application/font-woff'
+			mime: 'font/woff'
 		};
 	}
 
@@ -390,7 +390,7 @@ module.exports = input => {
 	) {
 		return {
 			ext: 'woff2',
-			mime: 'application/font-woff'
+			mime: 'font/woff2'
 		};
 	}
 
@@ -411,14 +411,14 @@ module.exports = input => {
 	if (check([0x00, 0x01, 0x00, 0x00, 0x00])) {
 		return {
 			ext: 'ttf',
-			mime: 'application/font-sfnt'
+			mime: 'font/ttf'
 		};
 	}
 
 	if (check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
 		return {
 			ext: 'otf',
-			mime: 'application/font-sfnt'
+			mime: 'font/otf'
 		};
 	}
 
