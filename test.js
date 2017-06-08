@@ -70,6 +70,7 @@ const types = [
 	'lz',
 	'msi',
 	'mxf',
+	'mts',
 	'blend'
 ];
 

@@ -136,6 +136,7 @@ It only needs the first 4100 bytes.
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
 - [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
+- [`mts`](https://en.wikipedia.org/wiki/.m2ts)
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
 - [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format)
 
