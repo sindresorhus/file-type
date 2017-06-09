@@ -534,7 +534,7 @@ module.exports = input => {
 		};
 	}
 
-	if (check([0x47], {offset: 4})) {
+	if (check([0x47], {offset: 4}) && (check([0x47], {offset: 192}) || check([0x47], {offset: 196}))) {
 		return {
 			ext: 'mts',
 			mime: 'video/mp2t'
