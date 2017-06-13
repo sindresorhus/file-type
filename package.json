@@ -98,7 +98,8 @@
     "mts",
     "wasm",
     "webassembly",
-    "blend"
+    "blend",
+    "bpg"
   ],
   "devDependencies": {
     "ava": "*",

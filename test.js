@@ -71,7 +71,8 @@ const types = [
 	'msi',
 	'mxf',
 	'mts',
-	'blend'
+	'blend',
+	'bpg'
 ];
 
 const names = {

@@ -139,6 +139,7 @@ It only needs the first 4100 bytes.
 - [`mts`](https://en.wikipedia.org/wiki/.m2ts)
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
 - [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format)
+- [`bpg`](https://bellard.org/bpg/)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
