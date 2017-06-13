@@ -548,5 +548,12 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x42, 0x50, 0x47, 0xFB])) {
+		return {
+			ext: 'bpg',
+			mime: 'image/bpg'
+		};
+	}
+
 	return null;
 };
