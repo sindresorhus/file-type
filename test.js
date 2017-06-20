@@ -72,7 +72,10 @@ const types = [
 	'mxf',
 	'mts',
 	'blend',
-	'bpg'
+	'bpg',
+	'docx',
+	'pptx',
+	'xlsx'
 ];
 
 const names = {

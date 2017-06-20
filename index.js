@@ -98,27 +98,72 @@ module.exports = input => {
 		};
 	}
 
-	// Needs to be before the `zip` check
-	if (
-		check([0x50, 0x4B, 0x3, 0x4]) &&
-		check([0x6D, 0x69, 0x6D, 0x65, 0x74, 0x79, 0x70, 0x65, 0x61, 0x70, 0x70, 0x6C, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x2F, 0x65, 0x70, 0x75, 0x62, 0x2B, 0x7A, 0x69, 0x70], {offset: 30})
-	) {
-		return {
-			ext: 'epub',
-			mime: 'application/epub+zip'
-		};
-	}
+	// Zip-based file formats
+	// Need to be before the `zip` check
+	if (check([0x50, 0x4B, 0x3, 0x4])) {
+		if (
+			check([0x6D, 0x69, 0x6D, 0x65, 0x74, 0x79, 0x70, 0x65, 0x61, 0x70, 0x70, 0x6C, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x2F, 0x65, 0x70, 0x75, 0x62, 0x2B, 0x7A, 0x69, 0x70], {offset: 30})
+		) {
+			return {
+				ext: 'epub',
+				mime: 'application/epub+zip'
+			};
+		}
 
-	// Needs to be before `zip` check
-	// Assumes signed `.xpi` from addons.mozilla.org
-	if (
-		check([0x50, 0x4B, 0x3, 0x4]) &&
-		check([0x4D, 0x45, 0x54, 0x41, 0x2D, 0x49, 0x4E, 0x46, 0x2F, 0x6D, 0x6F, 0x7A, 0x69, 0x6C, 0x6C, 0x61, 0x2E, 0x72, 0x73, 0x61], {offset: 30})
-	) {
-		return {
-			ext: 'xpi',
-			mime: 'application/x-xpinstall'
-		};
+		// Assumes signed `.xpi` from addons.mozilla.org
+		if (
+			check([0x4D, 0x45, 0x54, 0x41, 0x2D, 0x49, 0x4E, 0x46, 0x2F, 0x6D, 0x6F, 0x7A, 0x69, 0x6C, 0x6C, 0x61, 0x2E, 0x72, 0x73, 0x61], {offset: 30})
+		) {
+			return {
+				ext: 'xpi',
+				mime: 'application/x-xpinstall'
+			};
+		}
+
+		if (
+			check([0x5B, 0x43, 0x6F, 0x6E, 0x74, 0x65, 0x6E, 0x74, 0x5F, 0x54, 0x79, 0x70, 0x65, 0x73, 0x5D, 0x2E, 0x78, 0x6D, 0x6C], {offset: 30}) ||
+			check([0x5F, 0x72, 0x65, 0x6C, 0x73, 0x2F, 0x2E, 0x72, 0x65, 0x6C, 0x73], {offset: 30})
+		) {
+			// Generating the above hex arrays:
+			// toHexArray = s => '[' + Array.from(s).map((c) => '0x' + c.charCodeAt(0).toString(16).toUpperCase()).join(', ') + ']'
+			// toHexArray('[Content_Types].xml')
+			// toHexArray('_rels/.rels')
+
+			// https://github.com/file/file/blob/master/magic/Magdir/msooxml
+			const sliced = buf.subarray(4, 4 + 2000);
+			const header2Pos = sliced.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
+
+			if (header2Pos >= 0) {
+				const slicedAgain = buf.subarray(header2Pos + 8, header2Pos + 8 + 1000);
+				const header3Pos = slicedAgain.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
+
+				if (header3Pos >= 0) {
+					const filenamePos = header3Pos + 30;
+					const filenameStartsWith = type => Array.from(type).every((c, i) => slicedAgain[filenamePos + i] === c.charCodeAt(0));
+
+					if (filenameStartsWith('word/')) {
+						return {
+							ext: 'docx',
+							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+						};
+					}
+
+					if (filenameStartsWith('ppt/')) {
+						return {
+							ext: 'pptx',
+							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+						};
+					}
+
+					if (filenameStartsWith('xl/')) {
+						return {
+							ext: 'xlsx',
+							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+						};
+					}
+				}
+			}
+		}
 	}
 
 	if (
