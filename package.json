@@ -99,7 +99,10 @@
     "wasm",
     "webassembly",
     "blend",
-    "bpg"
+    "bpg",
+    "docx",
+    "pptx",
+    "xlsx"
   ],
   "devDependencies": {
     "ava": "*",
