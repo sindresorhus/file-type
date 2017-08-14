@@ -1,5 +1,4 @@
 'use strict';
-
 const toBytes = s => Array.from(s).map(c => c.charCodeAt(0));
 const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
@@ -116,9 +115,7 @@ module.exports = input => {
 		}
 
 		// Assumes signed `.xpi` from addons.mozilla.org
-		if (
-			check(xpiZipFilename, {offset: 30})
-		) {
+		if (check(xpiZipFilename, {offset: 30})) {
 			return {
 				ext: 'xpi',
 				mime: 'application/x-xpinstall'
