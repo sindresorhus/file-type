@@ -1,4 +1,8 @@
 'use strict';
+const toBytes = s => Array.from(s).map(c => c.charCodeAt(0));
+const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
+const oxmlContentTypes = toBytes('[Content_Types].xml');
+const oxmlRels = toBytes('_rels/.rels');
 
 module.exports = input => {
 	const buf = new Uint8Array(input);
@@ -98,27 +102,62 @@ module.exports = input => {
 		};
 	}
 
-	// Needs to be before the `zip` check
-	if (
-		check([0x50, 0x4B, 0x3, 0x4]) &&
-		check([0x6D, 0x69, 0x6D, 0x65, 0x74, 0x79, 0x70, 0x65, 0x61, 0x70, 0x70, 0x6C, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x2F, 0x65, 0x70, 0x75, 0x62, 0x2B, 0x7A, 0x69, 0x70], {offset: 30})
-	) {
-		return {
-			ext: 'epub',
-			mime: 'application/epub+zip'
-		};
-	}
+	// Zip-based file formats
+	// Need to be before the `zip` check
+	if (check([0x50, 0x4B, 0x3, 0x4])) {
+		if (
+			check([0x6D, 0x69, 0x6D, 0x65, 0x74, 0x79, 0x70, 0x65, 0x61, 0x70, 0x70, 0x6C, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x2F, 0x65, 0x70, 0x75, 0x62, 0x2B, 0x7A, 0x69, 0x70], {offset: 30})
+		) {
+			return {
+				ext: 'epub',
+				mime: 'application/epub+zip'
+			};
+		}
 
-	// Needs to be before `zip` check
-	// Assumes signed `.xpi` from addons.mozilla.org
-	if (
-		check([0x50, 0x4B, 0x3, 0x4]) &&
-		check([0x4D, 0x45, 0x54, 0x41, 0x2D, 0x49, 0x4E, 0x46, 0x2F, 0x6D, 0x6F, 0x7A, 0x69, 0x6C, 0x6C, 0x61, 0x2E, 0x72, 0x73, 0x61], {offset: 30})
-	) {
-		return {
-			ext: 'xpi',
-			mime: 'application/x-xpinstall'
-		};
+		// Assumes signed `.xpi` from addons.mozilla.org
+		if (check(xpiZipFilename, {offset: 30})) {
+			return {
+				ext: 'xpi',
+				mime: 'application/x-xpinstall'
+			};
+		}
+
+		// https://github.com/file/file/blob/master/magic/Magdir/msooxml
+		if (check(oxmlContentTypes, {offset: 30}) || check(oxmlRels, {offset: 30})) {
+			const sliced = buf.subarray(4, 4 + 2000);
+			const nextZipHeaderIndex = arr => arr.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
+			const header2Pos = nextZipHeaderIndex(sliced);
+
+			if (header2Pos !== -1) {
+				const slicedAgain = buf.subarray(header2Pos + 8, header2Pos + 8 + 1000);
+				const header3Pos = nextZipHeaderIndex(slicedAgain);
+
+				if (header3Pos !== -1) {
+					const offset = 8 + header2Pos + header3Pos + 30;
+
+					if (check(toBytes('word/'), {offset})) {
+						return {
+							ext: 'docx',
+							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+						};
+					}
+
+					if (check(toBytes('ppt/'), {offset})) {
+						return {
+							ext: 'pptx',
+							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+						};
+					}
+
+					if (check(toBytes('xl/'), {offset})) {
+						return {
+							ext: 'xlsx',
+							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+						};
+					}
+				}
+			}
+		}
 	}
 
 	if (
@@ -216,7 +255,7 @@ module.exports = input => {
 		const sliced = buf.subarray(4, 4 + 4096);
 		const idPos = sliced.findIndex((el, i, arr) => arr[i] === 0x42 && arr[i + 1] === 0x82);
 
-		if (idPos >= 0) {
+		if (idPos !== -1) {
 			const docTypePos = idPos + 3;
 			const findDocType = type => Array.from(type).every((c, i) => sliced[docTypePos + i] === c.charCodeAt(0));
 

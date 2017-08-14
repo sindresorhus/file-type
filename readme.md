@@ -140,6 +140,9 @@ It only needs the first 4100 bytes.
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
 - [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format)
 - [`bpg`](https://bellard.org/bpg/)
+- [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML)
+- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
+- [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
