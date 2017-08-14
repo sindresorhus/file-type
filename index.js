@@ -131,11 +131,11 @@ module.exports = input => {
 			const nextZipHeaderIndex = arr => arr.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
 			const header2Pos = nextZipHeaderIndex(sliced);
 
-			if (header2Pos >= 0) {
+			if (header2Pos !== -1) {
 				const slicedAgain = buf.subarray(header2Pos + 8, header2Pos + 8 + 1000);
 				const header3Pos = nextZipHeaderIndex(slicedAgain);
 
-				if (header3Pos >= 0) {
+				if (header3Pos !== -1) {
 					const offset = 8 + header2Pos + header3Pos + 30;
 
 					if (check(toBytes('word/'), {offset})) {
@@ -258,7 +258,7 @@ module.exports = input => {
 		const sliced = buf.subarray(4, 4 + 4096);
 		const idPos = sliced.findIndex((el, i, arr) => arr[i] === 0x42 && arr[i + 1] === 0x82);
 
-		if (idPos >= 0) {
+		if (idPos !== -1) {
 			const docTypePos = idPos + 3;
 			const findDocType = type => Array.from(type).every((c, i) => sliced[docTypePos + i] === c.charCodeAt(0));
 
