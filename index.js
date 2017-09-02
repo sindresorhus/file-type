@@ -305,7 +305,8 @@ module.exports = input => {
 	// Check for mp3 header at different starting offsets.
 	for (let start = 0; start < 3 && start < (buf.length - 16); start++) {
 		if (
-			check([0x49, 0x44, 0x33], {offset: start}) ||
+			check([0x49, 0x44, 0x33], {offset: start}) || // ID3
+			check([0xFF, 0xF3], {offset: start}) || // MP2L3
 			check([0xFF, 0xFB], {offset: start})
 		) {
 			return {
