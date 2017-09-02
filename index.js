@@ -302,14 +302,17 @@ module.exports = input => {
 		};
 	}
 
-	if (
-		check([0x49, 0x44, 0x33]) ||
-		check([0xFF, 0xFB])
-	) {
-		return {
-			ext: 'mp3',
-			mime: 'audio/mpeg'
-		};
+	// Check for mp3 header at different starting offsets.
+	for (let start = 0; start < 3 && start < (buf.length - 16); start++) {
+		if (
+			check([0x49, 0x44, 0x33], {offset: start}) ||
+			check([0xFF, 0xFB], {offset: start})
+		) {
+			return {
+				ext: 'mp3',
+				mime: 'audio/mpeg'
+			};
+		}
 	}
 
 	if (

@@ -82,6 +82,7 @@ const names = {
 	woff: ['fixture', 'fixture-otto'],
 	eot: ['fixture', 'fixture-0x20001'],
 	mov: ['fixture', 'fixture-mjpeg'],
+	mp3: ['fixture', 'fixture-offset1-id3', 'fixture-offset1'],
 	mp4: ['fixture-imovie', 'fixture-isom', 'fixture-isomv2', 'fixture-mp4v2', 'fixture-m4v', 'fixture-dash'],
 	tif: ['fixture-big-endian', 'fixture-little-endian'],
 	gz: ['fixture.tar'],
