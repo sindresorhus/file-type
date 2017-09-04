@@ -16,7 +16,6 @@ module.exports = input => {
 			offset: 0
 		}, opts);
 
-
 		for (let i = 0; i < header.length; i++) {
 			if (opts.mask) {
 				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
