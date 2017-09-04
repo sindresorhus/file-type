@@ -16,8 +16,13 @@ module.exports = input => {
 			offset: 0
 		}, opts);
 
+
 		for (let i = 0; i < header.length; i++) {
-			if (header[i] !== buf[i + opts.offset]) {
+			if (opts.mask) {
+				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
+					return false;
+				}
+			} else if (header[i] !== buf[i + opts.offset]) {
 				return false;
 			}
 		}
@@ -303,11 +308,10 @@ module.exports = input => {
 	}
 
 	// Check for mp3 header at different starting offsets.
-	for (let start = 0; start < 3 && start < (buf.length - 16); start++) {
+	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
 		if (
-			check([0x49, 0x44, 0x33], {offset: start}) || // ID3
-			check([0xFF, 0xF3], {offset: start}) || // MP2L3
-			check([0xFF, 0xFB], {offset: start})
+			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
+			check([0xFF, 0xF0], {offset: start, mask: [0xFF, 0xF0]}) //  MP3 header without ID3
 		) {
 			return {
 				ext: 'mp3',
