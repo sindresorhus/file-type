@@ -17,7 +17,9 @@ module.exports = input => {
 		}, opts);
 
 		for (let i = 0; i < header.length; i++) {
+			// If a bit-mask is set
 			if (opts.mask) {
+				// If header != to buf with bits masked off
 				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
 					return false;
 				}
