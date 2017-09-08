@@ -89,6 +89,7 @@ const names = {
 	lz: ['fixture.tar'],
 	Z: ['fixture.tar'],
 	mkv: ['fixture', 'fixture2'],
+	mp3: ['fixture', 'fixture2'],
 	mxf: ['fixture']
 };
 

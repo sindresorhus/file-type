@@ -304,7 +304,8 @@ module.exports = input => {
 
 	if (
 		check([0x49, 0x44, 0x33]) ||
-		check([0xFF, 0xFB])
+		check([0xFF, 0xFB]) ||
+		check([0xFF, 0xF3])
 	) {
 		return {
 			ext: 'mp3',
