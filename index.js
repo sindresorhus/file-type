@@ -312,7 +312,7 @@ module.exports = input => {
 	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
 		if (
 			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
-			check([0xFF, 0xE0], {offset: start, mask: [0xFF, 0xE0]}) //  MP3 header
+			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE2]}) // MPEG 1 or 2 Layer 3 header
 		) {
 			return {
 				ext: 'mp3',
