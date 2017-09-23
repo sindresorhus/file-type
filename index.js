@@ -17,9 +17,9 @@ module.exports = input => {
 		}, opts);
 
 		for (let i = 0; i < header.length; i++) {
-			// If a bit-mask is set
+			// If a bitmask is set
 			if (opts.mask) {
-				// If header != to buf with bits masked off
+				// If header doesn't equal `buf` with bits masked off
 				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
 					return false;
 				}
@@ -308,7 +308,7 @@ module.exports = input => {
 		};
 	}
 
-	// Check for mp3 header at different starting offsets.
+	// Check for MP3 header at different starting offsets
 	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
 		if (
 			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
