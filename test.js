@@ -1,7 +1,7 @@
 import path from 'path';
 import test from 'ava';
 import readChunk from 'read-chunk';
-import fileType from './';
+import fileType from '.';
 
 function check(ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);

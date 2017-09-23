@@ -8,7 +8,7 @@ The file type is detected by checking the [magic number](http://en.wikipedia.org
 ## Install
 
 ```
-$ npm install --save file-type
+$ npm install file-type
 ```
 
 
