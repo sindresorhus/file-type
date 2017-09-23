@@ -154,6 +154,12 @@ It only needs the first 4100 bytes.
 - [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
 
 
+## Created by
+
+- [Sindre Sorhus](https://github.com/sindresorhus)
+- [Mikael Finstad](https://github.com/mifi)
+
+
 ## License
 
-MIT © [Sindre Sorhus](https://sindresorhus.com)
+MIT
