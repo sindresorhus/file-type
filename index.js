@@ -350,7 +350,13 @@ module.exports = input => {
 				mime: 'video/ogg'
 			};
 		}
-
+		// If '\x01video' in header.
+		if (check([0x01, 0x76, 0x69, 0x64, 0x65, 0x6F, 0x00], {offset: 28})) {
+			return {
+				ext: 'ogm',
+				mime: 'video/ogg'
+			};
+		}
 		// If ' FLAC' in header  https://xiph.org/flac/faq.html
 		if (check([0x7F, 0x46, 0x4C, 0x41, 0x43], {offset: 28})) {
 			return {
@@ -359,7 +365,7 @@ module.exports = input => {
 			};
 		}
 
-		// ' Speex  ' in header https://en.wikipedia.org/wiki/Speex
+		// 'Speex  ' in header https://en.wikipedia.org/wiki/Speex
 		if (check([0x53, 0x70, 0x65, 0x65, 0x78, 0x20, 0x20], {offset: 28})) {
 			return {
 				ext: 'spx',
