@@ -339,7 +339,35 @@ module.exports = input => {
 		};
 	}
 
+	// If 'OggS' in first  bytes, then OGG container
 	if (check([0x4F, 0x67, 0x67, 0x53])) {
+		// This is a OGG container
+
+		// If ' theora' in header.
+		if (check([0x80, 0x74, 0x68, 0x65, 0x6F, 0x72, 0x61], {offset: 28})) {
+			return {
+				ext: 'ogv',
+				mime: 'video/ogg'
+			};
+		}
+
+		// If ' FLAC' in header  https://xiph.org/flac/faq.html
+		if (check([0x7F, 0x46, 0x4C, 0x41, 0x43], {offset: 28})) {
+			return {
+				ext: 'oga',
+				mime: 'audio/ogg'
+			};
+		}
+
+		// ' Speex  ' in header https://en.wikipedia.org/wiki/Speex
+		if (check([0x53, 0x70, 0x65, 0x65, 0x78, 0x20, 0x20], {offset: 28})) {
+			return {
+				ext: 'spx',
+				mime: 'audio/ogg'
+			};
+		}
+
+		// Default OGG container return audio
 		return {
 			ext: 'ogg',
 			mime: 'audio/ogg'
