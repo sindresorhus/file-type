@@ -308,6 +308,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x0, 0x0, 0x0, 0x1C, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x34])) {
+		return {
+			ext: '3gp',
+			mime: 'video/3gpp'
+		};
+	}
+
 	// Check for MP3 header at different starting offsets
 	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
 		if (

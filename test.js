@@ -74,7 +74,8 @@ const types = [
 	'bpg',
 	'docx',
 	'pptx',
-	'xlsx'
+	'xlsx',
+	'3gp'
 ];
 
 const names = {
@@ -90,7 +91,8 @@ const names = {
 	lz: ['fixture.tar'],
 	Z: ['fixture.tar'],
 	mkv: ['fixture', 'fixture2'],
-	mxf: ['fixture']
+	mxf: ['fixture'],
+	'3gp': ['fixture']
 };
 
 function testFile(t, type, name) {
