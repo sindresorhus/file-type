@@ -100,7 +100,8 @@
 		"bpg",
 		"docx",
 		"pptx",
-		"xlsx"
+		"xlsx",
+		"3gp"
 	],
 	"devDependencies": {
 		"ava": "*",
