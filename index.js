@@ -373,6 +373,14 @@ module.exports = input => {
 			};
 		}
 
+		// If '\x01vorbis' in header
+		if (check([0x01, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73], {offset: 28})) {
+			return {
+				ext: 'ogg',
+				mime: 'audio/ogg'
+			};
+		}
+
 		// Default OGG container https://www.iana.org/assignments/media-types/application/ogg
 		return {
 			ext: 'ogx',
