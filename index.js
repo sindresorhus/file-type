@@ -373,10 +373,10 @@ module.exports = input => {
 			};
 		}
 
-		// Default OGG container return audio
+		// Default OGG container https://www.iana.org/assignments/media-types/application/ogg
 		return {
-			ext: 'ogg',
-			mime: 'audio/ogg'
+			ext: 'ogx',
+			mime: 'application/ogg'
 		};
 	}
 
