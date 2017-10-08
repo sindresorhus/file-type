@@ -75,7 +75,8 @@ const types = [
 	'docx',
 	'pptx',
 	'xlsx',
-	'3gp'
+	'3gp',
+	'aif'
 ];
 
 const names = {
