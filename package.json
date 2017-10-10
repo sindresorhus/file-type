@@ -102,7 +102,7 @@
 		"pptx",
 		"xlsx",
 		"3gp",
-		"aif"
+		"aiff"
 	],
 	"devDependencies": {
 		"ava": "*",
