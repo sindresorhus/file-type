@@ -644,5 +644,37 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A])) {
+		// JPEG-2000 family
+
+		if (check([0x6A, 0x70, 0x32, 0x20], {offset: 20})) {
+			return {
+				ext: 'jp2',
+				mime: 'image/jp2'
+			};
+		}
+
+		if (check([0x6A, 0x70, 0x78, 0x20], {offset: 20})) {
+			return {
+				ext: 'jpx',
+				mime: 'image/jpx'
+			};
+		}
+
+		if (check([0x6A, 0x70, 0x6D, 0x20], {offset: 20})) {
+			return {
+				ext: 'jpm',
+				mime: 'image/jpm'
+			};
+		}
+
+		if (check([0x6D, 0x6A, 0x70, 0x32], {offset: 20})) {
+			return {
+				ext: 'mj2',
+				mime: 'image/mj2'
+			};
+		}
+	}
+
 	return null;
 };
