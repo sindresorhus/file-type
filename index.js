@@ -5,7 +5,7 @@ const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
 module.exports = input => {
-	const buf = new Uint8Array(input);
+	const buf = (input instanceof Buffer || input instanceof Uint8Array) ? input : new Uint8Array(input);
 
 	if (!(buf && buf.length > 1)) {
 		return null;
