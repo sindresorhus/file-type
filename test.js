@@ -78,7 +78,11 @@ const types = [
 	'docx',
 	'pptx',
 	'xlsx',
-	'3gp'
+	'3gp',
+	'jp2',
+	'jpm',
+	'jpx',
+	'mj2'
 ];
 
 const names = {
