@@ -148,6 +148,10 @@ It only needs the first 4100 bytes.
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`3gp`](https://en.wikipedia.org/wiki/3GP_and_3G2)
+- [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
+- [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
+- [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
+- [`mj2`](https://en.wikipedia.org/wiki/Motion_JPEG_2000) - Motion JPEG 2000
 - [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*

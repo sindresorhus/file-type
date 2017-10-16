@@ -37,10 +37,13 @@ const types = [
 	'mpg',
 	'mp3',
 	'm4a',
+	'oga',
 	'ogg',
+	'ogv',
 	'opus',
 	'flac',
 	'wav',
+	'spx',
 	'amr',
 	'pdf',
 	'epub',
@@ -76,6 +79,10 @@ const types = [
 	'pptx',
 	'xlsx',
 	'3gp',
+	'jp2',
+	'jpm',
+	'jpx',
+	'mj2',
 	'aif'
 ];
 

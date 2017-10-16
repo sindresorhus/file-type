@@ -5,7 +5,7 @@ const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
 module.exports = input => {
-	const buf = new Uint8Array(input);
+	const buf = (input instanceof Uint8Array) ? input : new Uint8Array(input);
 
 	if (!(buf && buf.length > 1)) {
 		return null;
@@ -346,10 +346,52 @@ module.exports = input => {
 		};
 	}
 
+	// If 'OggS' in first  bytes, then OGG container
 	if (check([0x4F, 0x67, 0x67, 0x53])) {
+		// This is a OGG container
+
+		// If ' theora' in header.
+		if (check([0x80, 0x74, 0x68, 0x65, 0x6F, 0x72, 0x61], {offset: 28})) {
+			return {
+				ext: 'ogv',
+				mime: 'video/ogg'
+			};
+		}
+		// If '\x01video' in header.
+		if (check([0x01, 0x76, 0x69, 0x64, 0x65, 0x6F, 0x00], {offset: 28})) {
+			return {
+				ext: 'ogm',
+				mime: 'video/ogg'
+			};
+		}
+		// If ' FLAC' in header  https://xiph.org/flac/faq.html
+		if (check([0x7F, 0x46, 0x4C, 0x41, 0x43], {offset: 28})) {
+			return {
+				ext: 'oga',
+				mime: 'audio/ogg'
+			};
+		}
+
+		// 'Speex  ' in header https://en.wikipedia.org/wiki/Speex
+		if (check([0x53, 0x70, 0x65, 0x65, 0x78, 0x20, 0x20], {offset: 28})) {
+			return {
+				ext: 'spx',
+				mime: 'audio/ogg'
+			};
+		}
+
+		// If '\x01vorbis' in header
+		if (check([0x01, 0x76, 0x6F, 0x72, 0x62, 0x69, 0x73], {offset: 28})) {
+			return {
+				ext: 'ogg',
+				mime: 'audio/ogg'
+			};
+		}
+
+		// Default OGG container https://www.iana.org/assignments/media-types/application/ogg
 		return {
-			ext: 'ogg',
-			mime: 'audio/ogg'
+			ext: 'ogx',
+			mime: 'application/ogg'
 		};
 	}
 
@@ -600,6 +642,38 @@ module.exports = input => {
 			ext: 'bpg',
 			mime: 'image/bpg'
 		};
+	}
+
+	if (check([0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A])) {
+		// JPEG-2000 family
+
+		if (check([0x6A, 0x70, 0x32, 0x20], {offset: 20})) {
+			return {
+				ext: 'jp2',
+				mime: 'image/jp2'
+			};
+		}
+
+		if (check([0x6A, 0x70, 0x78, 0x20], {offset: 20})) {
+			return {
+				ext: 'jpx',
+				mime: 'image/jpx'
+			};
+		}
+
+		if (check([0x6A, 0x70, 0x6D, 0x20], {offset: 20})) {
+			return {
+				ext: 'jpm',
+				mime: 'image/jpm'
+			};
+		}
+
+		if (check([0x6D, 0x6A, 0x70, 0x32], {offset: 20})) {
+			return {
+				ext: 'mj2',
+				mime: 'image/mj2'
+			};
+		}
 	}
 
 	if (check([0x46, 0x4F, 0x52, 0x4D, 0x00])) {
