@@ -676,5 +676,12 @@ module.exports = input => {
 		}
 	}
 
+	if (check([0x46, 0x4F, 0x52, 0x4D, 0x00])) {
+		return {
+			ext: 'aif',
+			mime: 'audio/aiff'
+		};
+	}
+
 	return null;
 };
