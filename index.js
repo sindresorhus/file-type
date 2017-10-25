@@ -128,6 +128,27 @@ module.exports = input => {
 			};
 		}
 
+		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.text'), {offset: 30})) {
+			return {
+				ext: 'odt',
+				mime: 'application/vnd.oasis.opendocument.text'
+			};
+		}
+
+		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.spreadsheet'), {offset: 30})) {
+			return {
+				ext: 'ods',
+				mime: 'application/vnd.oasis.opendocument.spreadsheet'
+			};
+		}
+
+		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.presentation'), {offset: 30})) {
+			return {
+				ext: 'odp',
+				mime: 'application/vnd.oasis.opendocument.presentation'
+			};
+		}
+
 		// https://github.com/file/file/blob/master/magic/Magdir/msooxml
 		if (check(oxmlContentTypes, {offset: 30}) || check(oxmlRels, {offset: 30})) {
 			const sliced = buf.subarray(4, 4 + 2000);
