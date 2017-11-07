@@ -308,7 +308,17 @@ module.exports = input => {
 		};
 	}
 
-	if (check([0x0, 0x0, 0x0, 0x1C, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x34])) {
+	// if (check([0x0, 0x0, 0x0, 0x1C, 0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70, 0x34])) {
+	// 	return {
+	// 		ext: '3gp',
+	// 		mime: 'video/3gpp'
+	// 	};
+	// }
+
+	// all 3gp subtypes files support
+	// 3GG, 3GP, 3G2, 3gp5 	3rd Generation Partnership Project 3GPP, 3GPP2 multimedia files
+	// TODO: need to separate 3gp, 3gp2 and 3gp5 files checking. The 'mime' should be different for these types
+	if (check([0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70], {offset: 4})) {
 		return {
 			ext: '3gp',
 			mime: 'video/3gpp'
