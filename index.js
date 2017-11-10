@@ -52,6 +52,14 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x3c, 0x3f, 0x78, 0x6d, 0x6c, 0x20])) {
+		return {
+			ext: 'xml',
+			mime: 'application/xml'
+		};
+	}
+
+
 	if (check([0x57, 0x45, 0x42, 0x50], {offset: 8})) {
 		return {
 			ext: 'webp',
