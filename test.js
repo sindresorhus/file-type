@@ -13,6 +13,7 @@ const types = [
 	'jpg',
 	'png',
 	'gif',
+	'xml',
 	'webp',
 	'flif',
 	'cr2',
