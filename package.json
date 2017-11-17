@@ -106,7 +106,10 @@
     "jpm",
     "jpx",
     "mj2",
-    "aif"
+    "aif",
+    "odt",
+    "ods",
+    "odp"
   ],
   "devDependencies": {
     "ava": "*",

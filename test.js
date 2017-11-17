@@ -83,7 +83,10 @@ const types = [
 	'jpm',
 	'jpx',
 	'mj2',
-	'aif'
+	'aif',
+	'odt',
+	'ods',
+	'odp'
 ];
 
 const names = {
