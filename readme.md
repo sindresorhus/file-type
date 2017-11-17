@@ -153,9 +153,9 @@ It only needs the first 4100 bytes.
 - [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`mj2`](https://en.wikipedia.org/wiki/Motion_JPEG_2000) - Motion JPEG 2000
 - [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format)
-- [`odt`](https://en.wikipedia.org/wiki/OpenDocument)
-- [`ods`](https://en.wikipedia.org/wiki/OpenDocument)
-- [`odp`](https://en.wikipedia.org/wiki/OpenDocument)
+- [`odt`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for word processing
+- [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
+- [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
