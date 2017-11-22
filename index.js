@@ -11,25 +11,27 @@ module.exports = input => {
 		return null;
 	}
 
-	const check = (header, opts) => {
-		opts = Object.assign({
+	const check = (header, options) => {
+		options = Object.assign({
 			offset: 0
-		}, opts);
+		}, options);
 
 		for (let i = 0; i < header.length; i++) {
 			// If a bitmask is set
-			if (opts.mask) {
+			if (options.mask) {
 				// If header doesn't equal `buf` with bits masked off
-				if (header[i] !== (opts.mask[i] & buf[i + opts.offset])) {
+				if (header[i] !== (options.mask[i] & buf[i + options.offset])) {
 					return false;
 				}
-			} else if (header[i] !== buf[i + opts.offset]) {
+			} else if (header[i] !== buf[i + options.offset]) {
 				return false;
 			}
 		}
 
 		return true;
 	};
+
+	const checkString = (header, options) => check(toBytes(header), options);
 
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {
@@ -49,13 +51,6 @@ module.exports = input => {
 		return {
 			ext: 'gif',
 			mime: 'image/gif'
-		};
-	}
-
-	if (check(toBytes('<?xml '))) {
-		return {
-			ext: 'xml',
-			mime: 'application/xml'
 		};
 	}
 
@@ -135,21 +130,21 @@ module.exports = input => {
 			};
 		}
 
-		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.text'), {offset: 30})) {
+		if (checkString('mimetypeapplication/vnd.oasis.opendocument.text', {offset: 30})) {
 			return {
 				ext: 'odt',
 				mime: 'application/vnd.oasis.opendocument.text'
 			};
 		}
 
-		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.spreadsheet'), {offset: 30})) {
+		if (checkString('mimetypeapplication/vnd.oasis.opendocument.spreadsheet', {offset: 30})) {
 			return {
 				ext: 'ods',
 				mime: 'application/vnd.oasis.opendocument.spreadsheet'
 			};
 		}
 
-		if (check(toBytes('mimetypeapplication/vnd.oasis.opendocument.presentation'), {offset: 30})) {
+		if (checkString('mimetypeapplication/vnd.oasis.opendocument.presentation', {offset: 30})) {
 			return {
 				ext: 'odp',
 				mime: 'application/vnd.oasis.opendocument.presentation'
@@ -169,21 +164,21 @@ module.exports = input => {
 				if (header3Pos !== -1) {
 					const offset = 8 + header2Pos + header3Pos + 30;
 
-					if (check(toBytes('word/'), {offset})) {
+					if (checkString('word/', {offset})) {
 						return {
 							ext: 'docx',
 							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 						};
 					}
 
-					if (check(toBytes('ppt/'), {offset})) {
+					if (checkString('ppt/', {offset})) {
 						return {
 							ext: 'pptx',
 							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 						};
 					}
 
-					if (check(toBytes('xl/'), {offset})) {
+					if (checkString('xl/', {offset})) {
 						return {
 							ext: 'xlsx',
 							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -708,6 +703,13 @@ module.exports = input => {
 		return {
 			ext: 'aif',
 			mime: 'audio/aiff'
+		};
+	}
+
+	if (checkString('<?xml ')) {
+		return {
+			ext: 'xml',
+			mime: 'application/xml'
 		};
 	}
 

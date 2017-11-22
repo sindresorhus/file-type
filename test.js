@@ -13,7 +13,6 @@ const types = [
 	'jpg',
 	'png',
 	'gif',
-	'xml',
 	'webp',
 	'flif',
 	'cr2',
@@ -87,7 +86,8 @@ const types = [
 	'aif',
 	'odt',
 	'ods',
-	'odp'
+	'odp',
+	'xml'
 ];
 
 const names = {

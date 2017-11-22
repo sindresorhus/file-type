@@ -84,7 +84,6 @@ It only needs the first 4100 bytes.
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG)
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics)
 - [`gif`](https://en.wikipedia.org/wiki/GIF)
-- [`xml`](https://en.wikipedia.org/wiki/XML)
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
 - [`cr2`](http://fileinfo.com/extension/cr2)
@@ -157,6 +156,7 @@ It only needs the first 4100 bytes.
 - [`odt`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for word processing
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
+- [`xml`](https://en.wikipedia.org/wiki/XML)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
