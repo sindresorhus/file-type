@@ -4,6 +4,7 @@ const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
+console.log(toBytes('xml/'));
 module.exports = input => {
 	const buf = (input instanceof Uint8Array) ? input : new Uint8Array(input);
 
@@ -52,7 +53,7 @@ module.exports = input => {
 		};
 	}
 
-	if (check([0x3C, 0x3F, 0x78, 0x6D, 0x6C, 0x20])) {
+	if (check(toBytes('<?xml'))) {
 		return {
 			ext: 'xml',
 			mime: 'application/xml'
