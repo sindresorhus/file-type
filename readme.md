@@ -173,6 +173,11 @@ It only needs the first 4100 bytes.
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Mikael Finstad](https://github.com/mifi)
 
+## Third Party Bindings
+
+### React Native
+Thanks to @prscX, you may now use this library with [React Native](https://github.com/facebook/react-native) via the module [here](https://github.com/prscX/react-native-file-type)
+
 
 ## License
 
