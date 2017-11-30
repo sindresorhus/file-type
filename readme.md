@@ -4,16 +4,14 @@
 
 The file type is detected by checking the [magic number](http://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/tmkVF4Qm7RNE8e9RVwnim6gU/sindresorhus/file-type'>
-  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/tmkVF4Qm7RNE8e9RVwnim6gU/sindresorhus/file-type.svg' />
-</a>
-
 
 ## Install
 
 ```
 $ npm install file-type
 ```
+
+*Show your support for this module by buying this excellent [Node.js course](https://LearnNode.com/friend/AWESOME).*
 
 
 ## Usage
