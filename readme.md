@@ -116,6 +116,7 @@ It only needs the first 4100 bytes.
 - [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec)
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format)
 - [`epub`](https://en.wikipedia.org/wiki/EPUB)
+- [`mobi`](https://en.wikipedia.org/wiki/Mobipocket) - Mobipocket
 - [`exe`](https://en.wikipedia.org/wiki/.exe)
 - [`swf`](https://en.wikipedia.org/wiki/SWF)
 - [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format)
