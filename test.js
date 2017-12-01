@@ -103,7 +103,8 @@ const names = {
 	lz: ['fixture.tar'],
 	Z: ['fixture.tar'],
 	mkv: ['fixture', 'fixture2'],
-	mxf: ['fixture']
+	mxf: ['fixture'],
+	mpg: ['fixture', 'fixture2']
 };
 
 function testFile(t, type, name) {
