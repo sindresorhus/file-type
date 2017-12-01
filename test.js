@@ -87,7 +87,8 @@ const types = [
 	'odt',
 	'ods',
 	'odp',
-	'xml'
+	'xml',
+	'mobi'
 ];
 
 const names = {
