@@ -723,5 +723,36 @@ module.exports = input => {
 		};
 	}
 
+	// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
+	if (check([0x66, 0x74, 0x79, 0x70], {offset: 4})) {
+		if (check([0x6D, 0x69, 0x66, 0x31], {offset: 8})) {
+			return {
+				ext: 'heic',
+				mime: 'image/heif'
+			};
+		}
+
+		if (check([0x6D, 0x73, 0x66, 0x31], {offset: 8})) {
+			return {
+				ext: 'heic',
+				mime: 'image/heif-sequence'
+			};
+		}
+
+		if (check([0x68, 0x65, 0x69, 0x63], {offset: 8}) || check([0x68, 0x65, 0x69, 0x78], {offset: 8})) {
+			return {
+				ext: 'heic',
+				mime: 'image/heic'
+			};
+		}
+
+		if (check([0x68, 0x65, 0x76, 0x63], {offset: 8}) || check([0x68, 0x65, 0x76, 0x78], {offset: 8})) {
+			return {
+				ext: 'heic',
+				mime: 'image/heic-sequence'
+			};
+		}
+	}
+
 	return null;
 };
