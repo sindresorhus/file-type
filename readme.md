@@ -11,7 +11,9 @@ The file type is detected by checking the [magic number](http://en.wikipedia.org
 $ npm install file-type
 ```
 
-*Show your support for this module by buying this excellent [Node.js course](https://LearnNode.com/friend/AWESOME).*
+<a href="https://www.patreon.com/sindresorhus">
+	<img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
+</a>
 
 
 ## Usage
