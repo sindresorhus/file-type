@@ -88,7 +88,8 @@ const types = [
 	'ods',
 	'odp',
 	'xml',
-	'mobi'
+	'mobi',
+	'heic'
 ];
 
 const names = {
@@ -105,7 +106,8 @@ const names = {
 	Z: ['fixture.tar'],
 	mkv: ['fixture', 'fixture2'],
 	mxf: ['fixture'],
-	mpg: ['fixture', 'fixture2']
+	mpg: ['fixture', 'fixture2'],
+	heic: ['fixture-mif1', 'fixture-msf1', 'fixture-heic']
 };
 
 function testFile(t, type, name) {

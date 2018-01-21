@@ -156,6 +156,7 @@ It only needs the first 4100 bytes.
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 - [`xml`](https://en.wikipedia.org/wiki/XML)
+- [`heic`](http://nokiatech.github.io/heif/technical.html)
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 

@@ -111,7 +111,8 @@
     "odt",
     "ods",
     "odp",
-    "xml"
+    "xml",
+    "heic"
   ],
   "devDependencies": {
     "ava": "*",
