@@ -341,7 +341,7 @@ module.exports = input => {
 		};
 	}
 
-	// Check for MP3 header at different starting offsets
+	// Check for MPEG header at different starting offsets
 	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
 		if (
 			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
@@ -349,6 +349,15 @@ module.exports = input => {
 		) {
 			return {
 				ext: 'mp3',
+				mime: 'audio/mpeg'
+			};
+		}
+
+		if (
+			check([0xFF, 0xE4], {offset: start, mask: [0xFF, 0xE4]}) // MPEG 1 or 2 Layer 2 header
+		) {
+			return {
+				ext: 'mp2',
 				mime: 'audio/mpeg'
 			};
 		}
