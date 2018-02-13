@@ -107,6 +107,7 @@ It only needs the first 4100 bytes.
 - [`avi`](https://en.wikipedia.org/wiki/Audio_Video_Interleave)
 - [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video)
 - [`mpg`](https://en.wikipedia.org/wiki/MPEG-1)
+- [`mp2`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_II)
 - [`mp3`](https://en.wikipedia.org/wiki/MP3)
 - [`m4a`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#.MP4_versus_.M4A)
 - [`ogg`](https://en.wikipedia.org/wiki/Ogg)
