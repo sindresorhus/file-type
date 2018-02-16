@@ -94,6 +94,7 @@ const types = [
 ];
 
 const names = {
+	'3gp': ['fixture', 'fixture2'],
 	woff2: ['fixture', 'fixture-otto'],
 	woff: ['fixture', 'fixture-otto'],
 	eot: ['fixture', 'fixture-0x20001'],
