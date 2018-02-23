@@ -90,7 +90,8 @@ const types = [
 	'odp',
 	'xml',
 	'mobi',
-	'heic'
+	'heic',
+	'cur'
 ];
 
 const names = {

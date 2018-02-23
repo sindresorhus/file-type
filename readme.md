@@ -160,6 +160,7 @@ It only needs the first 4100 bytes.
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 - [`xml`](https://en.wikipedia.org/wiki/XML)
 - [`heic`](http://nokiatech.github.io/heif/technical.html)
+- [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format))
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
