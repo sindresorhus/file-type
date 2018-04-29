@@ -553,6 +553,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x00, 0x00, 0x02, 0x00])) {
+		return {
+			ext: 'cur',
+			mime: 'image/x-win-bitmap'
+		};
+	}
+
 	if (check([0x46, 0x4C, 0x56, 0x01])) {
 		return {
 			ext: 'flv',
