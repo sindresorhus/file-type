@@ -556,7 +556,7 @@ module.exports = input => {
 	if (check([0x00, 0x00, 0x02, 0x00])) {
 		return {
 			ext: 'cur',
-			mime: 'image/x-win-bitmap'
+			mime: 'image/x-icon'
 		};
 	}
 
