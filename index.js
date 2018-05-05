@@ -361,6 +361,24 @@ module.exports = input => {
 				mime: 'audio/mpeg'
 			};
 		}
+
+		if (
+			check([0xFF, 0xF8], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 2 layer 0 using ADTS
+		) {
+			return {
+				ext: 'mp2',
+				mime: 'audio/mpeg'
+			};
+		}
+
+		if (
+			check([0xFF, 0xF0], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
+		) {
+			return {
+				ext: 'mp4',
+				mime: 'audio/mpeg'
+			};
+		}
 	}
 
 	if (
