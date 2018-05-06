@@ -1,11 +1,11 @@
 'use strict';
-const toBytes = s => Array.from(s).map(c => c.charCodeAt(0));
+const toBytes = s => [...s].map(c => c.charCodeAt(0));
 const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
 module.exports = input => {
-	const buf = (input instanceof Uint8Array) ? input : new Uint8Array(input);
+	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
 
 	if (!(buf && buf.length > 1)) {
 		return null;
@@ -278,7 +278,7 @@ module.exports = input => {
 
 		if (idPos !== -1) {
 			const docTypePos = idPos + 3;
-			const findDocType = type => Array.from(type).every((c, i) => sliced[docTypePos + i] === c.charCodeAt(0));
+			const findDocType = type => [...type].every((c, i) => sliced[docTypePos + i] === c.charCodeAt(0));
 
 			if (findDocType('matroska')) {
 				return {
