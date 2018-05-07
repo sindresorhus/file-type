@@ -113,6 +113,8 @@
 		"ods",
 		"odp",
 		"xml",
+		"wma",
+		"wmv",
 		"heic"
 	],
 	"devDependencies": {
