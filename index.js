@@ -317,7 +317,7 @@ module.exports = input => {
 		};
 	}
 
-	// ASF_Header_Object is first 64 bits
+	// ASF_Header_Object first 80 bytes
 	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
 		// Search for header should be in first 1KB of file.
 
