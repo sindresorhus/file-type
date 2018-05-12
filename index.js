@@ -307,14 +307,27 @@ module.exports = input => {
 		};
 	}
 
-	if (
-		check([0x52, 0x49, 0x46, 0x46]) &&
-		check([0x41, 0x56, 0x49], {offset: 8})
-	) {
-		return {
-			ext: 'avi',
-			mime: 'video/x-msvideo'
-		};
+	// RIFF file format which might be AVI, WAV, QCP, etc
+	if (check([0x52, 0x49, 0x46, 0x46])) {
+		if (check([0x41, 0x56, 0x49], {offset: 8})) {
+			return {
+				ext: 'avi',
+				mime: 'video/x-msvideo'
+			};
+		}
+		if (check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
+			return {
+				ext: 'wav',
+				mime: 'audio/x-wav'
+			};
+		}
+		// QLCM, QCP file
+		if (check([0x51, 0x4C, 0x43, 0x4D], {offset: 8})) {
+			return {
+				ext: 'qcp',
+				mime: 'audio/qcelp'
+			};
+		}
 	}
 
 	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
@@ -434,16 +447,6 @@ module.exports = input => {
 		return {
 			ext: 'flac',
 			mime: 'audio/x-flac'
-		};
-	}
-
-	if (
-		check([0x52, 0x49, 0x46, 0x46]) &&
-		check([0x57, 0x41, 0x56, 0x45], {offset: 8})
-	) {
-		return {
-			ext: 'wav',
-			mime: 'audio/x-wav'
 		};
 	}
 

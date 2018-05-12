@@ -114,6 +114,7 @@ It only needs the first 4100 bytes.
 - [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format))
 - [`flac`](https://en.wikipedia.org/wiki/FLAC)
 - [`wav`](https://en.wikipedia.org/wiki/WAV)
+- [`qcp`](https://en.wikipedia.org/wiki/QCP)
 - [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec)
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format)
 - [`epub`](https://en.wikipedia.org/wiki/EPUB)

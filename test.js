@@ -85,6 +85,7 @@ const types = [
 	'jpx',
 	'mj2',
 	'aif',
+	'qcp',
 	'odt',
 	'ods',
 	'odp',
