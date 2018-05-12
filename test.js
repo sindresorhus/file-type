@@ -33,6 +33,7 @@ const types = [
 	'webm',
 	'mov',
 	'avi',
+	'wma',
 	'wmv',
 	'mpg',
 	'mp2',

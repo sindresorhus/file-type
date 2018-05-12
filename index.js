@@ -330,7 +330,31 @@ module.exports = input => {
 		}
 	}
 
+	// ASF_Header_Object first 80 bytes
 	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
+		// Search for header should be in first 1KB of file.
+
+		for (let start = 0; start < 1024 && start < (buf.length - 16); start += 2) {
+			// ASF_Audio_Media  GUID in little endian F8699E40-5B4D-11CF-A8FD-00805F5C442B
+			if (check([0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11,
+				0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: start})) {
+				return {
+					ext: 'wma',
+					mime: 'audio/x-ms-wma'
+				};
+			}
+
+			// ASF_Video_Media  GUID in little endian BC19EFC0-5B4D-11CF-A8FD-00805F5C442B
+			if (check([0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11,
+				0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: start})) {
+				return {
+					ext: 'wmv',
+					mime: 'video/x-ms-wmv'
+				};
+			}
+		}
+
+		// Default to WMV
 		return {
 			ext: 'wmv',
 			mime: 'video/x-ms-wmv'
