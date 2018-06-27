@@ -92,7 +92,8 @@ const types = [
 	'xml',
 	'mobi',
 	'heic',
-	'cur'
+	'cur',
+	'ktx'
 ];
 
 const names = {
