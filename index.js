@@ -398,9 +398,9 @@ module.exports = input => {
 		check([0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41], {offset: 4}) ||
 		check([0x4D, 0x34, 0x41, 0x20])
 	) {
-		return {
+		return { // MPEG-4 layer 3 (audio)
 			ext: 'm4a',
-			mime: 'audio/m4a'
+			mime: 'audio/mp4' // RFC 4337
 		};
 	}
 
