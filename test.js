@@ -96,6 +96,7 @@ const types = [
 ];
 
 const names = {
+	ape: ['fixture-monkeysaudio'],
 	'3gp': ['fixture', 'fixture2'],
 	woff2: ['fixture', 'fixture-otto'],
 	woff: ['fixture', 'fixture-otto'],

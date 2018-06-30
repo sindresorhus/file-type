@@ -468,6 +468,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x4D, 0x41, 0x43, 0x20])) {
+		return {
+			ext: 'ape',
+			mime: 'audio/ape'
+		};
+	}
+
 	if (check([0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A])) {
 		return {
 			ext: 'amr',
