@@ -318,7 +318,7 @@ module.exports = input => {
 		if (check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
 			return {
 				ext: 'wav',
-				mime: 'audio/x-wav'
+				mime: 'audio/wav'
 			};
 		}
 		// QLCM, QCP file
