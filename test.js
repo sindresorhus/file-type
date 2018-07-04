@@ -96,7 +96,6 @@ const types = [
 ];
 
 const names = {
-	ape: ['fixture-monkeysaudio'],
 	'3gp': ['fixture', 'fixture2'],
 	woff2: ['fixture', 'fixture-otto'],
 	woff: ['fixture', 'fixture-otto'],
@@ -114,7 +113,8 @@ const names = {
 	mkv: ['fixture', 'fixture2'],
 	mxf: ['fixture'],
 	mpg: ['fixture', 'fixture2'],
-	heic: ['fixture-mif1', 'fixture-msf1', 'fixture-heic']
+	heic: ['fixture-mif1', 'fixture-msf1', 'fixture-heic'],
+	ape: ['fixture-monkeysaudio']
 };
 
 function testFile(t, type, name) {
