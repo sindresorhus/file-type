@@ -115,7 +115,8 @@ const names = {
 	mxf: ['fixture'],
 	mpg: ['fixture', 'fixture2'],
 	heic: ['fixture-mif1', 'fixture-msf1', 'fixture-heic'],
-	ape: ['fixture-monkeysaudio']
+	ape: ['fixture-monkeysaudio'],
+	wma: ['fixture-asf']
 };
 
 function testFile(t, type, name) {
