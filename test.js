@@ -93,6 +93,8 @@ const types = [
 	'mobi',
 	'heic',
 	'cur',
+	'ktx',
+	'cur',
 	'ape'
 ];
 

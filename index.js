@@ -312,13 +312,13 @@ module.exports = input => {
 		if (check([0x41, 0x56, 0x49], {offset: 8})) {
 			return {
 				ext: 'avi',
-				mime: 'video/x-msvideo'
+				mime: 'video/vnd.avi'
 			};
 		}
 		if (check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
 			return {
 				ext: 'wav',
-				mime: 'audio/x-wav'
+				mime: 'audio/vnd.wave'
 			};
 		}
 		// QLCM, QCP file
@@ -398,9 +398,9 @@ module.exports = input => {
 		check([0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41], {offset: 4}) ||
 		check([0x4D, 0x34, 0x41, 0x20])
 	) {
-		return {
+		return { // MPEG-4 layer 3 (audio)
 			ext: 'm4a',
-			mime: 'audio/m4a'
+			mime: 'audio/mp4' // RFC 4337
 		};
 	}
 
@@ -796,6 +796,13 @@ module.exports = input => {
 				mime: 'image/heic-sequence'
 			};
 		}
+	}
+
+	if (check([0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A])) {
+		return {
+			ext: 'ktx',
+			mime: 'image/ktx'
+		};
 	}
 
 	return null;
