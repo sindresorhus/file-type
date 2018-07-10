@@ -354,7 +354,7 @@ module.exports = input => {
 					// Found Audio:
 					return {
 						ext: 'wma',
-						mime: 'audio/x-ms-wma'
+						mime: 'application/vnd.ms-asf'
 					};
 				}
 
@@ -362,7 +362,7 @@ module.exports = input => {
 					// Found Audio:
 					return {
 						ext: 'wmv',
-						mime: 'video/x-ms-wmv'
+						mime: 'application/vnd.ms-asf'
 					};
 				}
 
@@ -371,10 +371,10 @@ module.exports = input => {
 			offset += objectSize;
 		} while (offset + 24 <= buf.length);
 
-		// Default to WMV
+		// Default to ASF generic extension
 		return {
-			ext: 'wmv',
-			mime: 'video/x-ms-wmv'
+			ext: 'asf',
+			mime: 'application/vnd.ms-asf'
 		};
 	}
 
