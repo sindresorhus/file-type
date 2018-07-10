@@ -478,7 +478,7 @@ module.exports = input => {
 	if (check([0x77, 0x76, 0x70, 0x6B])) { // 'wvpk'
 		return {
 			ext: 'wv',
-			mime: 'audio/wavepack'
+			mime: 'audio/wavpack'
 		};
 	}
 
