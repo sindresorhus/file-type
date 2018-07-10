@@ -92,7 +92,6 @@ const types = [
 	'xml',
 	'mobi',
 	'heic',
-	'cur',
 	'ktx',
 	'cur',
 	'ape'
