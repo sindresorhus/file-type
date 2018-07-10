@@ -124,7 +124,6 @@ const names = {
 };
 
 function testFile(t, type, name) {
-	console.log('-- testing %s.%s --', name, type);
 	t.is(check(type, name), type);
 }
 
