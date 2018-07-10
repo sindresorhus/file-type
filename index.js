@@ -365,6 +365,8 @@ module.exports = input => {
 						mime: 'video/x-ms-wmv'
 					};
 				}
+
+				break;
 			}
 			offset += objectSize;
 		} while (offset + 24 <= buf.length);
