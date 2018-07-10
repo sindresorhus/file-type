@@ -94,7 +94,9 @@ const types = [
 	'heic',
 	'ktx',
 	'cur',
-	'ape'
+	'ape',
+	'wmv',
+	'wma'
 ];
 
 const names = {
@@ -117,10 +119,12 @@ const names = {
 	mpg: ['fixture', 'fixture2'],
 	heic: ['fixture-mif1', 'fixture-msf1', 'fixture-heic'],
 	ape: ['fixture-monkeysaudio'],
-	wma: ['fixture-asf']
+	wmv: ['fixture'],
+	wma: ['fixture']
 };
 
 function testFile(t, type, name) {
+	console.log('-- testing %s.%s --', name, type);
 	t.is(check(type, name), type);
 }
 
