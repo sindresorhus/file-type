@@ -151,43 +151,37 @@ module.exports = input => {
 			};
 		}
 
-		// docx, xlsx and pptx file types extend the Office Open XML file format:
+		// The docx, xlsx and pptx file types extend the Office Open XML file format:
 		// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
 		// We look for:
-		// - one entry named '[Content_Types].xml',
-		// - one entry named '_rels/.rels',
-		// - at least one entry indicating specific type of file.
+		// - one entry named '[Content_Types].xml' or '_rels/.rels',
+		// - one entry indicating specific type of file.
 		// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
 		const findNextZipHeaderIndex = (arr, startAt = 0) => arr.findIndex((el, i, arr) => i >= startAt && arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
 
-		let zipHeaderIndex = 0, // the first zip header was found at index 0
-		    oxmlContentTypesFound = false,
-		    oxmlRelsFound = false,
-		    type = null;
+		let zipHeaderIndex = 0; // The first zip header was already found at index 0
+		let oxmlFound = false;
+		let type = null;
 
 		while (zipHeaderIndex >= 0) {
-			let offset = zipHeaderIndex + 30;
+			const offset = zipHeaderIndex + 30;
 
-			if (!oxmlContentTypesFound) {
-				oxmlContentTypesFound = check(oxmlContentTypes, {offset});
-			}
-
-			if (!oxmlRelsFound) {
-				oxmlRelsFound = check(oxmlRels, {offset});
+			if (!oxmlFound) {
+				oxmlFound = (check(oxmlContentTypes, {offset}) || check(oxmlRels, {offset}));
 			}
 
 			if (!type) {
-				if (checkString('word/', { offset })) {
+				if (checkString('word/', {offset})) {
 					type = {
 						ext: 'docx',
 						mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 					};
-				} else if (checkString('ppt/', { offset })) {
+				} else if (checkString('ppt/', {offset})) {
 					type = {
 						ext: 'pptx',
 						mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 					};
-				} else if (checkString('xl/', { offset })) {
+				} else if (checkString('xl/', {offset})) {
 					type = {
 						ext: 'xlsx',
 						mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -195,7 +189,7 @@ module.exports = input => {
 				}
 			}
 
-			if (oxmlContentTypesFound && oxmlRelsFound && type) {
+			if (oxmlFound && type) {
 				return type;
 			}
 
