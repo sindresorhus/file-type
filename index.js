@@ -151,41 +151,55 @@ module.exports = input => {
 			};
 		}
 
-		// https://github.com/file/file/blob/master/magic/Magdir/msooxml
-		if (check(oxmlContentTypes, {offset: 30}) || check(oxmlRels, {offset: 30})) {
-			const sliced = buf.subarray(4, 4 + 2000);
-			const nextZipHeaderIndex = arr => arr.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
-			const header2Pos = nextZipHeaderIndex(sliced);
+		// docx, xlsx and pptx file types extend the Office Open XML file format:
+		// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
+		// We look for:
+		// - one entry named '[Content_Types].xml',
+		// - one entry named '_rels/.rels',
+		// - at least one entry indicating specific type of file.
+		// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
+		const findNextZipHeaderIndex = (arr, startAt = 0) => arr.findIndex((el, i, arr) => i >= startAt && arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
 
-			if (header2Pos !== -1) {
-				const slicedAgain = buf.subarray(header2Pos + 8, header2Pos + 8 + 1000);
-				const header3Pos = nextZipHeaderIndex(slicedAgain);
+		let zipHeaderIndex = 0, // the first zip header was found at index 0
+		    oxmlContentTypesFound = false,
+		    oxmlRelsFound = false,
+		    type = null;
 
-				if (header3Pos !== -1) {
-					const offset = 8 + header2Pos + header3Pos + 30;
+		while (zipHeaderIndex >= 0) {
+			let offset = zipHeaderIndex + 30;
 
-					if (checkString('word/', {offset})) {
-						return {
-							ext: 'docx',
-							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-						};
-					}
+			if (!oxmlContentTypesFound) {
+				oxmlContentTypesFound = check(oxmlContentTypes, {offset});
+			}
 
-					if (checkString('ppt/', {offset})) {
-						return {
-							ext: 'pptx',
-							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-						};
-					}
+			if (!oxmlRelsFound) {
+				oxmlRelsFound = check(oxmlRels, {offset});
+			}
 
-					if (checkString('xl/', {offset})) {
-						return {
-							ext: 'xlsx',
-							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-						};
-					}
+			if (!type) {
+				if (checkString('word/', { offset })) {
+					type = {
+						ext: 'docx',
+						mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+					};
+				} else if (checkString('ppt/', { offset })) {
+					type = {
+						ext: 'pptx',
+						mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+					};
+				} else if (checkString('xl/', { offset })) {
+					type = {
+						ext: 'xlsx',
+						mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+					};
 				}
 			}
+
+			if (oxmlContentTypesFound && oxmlRelsFound && type) {
+				return type;
+			}
+
+			zipHeaderIndex = findNextZipHeaderIndex(buf, offset);
 		}
 	}
 
