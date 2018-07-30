@@ -163,7 +163,7 @@ module.exports = input => {
 		let oxmlFound = false;
 		let type = null;
 
-		while (zipHeaderIndex >= 0) {
+		do {
 			const offset = zipHeaderIndex + 30;
 
 			if (!oxmlFound) {
@@ -194,6 +194,11 @@ module.exports = input => {
 			}
 
 			zipHeaderIndex = findNextZipHeaderIndex(buf, offset);
+		} while (zipHeaderIndex >= 0);
+
+		// No more zip parts available in the buffer, but maybe we are almost certain about the type?
+		if (type) {
+			return type;
 		}
 	}
 
