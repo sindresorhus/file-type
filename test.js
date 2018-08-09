@@ -94,7 +94,8 @@ const types = [
 	'heic',
 	'cur',
 	'ktx',
-	'ape'
+	'ape',
+	'wv'
 ];
 
 const names = {
