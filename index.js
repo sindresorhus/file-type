@@ -556,7 +556,7 @@ module.exports = input => {
 	) {
 		return {
 			ext: 'eot',
-			mime: 'application/octet-stream'
+			mime: 'application/vnd.ms-fontobject'
 		};
 	}
 
