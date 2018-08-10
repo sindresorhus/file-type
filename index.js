@@ -4,6 +4,17 @@ const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
+function readUInt64LE(buf, offset = 0) {
+	let n = buf[offset];
+	let mul = 1;
+	let i = 0;
+	while (++i < 8) {
+		mul *= 0x100;
+		n += buf[offset + i] * mul;
+	}
+	return n;
+}
+
 module.exports = input => {
 	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
 
@@ -328,17 +339,6 @@ module.exports = input => {
 				mime: 'audio/qcelp'
 			};
 		}
-	}
-
-	function readUInt64LE(buf, offset = 0) {
-		let n = buf[offset];
-		let mul = 1;
-		let i = 0;
-		while (++i < 8) {
-			mul *= 0x100;
-			n += buf[offset + i] * mul;
-		}
-		return n;
 	}
 
 	// ASF_Header_Object first 80 bytes
