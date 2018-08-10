@@ -205,6 +205,19 @@ module.exports = input => {
 	if (
 		check([0x50, 0x4B]) &&
 		(buf[2] === 0x3 || buf[2] === 0x5 || buf[2] === 0x7) &&
+		(buf[3] === 0x4 || buf[3] === 0x6 || buf[3] === 0x8) &&
+		(buf[6] === 0x8)
+	) {
+		return {
+			ext: 'xlsx',
+			mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+		};
+	}
+
+
+	if (
+		check([0x50, 0x4B]) &&
+		(buf[2] === 0x3 || buf[2] === 0x5 || buf[2] === 0x7) &&
 		(buf[3] === 0x4 || buf[3] === 0x6 || buf[3] === 0x8)
 	) {
 		return {
@@ -212,6 +225,7 @@ module.exports = input => {
 			mime: 'application/zip'
 		};
 	}
+
 
 	if (check([0x75, 0x73, 0x74, 0x61, 0x72], {offset: 257})) {
 		return {
