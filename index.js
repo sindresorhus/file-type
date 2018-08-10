@@ -720,6 +720,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x47]) && check([0x47], {offset: 188})) {
+		return {
+			ext: 'ts',
+			mime: 'video/mp2t'
+		};
+	}
+
 	if (check([0x42, 0x4C, 0x45, 0x4E, 0x44, 0x45, 0x52])) {
 		return {
 			ext: 'blend',
