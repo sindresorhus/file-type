@@ -76,7 +76,7 @@ Or `null` when no match.
 
 Type: `Buffer` `Uint8Array`
 
-It only needs the first 4100 bytes.
+It only needs the first 4100 bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 
 
 ## Supported file types
