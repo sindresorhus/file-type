@@ -165,6 +165,9 @@ It only needs the first 4100 bytes. The exception is detection of `docx`, `pptx`
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
+- [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
+- [`wma`](https://en.wikipedia.org/wiki/Windows_Media_Audio) - Windows Media Audio
+- [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video) -Windows Media Video
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
