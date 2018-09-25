@@ -76,7 +76,7 @@ Or `null` when no match.
 
 Type: `Buffer` `Uint8Array`
 
-It only needs the first 4100 bytes.
+It only needs the first 4100 bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 
 
 ## Supported file types
@@ -164,6 +164,7 @@ It only needs the first 4100 bytes.
 - [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format))
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
+- [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 

@@ -162,41 +162,54 @@ module.exports = input => {
 			};
 		}
 
-		// https://github.com/file/file/blob/master/magic/Magdir/msooxml
-		if (check(oxmlContentTypes, {offset: 30}) || check(oxmlRels, {offset: 30})) {
-			const sliced = buf.subarray(4, 4 + 2000);
-			const nextZipHeaderIndex = arr => arr.findIndex((el, i, arr) => arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
-			const header2Pos = nextZipHeaderIndex(sliced);
+		// The docx, xlsx and pptx file types extend the Office Open XML file format:
+		// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
+		// We look for:
+		// - one entry named '[Content_Types].xml' or '_rels/.rels',
+		// - one entry indicating specific type of file.
+		// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
+		const findNextZipHeaderIndex = (arr, startAt = 0) => arr.findIndex((el, i, arr) => i >= startAt && arr[i] === 0x50 && arr[i + 1] === 0x4B && arr[i + 2] === 0x3 && arr[i + 3] === 0x4);
 
-			if (header2Pos !== -1) {
-				const slicedAgain = buf.subarray(header2Pos + 8, header2Pos + 8 + 1000);
-				const header3Pos = nextZipHeaderIndex(slicedAgain);
+		let zipHeaderIndex = 0; // The first zip header was already found at index 0
+		let oxmlFound = false;
+		let type = null;
 
-				if (header3Pos !== -1) {
-					const offset = 8 + header2Pos + header3Pos + 30;
+		do {
+			const offset = zipHeaderIndex + 30;
 
-					if (checkString('word/', {offset})) {
-						return {
-							ext: 'docx',
-							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-						};
-					}
+			if (!oxmlFound) {
+				oxmlFound = (check(oxmlContentTypes, {offset}) || check(oxmlRels, {offset}));
+			}
 
-					if (checkString('ppt/', {offset})) {
-						return {
-							ext: 'pptx',
-							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-						};
-					}
-
-					if (checkString('xl/', {offset})) {
-						return {
-							ext: 'xlsx',
-							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-						};
-					}
+			if (!type) {
+				if (checkString('word/', {offset})) {
+					type = {
+						ext: 'docx',
+						mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+					};
+				} else if (checkString('ppt/', {offset})) {
+					type = {
+						ext: 'pptx',
+						mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+					};
+				} else if (checkString('xl/', {offset})) {
+					type = {
+						ext: 'xlsx',
+						mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+					};
 				}
 			}
+
+			if (oxmlFound && type) {
+				return type;
+			}
+
+			zipHeaderIndex = findNextZipHeaderIndex(buf, offset);
+		} while (zipHeaderIndex >= 0);
+
+		// No more zip parts available in the buffer, but maybe we are almost certain about the type?
+		if (type) {
+			return type;
 		}
 	}
 
@@ -509,10 +522,17 @@ module.exports = input => {
 		};
 	}
 
-	if (check([0x4D, 0x41, 0x43, 0x20])) {
+	if (check([0x4D, 0x41, 0x43, 0x20])) { // 'MAC '
 		return {
 			ext: 'ape',
 			mime: 'audio/ape'
+		};
+	}
+
+	if (check([0x77, 0x76, 0x70, 0x6B])) { // 'wvpk'
+		return {
+			ext: 'wv',
+			mime: 'audio/wavpack'
 		};
 	}
 
@@ -597,7 +617,7 @@ module.exports = input => {
 	) {
 		return {
 			ext: 'eot',
-			mime: 'application/octet-stream'
+			mime: 'application/vnd.ms-fontobject'
 		};
 	}
 
