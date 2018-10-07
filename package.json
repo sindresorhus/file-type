@@ -113,7 +113,8 @@
 		"ods",
 		"odp",
 		"xml",
-		"heic"
+		"heic",
+		"wma"
 	],
 	"devDependencies": {
 		"ava": "*",

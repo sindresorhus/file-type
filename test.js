@@ -95,7 +95,9 @@ const types = [
 	'cur',
 	'ktx',
 	'ape',
-	'wv'
+	'wv',
+	'wmv',
+	'wma'
 ];
 
 // Define an entry here only if the fixture has a different

@@ -4,6 +4,17 @@ const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
 const oxmlRels = toBytes('_rels/.rels');
 
+function readUInt64LE(buf, offset = 0) {
+	let n = buf[offset];
+	let mul = 1;
+	let i = 0;
+	while (++i < 8) {
+		mul *= 0x100;
+		n += buf[offset + i] * mul;
+	}
+	return n;
+}
+
 module.exports = input => {
 	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
 
@@ -343,10 +354,40 @@ module.exports = input => {
 		}
 	}
 
+	// ASF_Header_Object first 80 bytes
 	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
+		// Search for header should be in first 1KB of file.
+
+		let offset = 30;
+		do {
+			const objectSize = readUInt64LE(buf, offset + 16);
+			if (check([0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65], {offset})) {
+				// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
+				if (check([0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: offset + 24})) {
+					// Found audio:
+					return {
+						ext: 'wma',
+						mime: 'audio/x-ms-wma'
+					};
+				}
+
+				if (check([0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: offset + 24})) {
+					// Found video:
+					return {
+						ext: 'wmv',
+						mime: 'video/x-ms-asf'
+					};
+				}
+
+				break;
+			}
+			offset += objectSize;
+		} while (offset + 24 <= buf.length);
+
+		// Default to ASF generic extension
 		return {
-			ext: 'wmv',
-			mime: 'video/x-ms-wmv'
+			ext: 'asf',
+			mime: 'application/vnd.ms-asf'
 		};
 	}
 
