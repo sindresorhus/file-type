@@ -121,7 +121,8 @@ const names = {
 	],
 	mov: [
 		'fixture',
-		'fixture-mjpeg'
+		'fixture-mjpeg',
+		'fixture-moov'
 	],
 	mp2: [
 		'fixture',
