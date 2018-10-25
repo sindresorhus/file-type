@@ -43,6 +43,7 @@ module.exports = input => {
 	};
 
 	const checkString = (header, options) => check(toBytes(header), options);
+	const minBytesForDetection = 4100; // minimum # of bytes needed to check file type //
 
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {

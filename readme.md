@@ -23,7 +23,8 @@ $ npm install file-type
 ```js
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-const buffer = readChunk.sync('unicorn.png', 0, 4100);
+const minBytesForDetection = 4100;
+const buffer = readChunk.sync('unicorn.png', 0, minBytesForDetection);
 
 fileType(buffer);
 //=> {ext: 'png', mime: 'image/png'}
@@ -76,7 +77,7 @@ Or `null` when no match.
 
 Type: `Buffer` `Uint8Array`
 
-It only needs the first 4100 bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
+It only needs the first 4100 bytes (added as constant `minBytesForDetection` for programmatically checking). The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 
 
 ## Supported file types
