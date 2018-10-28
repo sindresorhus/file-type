@@ -192,3 +192,7 @@ for (const type of types) {
 		test(type, testFile, type);
 	}
 }
+
+test('fileType.minimumBytes', t => {
+	t.true(fileType.minimumBytes > 4000);
+});

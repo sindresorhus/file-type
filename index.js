@@ -869,3 +869,5 @@ module.exports = input => {
 
 	return null;
 };
+
+Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
