@@ -867,6 +867,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x44, 0x49, 0x43, 0x4D], {offset: 128})) {
+		return {
+			ext: 'dcm',
+			mime: 'application/dicom'
+		};
+	}
+
 	return null;
 };
 

@@ -97,7 +97,8 @@ const types = [
 	'ape',
 	'wv',
 	'wmv',
-	'wma'
+	'wma',
+	'dcm'
 ];
 
 // Define an entry here only if the fixture has a different
