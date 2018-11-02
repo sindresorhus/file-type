@@ -16,6 +16,10 @@ function readUInt64LE(buf, offset = 0) {
 }
 
 module.exports = input => {
+	if (!(input instanceof Uint8Array || Buffer.isBuffer(input))) {
+		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\`, got \`${typeof input}\``);
+	}
+
 	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
 
 	if (!(buf && buf.length > 1)) {

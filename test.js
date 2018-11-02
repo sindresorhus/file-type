@@ -197,3 +197,17 @@ for (const type of types) {
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
 });
+
+test('validate the input argument type', t => {
+	t.throws(() => {
+		fileType('x');
+	}, /Expected the `input` argument to be of type `Uint8Array`/);
+
+	t.notThrows(() => {
+		fileType(Buffer.from('x'));
+	});
+
+	t.notThrows(() => {
+		fileType(new Uint8Array());
+	});
+});
