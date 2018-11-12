@@ -39,7 +39,8 @@ const fileType = require('file-type');
 const url = 'http://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
 
 http.get(url, res => {
-	res.once('data', chunk => {
+	res.on('readable', () => {
+		let chunk = this.read(fileType.minimumBytes);
 		res.destroy();
 		console.log(fileType(chunk));
 		//=> {ext: 'gif', mime: 'image/gif'}
