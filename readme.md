@@ -40,10 +40,12 @@ const url = 'http://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif
 
 http.get(url, response => {
 	response.on('readable', () => {
-		const chunk = response.read(fileType.minimumBytes);
-		response.destroy();
-		console.log(fileType(chunk));
-		//=> {ext: 'gif', mime: 'image/gif'}
+		let chunk;
+		while (null !== (chunk = response.read(fileType.minimumBytes))) {
+			console.log(fileType(chunk));
+			// => {ext: 'gif', mime: 'image/gif'}
+			response.destroy();
+		}
 	});
 });
 ```
