@@ -98,7 +98,8 @@ const types = [
 	'wv',
 	'wmv',
 	'wma',
-	'dcm'
+	'dcm',
+	'ics'
 ];
 
 // Define an entry here only if the fixture has a different
