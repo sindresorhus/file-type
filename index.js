@@ -878,6 +878,22 @@ module.exports = input => {
 		};
 	}
 
+	// Musepack, SV7
+	if (check([0x4D, 0x50, 0x2B])) {
+		return {
+			ext: 'mpc',
+			mime: 'audio/x-musepack'
+		};
+	}
+
+	// Musepack, SV8
+	if (check([0x4D, 0x50, 0x43, 0x4B])) {
+		return {
+			ext: 'mpc',
+			mime: 'audio/x-musepack'
+		};
+	}
+
 	return null;
 };
 

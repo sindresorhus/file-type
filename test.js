@@ -177,6 +177,10 @@ const names = {
 	],
 	ape: [
 		'fixture-monkeysaudio'
+	],
+	mpc: [
+		'fixture-sv7',
+		'fixture-sv8'
 	]
 };
 
