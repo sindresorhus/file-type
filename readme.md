@@ -177,8 +177,8 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
 - [`wma`](https://en.wikipedia.org/wiki/Windows_Media_Audio) - Windows Media Audio
 - [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video) - Windows Media Video
-- [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
-- [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar File
+- [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image
+- [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
