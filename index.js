@@ -454,13 +454,24 @@ module.exports = input => {
 	}
 
 	if (
-		check([0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41], {offset: 4}) ||
-		check([0x4D, 0x34, 0x41, 0x20])
+		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) // ='ftyp', MPEG-4
 	) {
-		return { // MPEG-4 layer 3 (audio)
-			ext: 'm4a',
-			mime: 'audio/mp4' // RFC 4337
-		};
+		if (
+			check([0x4D, 0x34, 0x41, 0x20], {offset: 8}) // ='M4A '?
+		) {
+			return { // MPEG-4 layer 3 (audio)
+				ext: 'm4a',
+				mime: 'audio/mp4' // RFC 4337
+			};
+		}
+		if (
+			check([0x4D, 0x34, 0x42, 0x20], {offset: 8}) // ='M4B '?
+		) {
+			return { // MPEG-4 layer 3 (audio-book)
+				ext: 'm4b',
+				mime: 'audio/mp4' // RFC 4337
+			};
+		}
 	}
 
 	// Needs to be before `ogg` check

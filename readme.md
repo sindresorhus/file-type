@@ -118,7 +118,7 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 - [`mpg`](https://en.wikipedia.org/wiki/MPEG-1)
 - [`mp2`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_II)
 - [`mp3`](https://en.wikipedia.org/wiki/MP3)
-- [`m4a`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#.MP4_versus_.M4A)
+- [`m4a`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#.MP4_versus_.M4A) - MPEG 4 Audio
 - [`ogg`](https://en.wikipedia.org/wiki/Ogg)
 - [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format))
 - [`flac`](https://en.wikipedia.org/wiki/FLAC)
@@ -179,6 +179,7 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 - [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video) - Windows Media Video
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`mpc`](https://en.wikipedia.org/wiki/Musepack) - Musepack (SV7 & SV8)
+- [`m4b`](https://en.wikipedia.org/wiki/MPEG-4_Part_14) - MPEG-4 Audiobook
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
