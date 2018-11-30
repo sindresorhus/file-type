@@ -894,6 +894,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x42, 0x45, 0x47, 0x49, 0x4E, 0x3A])) {
+		return {
+			ext: 'ics',
+			mime: 'text/calendar'
+		};
+	}
+
 	return null;
 };
 
