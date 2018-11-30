@@ -99,6 +99,7 @@ const types = [
 	'wmv',
 	'wma',
 	'dcm',
+	'ics',
 	'm4b'
 ];
 
