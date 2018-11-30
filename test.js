@@ -99,7 +99,7 @@ const types = [
 	'wmv',
 	'wma',
 	'dcm',
-	'm4a'
+	'm4b'
 ];
 
 // Define an entry here only if the fixture has a different
@@ -182,9 +182,6 @@ const names = {
 	mpc: [
 		'fixture-sv7',
 		'fixture-sv8'
-	],
-	m4b: [
-		'fixture'
 	]
 };
 
