@@ -454,7 +454,7 @@ module.exports = input => {
 	}
 
 	if (
-		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) // 'ftyp', MPEG-4
+		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) // 'ftyp' (MPEG-4)
 	) {
 		if (
 			check([0x4D, 0x34, 0x41, 0x20], {offset: 8}) // 'M4A '
