@@ -274,22 +274,43 @@ module.exports = input => {
 	}
 
 	if (check([0x33, 0x67, 0x70, 0x35]) || // 3gp5
-		(
-			check([0x0, 0x0, 0x0]) && check([0x66, 0x74, 0x79, 0x70], {offset: 4}) &&
-				(
-					check([0x6D, 0x70, 0x34, 0x31], {offset: 8}) || // MP41
-					check([0x6D, 0x70, 0x34, 0x32], {offset: 8}) || // MP42
-					check([0x69, 0x73, 0x6F, 0x6D], {offset: 8}) || // ISOM
-					check([0x69, 0x73, 0x6F, 0x32], {offset: 8}) || // ISO2
-					check([0x6D, 0x6D, 0x70, 0x34], {offset: 8}) || // MMP4
-					check([0x4D, 0x34, 0x56], {offset: 8}) || // M4V
-					check([0x64, 0x61, 0x73, 0x68], {offset: 8}) // DASH
-				)
-		)) {
-		return {
-			ext: 'mp4',
-			mime: 'video/mp4'
-		};
+		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) // 'ftyp' (MPEG-4)
+	) {
+		console.log(`MPEG-4`);
+		if (
+			(
+				check([0x6D, 0x70, 0x34, 0x31], {offset: 8}) || // MP41
+				check([0x6D, 0x70, 0x34, 0x32], {offset: 8}) || // MP42
+				check([0x69, 0x73, 0x6F, 0x6D], {offset: 8}) || // ISOM
+				check([0x69, 0x73, 0x6F, 0x32], {offset: 8}) || // ISO2
+				check([0x6D, 0x6D, 0x70, 0x34], {offset: 8}) || // MMP4
+				check([0x4D, 0x34, 0x56], {offset: 8}) || // M4V
+				check([0x64, 0x61, 0x73, 0x68], {offset: 8}) // DASH
+			)
+		) {
+			return {
+				ext: 'mp4',
+				mime: 'video/mp4'
+			};
+		}
+
+		if (
+			check([0x4D, 0x34, 0x41, 0x20], {offset: 8}) // 'M4A '
+		) {
+			return { // MPEG-4 layer 3 (audio)
+				ext: 'm4a',
+				mime: 'audio/mp4' // RFC 4337
+			};
+		}
+
+		if (
+			check([0x4D, 0x34, 0x42, 0x20], {offset: 8}) // 'M4B '
+		) {
+			return { // MPEG-4 layer 3 (audio-book)
+				ext: 'm4b',
+				mime: 'audio/mp4' // RFC 4337
+			};
+		}
 	}
 
 	if (check([0x4D, 0x54, 0x68, 0x64])) {
@@ -449,28 +470,6 @@ module.exports = input => {
 			return {
 				ext: 'mp4',
 				mime: 'audio/mpeg'
-			};
-		}
-	}
-
-	if (
-		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) // 'ftyp' (MPEG-4)
-	) {
-		if (
-			check([0x4D, 0x34, 0x41, 0x20], {offset: 8}) // 'M4A '
-		) {
-			return { // MPEG-4 layer 3 (audio)
-				ext: 'm4a',
-				mime: 'audio/mp4' // RFC 4337
-			};
-		}
-
-		if (
-			check([0x4D, 0x34, 0x42, 0x20], {offset: 8}) // 'M4B '
-		) {
-			return { // MPEG-4 layer 3 (audio-book)
-				ext: 'm4b',
-				mime: 'audio/mp4' // RFC 4337
 			};
 		}
 	}
