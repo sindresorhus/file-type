@@ -116,7 +116,7 @@
 		"heic",
 		"wma",
 		"ics",
-	    "glb"
+	        "glb"
 	],
 	"devDependencies": {
 		"ava": "*",
