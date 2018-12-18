@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "10.6.1",
+	"version": "10.6.0",
 	"description": "Detect the file type of a Buffer/Uint8Array",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -116,7 +116,7 @@
 		"heic",
 		"wma",
 		"ics",
-	        "glb"
+		"glb"
 	],
 	"devDependencies": {
 		"ava": "*",
