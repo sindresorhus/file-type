@@ -190,13 +190,14 @@ const testFile = (t, type, name) => {
 	t.is(check(type, name), type);
 };
 
+let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			test(type, testFile, type, name);
+			test(`${type} ${i++}`, testFile, type, name);
 		}
 	} else {
-		test(type, testFile, type);
+		test(`${type} ${i++}`, testFile, type);
 	}
 }
 

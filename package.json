@@ -119,8 +119,8 @@
 		"glb"
 	],
 	"devDependencies": {
-		"ava": "*",
-		"read-chunk": "^2.0.0",
-		"xo": "*"
+		"ava": "^1.0.1",
+		"read-chunk": "^3.0.0",
+		"xo": "^0.23.0"
 	}
 }
