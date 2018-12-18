@@ -901,6 +901,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0x67, 0x6C, 0x54, 0x46, 0x02, 0x00, 0x00, 0x00])) {
+		return {
+			ext: 'glb',
+			mime: 'model/gltf-binary'
+		};
+	}
+
 	return null;
 };
 

@@ -115,7 +115,8 @@
 		"xml",
 		"heic",
 		"wma",
-		"ics"
+		"ics",
+		"glb"
 	],
 	"devDependencies": {
 		"ava": "*",

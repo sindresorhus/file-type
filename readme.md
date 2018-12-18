@@ -180,6 +180,7 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`mpc`](https://en.wikipedia.org/wiki/Musepack) - Musepack (SV7 & SV8)
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
+- [`glb`](https://github.com/KhronosGroup/glTF) - GL Transmission Format
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
