@@ -100,7 +100,8 @@ const types = [
 	'wma',
 	'dcm',
 	'ics',
-	'glb'
+	'glb',
+	'pcap'
 ];
 
 // Define an entry here only if the fixture has a different
@@ -183,6 +184,10 @@ const names = {
 	mpc: [
 		'fixture-sv7',
 		'fixture-sv8'
+	],
+	pcap: [
+		'fixture-big-endian',
+		'fixture-little-endian'
 	]
 };
 

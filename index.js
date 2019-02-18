@@ -907,6 +907,13 @@ module.exports = input => {
 		};
 	}
 
+	if (check([0xD4, 0xC3, 0xB2, 0xA1]) || check([0xA1, 0xB2, 0xC3, 0xD4])) {
+		return {
+			ext: 'pcap',
+			mime: 'application/vnd.tcpdump.pcap'
+		};
+	}
+
 	return null;
 };
 
