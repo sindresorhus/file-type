@@ -3,6 +3,8 @@ import test from 'ava';
 import readChunk from 'read-chunk';
 import fileType from '.';
 
+const fs = require('fs');
+
 const check = (ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 	const fileInfo = fileType(readChunk.sync(file, 0, 4 + 4096)) || {};
@@ -222,4 +224,31 @@ test('validate the input argument type', t => {
 	t.notThrows(() => {
 		fileType(new Uint8Array());
 	});
+});
+
+test('check stream property', async t => {
+	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+
+	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
+});
+
+test('check identical stream', async t => {
+	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
+
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+	const bufA = [];
+
+	const fileStream = await fs.createReadStream(file);
+	const bufB = [];
+
+	readableStream.on('data', c => bufA.push(Buffer.from(c)));
+	fileStream.on('data', c => bufB.push(Buffer.from(c)));
+
+	const promA = new Promise(resolve => readableStream.on('end', resolve));
+	const promB = new Promise(resolve => fileStream.on('end', resolve));
+
+	await Promise.all([promA, promB]);
+
+	t.true(Buffer.concat(bufA).equals(Buffer.concat(bufB)));
 });
