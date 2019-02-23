@@ -89,13 +89,13 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 
 ### fileType.stream(readableStream)
 
-Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property. For use with Node streams.
+Detect the file type of a readable stream.
+
+Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
 
 #### readableStream
 
-Type: `Object`
-
-This is a Node readable stream, of class: [stream.Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 
 ## Supported file types
