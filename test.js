@@ -198,43 +198,38 @@ const testFile = (t, type, name) => {
 	t.is(check(type, name), type);
 };
 
+const testFileFromStream = async (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+
+	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
+};
+
 const testStream = async (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
-	const bufferA = [];
-
 	const fileStream = fs.createReadStream(file);
-	const bufferB = [];
 
-	readableStream.on('data', chunk => {
-		bufferA.push(Buffer.from(chunk));
-	});
-
-	fileStream.on('data', chunk => {
-		bufferB.push(Buffer.from(chunk));
-	});
-
-	let promiseA;
-	let promiseB;
-
-	if (stream.finished) {
-		const finished = pify(stream.finished);
-		promiseA = finished(readableStream);
-		promiseB = finished(fileStream);
-	} else {
-		promiseA = new Promise(resolve => {
-			readableStream.on('end', resolve);
+	const loadEntireFile = async readable => {
+		const buffer = [];
+		readable.on('data', chunk => {
+			buffer.push(Buffer.from(chunk));
 		});
 
-		promiseB = new Promise(resolve => {
-			fileStream.on('end', resolve);
-		});
-	}
+		if (stream.finished) {
+			const finished = pify(stream.finished);
+			await finished(readable);
+		} else {
+			await new Promise(resolve => readable.on('end', resolve));
+		}
 
-	await Promise.all([promiseA, promiseB]);
+		return Buffer.concat(buffer);
+	};
 
-	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
+	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
+
+	t.true(bufferA.equals(bufferB));
 };
 
 let i = 0;
@@ -242,10 +237,12 @@ for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
 			test(`${type} ${i++}`, testFile, type, name);
+			test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type, name);
 			test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type, name);
 		}
 	} else {
 		test(`${type} ${i++}`, testFile, type);
+		test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type);
 		test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type);
 	}
 }
@@ -266,11 +263,4 @@ test('validate the input argument type', t => {
 	t.notThrows(() => {
 		fileType(new Uint8Array());
 	});
-});
-
-test('.stream() method', async t => {
-	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
-	const readableStream = await fileType.stream(fs.createReadStream(file));
-
-	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
 });
