@@ -236,17 +236,17 @@ test('.stream() method - identical streams', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
-	const bufA = [];
+	const bufferA = [];
 
 	const fileStream = fs.createReadStream(file);
-	const bufB = [];
+	const bufferB = [];
 
 	readableStream.on('data', c => {
-		bufA.push(Buffer.from(c));
+		bufferA.push(Buffer.from(c));
 	});
 
 	fileStream.on('data', c => {
-		bufB.push(Buffer.from(c));
+		bufferB.push(Buffer.from(c));
 	});
 
 	const promiseA = new Promise(resolve => {
@@ -260,5 +260,5 @@ test('.stream() method - identical streams', async t => {
 	// TODO: Use `stream.finished()` when targeting Node.js 10
 	await Promise.all([promiseA, promiseB]);
 
-	t.true(Buffer.concat(bufA).equals(Buffer.concat(bufB)));
+	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
 });

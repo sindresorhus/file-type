@@ -920,19 +920,15 @@ module.exports = input => {
 Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
 
 module.exports.stream = readableStream => new Promise((resolve, reject) => {
-	try {
-		const stream = eval('require')('stream'); // eslint-disable-line no-eval
+	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
-		readableStream.once('readable', () => {
-			const pass = new stream.PassThrough();
-			const chunk = readableStream.read(module.exports.minimumBytes);
-			pass.fileType = module.exports(chunk);
-			readableStream.unshift(chunk);
-			
-			// TODO: Use `stream.pipeline()` when targeting Node.js 10
-			resolve(readableStream.pipe(pass));
-		});
-	} catch (error) {
-		reject(error);
-	}
+	readableStream.once('readable', () => {
+		const pass = new stream.PassThrough();
+		const chunk = readableStream.read(module.exports.minimumBytes);
+		pass.fileType = module.exports(chunk);
+		readableStream.unshift(chunk);
+
+		// TODO: Use `stream.pipeline()` when targeting Node.js 10
+		resolve(readableStream.pipe(pass));
+	});
 });
