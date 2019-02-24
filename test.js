@@ -225,14 +225,14 @@ test('validate the input argument type', t => {
 	});
 });
 
-test('check stream property', async t => {
+test('.stream() method', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
 	const readableStream = await fileType.stream(fs.createReadStream(file));
 
 	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
 });
 
-test('check identical stream', async t => {
+test('.stream() method - identical streams', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
@@ -241,13 +241,23 @@ test('check identical stream', async t => {
 	const fileStream = fs.createReadStream(file);
 	const bufB = [];
 
-	readableStream.on('data', c => bufA.push(Buffer.from(c)));
-	fileStream.on('data', c => bufB.push(Buffer.from(c)));
+	readableStream.on('data', c => {
+		bufA.push(Buffer.from(c));
+	});
 
-	const promA = new Promise(resolve => readableStream.on('end', resolve));
-	const promB = new Promise(resolve => fileStream.on('end', resolve));
+	fileStream.on('data', c => {
+		bufB.push(Buffer.from(c));
+	});
 
-	await Promise.all([promA, promB]);
+	const promiseA = new Promise(resolve => {
+		readableStream.on('end', resolve);
+	});
+
+	const promiseB = new Promise(resolve => {
+		fileStream.on('end', resolve);
+	});
+
+	await Promise.all([promiseA, promiseB]);
 
 	t.true(Buffer.concat(bufA).equals(Buffer.concat(bufB)));
 });
