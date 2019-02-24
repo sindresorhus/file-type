@@ -53,6 +53,7 @@ Or from a stream:
 ```js
 const fs = require('fs');
 const crypto = require('crypto');
+const fileType = require('file-type');
 
 const read = fs.createReadStream('encrypted.enc');
 const decipher = crypto.createDecipheriv(alg, key, iv);

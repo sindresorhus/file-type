@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import stream from 'stream';
 import test from 'ava';
 import readChunk from 'read-chunk';
 import fileType from '.';
@@ -213,16 +214,20 @@ const testStream = async (t, ext, name) => {
 		bufferB.push(Buffer.from(c));
 	});
 
-	const promiseA = new Promise(resolve => {
-		readableStream.on('end', resolve);
-	});
+	if (stream.finished) {
+		await stream.finished(readableStream);
+		await stream.finished(fileStream);
+	} else {
+		const promiseA = new Promise(resolve => {
+			readableStream.on('end', resolve);
+		});
 
-	const promiseB = new Promise(resolve => {
-		fileStream.on('end', resolve);
-	});
+		const promiseB = new Promise(resolve => {
+			fileStream.on('end', resolve);
+		});
 
-	// TODO: Use `stream.finished()` when targeting Node.js 10
-	await Promise.all([promiseA, promiseB]);
+		await Promise.all([promiseA, promiseB]);
+	}
 
 	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
 };

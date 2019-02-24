@@ -928,7 +928,10 @@ module.exports.stream = readableStream => new Promise(resolve => {
 		pass.fileType = module.exports(chunk);
 		readableStream.unshift(chunk);
 
-		// TODO: Use `stream.pipeline()` when targeting Node.js 10
-		resolve(readableStream.pipe(pass));
+		if (stream.pipeline) {
+			resolve(stream.pipeline(readableStream, pass));
+		} else {
+			resolve(readableStream.pipe(pass));
+		}
 	});
 });
