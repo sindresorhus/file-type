@@ -257,6 +257,7 @@ test('.stream() method - identical streams', async t => {
 		fileStream.on('end', resolve);
 	});
 
+	// TODO: Use `stream.finished()` when targeting Node.js 10
 	await Promise.all([promiseA, promiseB]);
 
 	t.true(Buffer.concat(bufA).equals(Buffer.concat(bufB)));
