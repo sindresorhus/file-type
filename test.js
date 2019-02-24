@@ -236,11 +236,9 @@ test('check identical stream', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
-	console.log(readableStream);
 	const bufA = [];
 
 	const fileStream = fs.createReadStream(file);
-	console.log(fileStream);
 	const bufB = [];
 
 	readableStream.on('data', c => bufA.push(Buffer.from(c)));
