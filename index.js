@@ -919,15 +919,15 @@ module.exports = input => {
 
 Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
 
-module.exports.stream = readableStream => new Promise(resolve => {
-	const stream = readableStream;
-
-	function helper(stream) {
-		const chunk = stream.read(module.exports.minimumBytes);
-		stream.fileType = module.exports(chunk);
-		stream.unshift(chunk);
-		resolve(stream);
+module.exports.stream = readableStream => new Promise((resolve, reject) => {
+	try {
+		readableStream.once('readable', () => {
+			const chunk = readableStream.read(module.exports.minimumBytes);
+			readableStream.fileType = module.exports(chunk);
+			readableStream.unshift(chunk);
+			resolve(readableStream);
+		});
+	} catch (error) {
+		reject(error);
 	}
-
-	stream.once('readable', () => helper(stream));
 });

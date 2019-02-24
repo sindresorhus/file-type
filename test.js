@@ -1,9 +1,8 @@
 import path from 'path';
+import fs from 'fs';
 import test from 'ava';
 import readChunk from 'read-chunk';
 import fileType from '.';
-
-const fs = require('fs');
 
 const check = (ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
@@ -237,9 +236,11 @@ test('check identical stream', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
+	console.log(readableStream);
 	const bufA = [];
 
-	const fileStream = await fs.createReadStream(file);
+	const fileStream = fs.createReadStream(file);
+	console.log(fileStream);
 	const bufB = [];
 
 	readableStream.on('data', c => bufA.push(Buffer.from(c)));
