@@ -928,6 +928,8 @@ module.exports.stream = readableStream => new Promise((resolve, reject) => {
 			const chunk = readableStream.read(module.exports.minimumBytes);
 			pass.fileType = module.exports(chunk);
 			readableStream.unshift(chunk);
+			
+			// TODO: Use `stream.pipeline()` when targeting Node.js 10
 			resolve(readableStream.pipe(pass));
 		});
 	} catch (error) {
