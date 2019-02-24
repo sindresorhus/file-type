@@ -3,6 +3,7 @@ import fs from 'fs';
 import stream from 'stream';
 import test from 'ava';
 import readChunk from 'read-chunk';
+import pify from 'pify';
 import fileType from '.';
 
 const check = (ext, name) => {
@@ -206,28 +207,32 @@ const testStream = async (t, ext, name) => {
 	const fileStream = fs.createReadStream(file);
 	const bufferB = [];
 
-	readableStream.on('data', c => {
-		bufferA.push(Buffer.from(c));
+	readableStream.on('data', chunk => {
+		bufferA.push(Buffer.from(chunk));
 	});
 
-	fileStream.on('data', c => {
-		bufferB.push(Buffer.from(c));
+	fileStream.on('data', chunk => {
+		bufferB.push(Buffer.from(chunk));
 	});
+
+	let promiseA;
+	let promiseB;
 
 	if (stream.finished) {
-		await stream.finished(readableStream);
-		await stream.finished(fileStream);
+		const finished = pify(stream.finished);
+		promiseA = finished(readableStream);
+		promiseB = finished(fileStream);
 	} else {
-		const promiseA = new Promise(resolve => {
+		promiseA = new Promise(resolve => {
 			readableStream.on('end', resolve);
 		});
 
-		const promiseB = new Promise(resolve => {
+		promiseB = new Promise(resolve => {
 			fileStream.on('end', resolve);
 		});
-
-		await Promise.all([promiseA, promiseB]);
 	}
+
+	await Promise.all([promiseA, promiseB]);
 
 	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
 };

@@ -121,6 +121,7 @@
 	],
 	"devDependencies": {
 		"ava": "^1.0.1",
+		"pify": "^4.0.1",
 		"read-chunk": "^3.0.0",
 		"xo": "^0.23.0"
 	}
