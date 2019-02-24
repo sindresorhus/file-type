@@ -1,7 +1,4 @@
 'use strict';
-
-const stream = require('stream');
-
 const toBytes = s => [...s].map(c => c.charCodeAt(0));
 const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = toBytes('[Content_Types].xml');
@@ -924,6 +921,8 @@ Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
 
 module.exports.stream = readableStream => new Promise((resolve, reject) => {
 	try {
+		const stream = eval('require')('stream'); // eslint-disable-line no-eval
+
 		readableStream.once('readable', () => {
 			const pass = new stream.PassThrough();
 			const chunk = readableStream.read(module.exports.minimumBytes);
