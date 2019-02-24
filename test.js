@@ -221,6 +221,7 @@ const testStream = async (t, ext, name) => {
 		fileStream.on('end', resolve);
 	});
 
+	// TODO: Use `stream.finished()` when targeting Node.js 10
 	await Promise.all([promiseA, promiseB]);
 
 	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
