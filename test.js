@@ -196,44 +196,8 @@ const testFile = (t, type, name) => {
 	t.is(check(type, name), type);
 };
 
-let i = 0;
-for (const type of types) {
-	if (Object.prototype.hasOwnProperty.call(names, type)) {
-		for (const name of names[type]) {
-			test(`${type} ${i++}`, testFile, type, name);
-		}
-	} else {
-		test(`${type} ${i++}`, testFile, type);
-	}
-}
-
-test('fileType.minimumBytes', t => {
-	t.true(fileType.minimumBytes > 4000);
-});
-
-test('validate the input argument type', t => {
-	t.throws(() => {
-		fileType('x');
-	}, /Expected the `input` argument to be of type `Uint8Array`/);
-
-	t.notThrows(() => {
-		fileType(Buffer.from('x'));
-	});
-
-	t.notThrows(() => {
-		fileType(new Uint8Array());
-	});
-});
-
-test('.stream() method', async t => {
-	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
-	const readableStream = await fileType.stream(fs.createReadStream(file));
-
-	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
-});
-
-test('.stream() method - identical streams', async t => {
-	const file = path.join(__dirname, 'fixture', 'fixture.rtf');
+const testStream = async (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 
 	const readableStream = await fileType.stream(fs.createReadStream(file));
 	const bufferA = [];
@@ -260,4 +224,42 @@ test('.stream() method - identical streams', async t => {
 	await Promise.all([promiseA, promiseB]);
 
 	t.true(Buffer.concat(bufferA).equals(Buffer.concat(bufferB)));
+};
+
+let i = 0;
+for (const type of types) {
+	if (Object.prototype.hasOwnProperty.call(names, type)) {
+		for (const name of names[type]) {
+			test(`${type} ${i++}`, testFile, type, name);
+			test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type, name);
+		}
+	} else {
+		test(`${type} ${i++}`, testFile, type);
+		test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type);
+	}
+}
+
+test('fileType.minimumBytes', t => {
+	t.true(fileType.minimumBytes > 4000);
+});
+
+test('validate the input argument type', t => {
+	t.throws(() => {
+		fileType('x');
+	}, /Expected the `input` argument to be of type `Uint8Array`/);
+
+	t.notThrows(() => {
+		fileType(Buffer.from('x'));
+	});
+
+	t.notThrows(() => {
+		fileType(new Uint8Array());
+	});
+});
+
+test('.stream() method', async t => {
+	const file = path.join(__dirname, 'fixture', 'fixture.mp3');
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+
+	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
 });
