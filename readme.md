@@ -57,7 +57,7 @@ const crypto = require('crypto');
 const read = fs.createReadStream('encrypted.enc');
 const decipher = crypto.createDecipheriv(alg, key, iv);
 
-const readableStream = fileType(read.pipe(decipher));
+const readableStream = fileType.stream(read.pipe(decipher));
 
 readableStream.then(stream => {
 	console.log(stream.fileType);
