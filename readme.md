@@ -48,6 +48,27 @@ http.get(url, response => {
 });
 ```
 
+Or from a stream:
+
+```js
+const fs = require('fs');
+const crypto = require('crypto');
+
+const read = fs.createReadStream('encrypted.enc');
+const decipher = crypto.createDecipheriv(alg, key, iv);
+
+const readableStream = fileType(read.pipe(decipher));
+
+readableStream.then(stream => {
+	console.log(stream.fileType);
+	//=> {ext: 'mov', mime: 'video/quicktime'}
+
+	const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
+	readableStream.pipe(write);
+});
+```
+
+
 ##### Browser
 
 ```js
