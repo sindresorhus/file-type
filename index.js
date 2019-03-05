@@ -12,10 +12,11 @@ function readUInt64LE(buf, offset = 0) {
 		mul *= 0x100;
 		n += buf[offset + i] * mul;
 	}
+
 	return n;
 }
 
-module.exports = input => {
+const fileType = input => {
 	if (!(input instanceof Uint8Array || Buffer.isBuffer(input))) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\`, got \`${typeof input}\``);
 	}
@@ -344,12 +345,14 @@ module.exports = input => {
 				mime: 'video/vnd.avi'
 			};
 		}
+
 		if (check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
 			return {
 				ext: 'wav',
 				mime: 'audio/vnd.wave'
 			};
 		}
+
 		// QLCM, QCP file
 		if (check([0x51, 0x4C, 0x43, 0x4D], {offset: 8})) {
 			return {
@@ -386,6 +389,7 @@ module.exports = input => {
 
 				break;
 			}
+
 			offset += objectSize;
 		} while (offset + 24 <= buf.length);
 
@@ -481,6 +485,7 @@ module.exports = input => {
 				mime: 'video/ogg'
 			};
 		}
+
 		// If '\x01video' in header.
 		if (check([0x01, 0x76, 0x69, 0x64, 0x65, 0x6F, 0x00], {offset: 28})) {
 			return {
@@ -488,6 +493,7 @@ module.exports = input => {
 				mime: 'video/ogg'
 			};
 		}
+
 		// If ' FLAC' in header  https://xiph.org/flac/faq.html
 		if (check([0x7F, 0x46, 0x4C, 0x41, 0x43], {offset: 28})) {
 			return {
@@ -917,15 +923,19 @@ module.exports = input => {
 	return null;
 };
 
-Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
+module.exports = fileType;
+module.exports.default = fileType;
+
+Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
 module.exports.stream = readableStream => new Promise(resolve => {
+	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
 	readableStream.once('readable', () => {
 		const pass = new stream.PassThrough();
 		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
-		pass.fileType = module.exports(chunk);
+		pass.fileType = fileType(chunk);
 		readableStream.unshift(chunk);
 
 		if (stream.pipeline) {

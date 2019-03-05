@@ -2,7 +2,7 @@
 
 > Detect the file type of a Buffer/Uint8Array
 
-The file type is detected by checking the [magic number](http://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 
 ## Install
@@ -36,7 +36,7 @@ Or from a remote location:
 const http = require('http');
 const fileType = require('file-type');
 
-const url = 'http://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
+const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
 
 http.get(url, response => {
 	response.on('readable', () => {
@@ -93,7 +93,7 @@ xhr.send();
 Returns an `Object` with:
 
 - `ext` - One of the [supported file types](#supported-file-types)
-- `mime` - The [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
+- `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
 Or `null` when there is no match.
 
@@ -127,7 +127,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`gif`](https://en.wikipedia.org/wiki/GIF)
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
-- [`cr2`](http://fileinfo.com/extension/cr2)
+- [`cr2`](https://fileinfo.com/extension/cr2)
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
@@ -173,14 +173,14 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`ps`](https://en.wikipedia.org/wiki/Postscript)
 - [`xz`](https://en.wikipedia.org/wiki/Xz)
 - [`sqlite`](https://www.sqlite.org/fileformat2.html)
-- [`nes`](http://fileinfo.com/extension/nes)
+- [`nes`](https://fileinfo.com/extension/nes)
 - [`crx`](https://developer.chrome.com/extensions/crx)
 - [`xpi`](https://en.wikipedia.org/wiki/XPInstall)
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format))
 - [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format))
 - [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix))
-- [`rpm`](http://fileinfo.com/extension/rpm)
-- [`Z`](http://fileinfo.com/extension/z)
+- [`rpm`](https://fileinfo.com/extension/rpm)
+- [`Z`](https://fileinfo.com/extension/z)
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
 - [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
@@ -201,7 +201,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 - [`xml`](https://en.wikipedia.org/wiki/XML)
-- [`heic`](http://nokiatech.github.io/heif/technical.html)
+- [`heic`](https://nokiatech.github.io/heif/technical.html)
 - [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format))
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
