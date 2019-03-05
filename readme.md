@@ -48,6 +48,28 @@ http.get(url, response => {
 });
 ```
 
+Or from a stream:
+
+```js
+const fs = require('fs');
+const crypto = require('crypto');
+const fileType = require('file-type');
+
+const read = fs.createReadStream('encrypted.enc');
+const decipher = crypto.createDecipheriv(alg, key, iv);
+
+const readableStream = fileType.stream(read.pipe(decipher));
+
+readableStream.then(stream => {
+	console.log(stream.fileType);
+	//=> {ext: 'mov', mime: 'video/quicktime'}
+
+	const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
+	readableStream.pipe(write);
+});
+```
+
+
 ##### Browser
 
 ```js
@@ -86,6 +108,16 @@ It only needs the first `.minimumBytes` bytes. The exception is detection of `do
 Type: `number`
 
 The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hardcode it.
+
+### fileType.stream(readableStream)
+
+Detect the file type of a readable stream.
+
+Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
+
+#### readableStream
+
+Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 
 ## Supported file types

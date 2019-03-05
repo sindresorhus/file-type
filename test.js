@@ -1,6 +1,9 @@
 import path from 'path';
+import fs from 'fs';
+import stream from 'stream';
 import test from 'ava';
 import readChunk from 'read-chunk';
+import pify from 'pify';
 import fileType from '.';
 
 const check = (ext, name) => {
@@ -195,14 +198,52 @@ const testFile = (t, type, name) => {
 	t.is(check(type, name), type);
 };
 
+const testFileFromStream = async (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+
+	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
+};
+
+const testStream = async (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+
+	const readableStream = await fileType.stream(fs.createReadStream(file));
+	const fileStream = fs.createReadStream(file);
+
+	const loadEntireFile = async readable => {
+		const buffer = [];
+		readable.on('data', chunk => {
+			buffer.push(Buffer.from(chunk));
+		});
+
+		if (stream.finished) {
+			const finished = pify(stream.finished);
+			await finished(readable);
+		} else {
+			await new Promise(resolve => readable.on('end', resolve));
+		}
+
+		return Buffer.concat(buffer);
+	};
+
+	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
+
+	t.true(bufferA.equals(bufferB));
+};
+
 let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
 			test(`${type} ${i++}`, testFile, type, name);
+			test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type, name);
+			test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type, name);
 		}
 	} else {
 		test(`${type} ${i++}`, testFile, type);
+		test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type);
+		test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type);
 	}
 }
 
