@@ -96,27 +96,31 @@ export type FileType =
 
 export interface FileTypeResult {
 	/**
-	 * One of the supported [file types](https://github.com/BendingBender/file-type#supported-file-types).
+	 * One of the supported [file types](https://github.com/sindresorhus/file-type#supported-file-types).
 	 */
 	ext: FileType;
 
 	/**
-	 * The detected [MIME type](http://en.wikipedia.org/wiki/Internet_media_type).
+	 * The detected [MIME type](https://en.wikipedia.org/wiki/Internet_media_type).
 	 */
 	mime: string;
 }
 
+export interface FileTypeModule {
+	(buffer: Buffer | Uint8Array): FileTypeResult | null;
+
+	/**
+	 * The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
+	 */
+	readonly minimumBytes: number;
+}
+
 /**
- * Detect the file type of a `Buffer`/`Uint8Array`. The file type is detected by checking the [magic number](http://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+ * Detect the file type of a `Buffer`/`Uint8Array`. The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
  *
  * @param buffer - It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
  * @returns An object with the detected file type and MIME type or `null` when there was no match.
  */
-export default function fileType(
-	buffer: Buffer | Uint8Array
-): FileTypeResult | null;
+declare const fileType: FileTypeModule;
 
-/**
- * The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
- */
-export const minimumBytes: number;
+export default fileType;

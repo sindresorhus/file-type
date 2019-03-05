@@ -1,5 +1,5 @@
 import {expectType} from 'tsd-check';
-import fileType, {FileTypeResult, minimumBytes, FileType} from '.';
+import fileType, {FileTypeResult, FileType} from '.';
 
 expectType<FileTypeResult | null>(fileType(new Buffer([0xff, 0xd8, 0xff])));
 expectType<FileTypeResult | null>(fileType(new Uint8Array([0xff, 0xd8, 0xff])));
@@ -10,4 +10,4 @@ if (result != null) {
 	expectType<string>(result.mime);
 }
 
-expectType<number>(minimumBytes);
+expectType<number>(fileType.minimumBytes);
