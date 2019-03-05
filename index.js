@@ -929,7 +929,7 @@ module.exports.default = fileType;
 Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
 module.exports.stream = readableStream => new Promise(resolve => {
-	// using `eval` to work around issues when bundling with Webpack
+	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
 	readableStream.once('readable', () => {

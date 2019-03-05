@@ -1,5 +1,5 @@
 /// <reference types="node"/>
-import {Readable} from 'stream';
+import {Readable as ReadableStream} from 'stream';
 
 export type FileType =
 	| 'jpg'
@@ -107,7 +107,7 @@ export interface FileTypeResult {
 	mime: string;
 }
 
-export type ReadableWithFileType = Readable & {
+export type ReadableStreamWithFileType = ReadableStream & {
 	readonly fileType: FileTypeResult | null;
 };
 
@@ -125,7 +125,7 @@ export interface FileTypeModule {
 	 * @param readableStream - A readable stream containing a file to examine, see: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 	 * @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
 	 */
-	readonly stream: (readableStream: Readable) => Promise<ReadableWithFileType>;
+	readonly stream: (readableStream: ReadableStream) => Promise<ReadableStreamWithFileType>;
 }
 
 /**
