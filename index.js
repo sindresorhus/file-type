@@ -927,3 +927,20 @@ module.exports = fileType;
 module.exports.default = fileType;
 
 Object.defineProperty(module.exports, 'minimumBytes', {value: 4100});
+
+module.exports.stream = readableStream => new Promise(resolve => {
+	const stream = eval('require')('stream'); // eslint-disable-line no-eval
+
+	readableStream.once('readable', () => {
+		const pass = new stream.PassThrough();
+		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
+		pass.fileType = module.exports(chunk);
+		readableStream.unshift(chunk);
+
+		if (stream.pipeline) {
+			resolve(stream.pipeline(readableStream, pass));
+		} else {
+			resolve(readableStream.pipe(pass));
+		}
+	});
+});
