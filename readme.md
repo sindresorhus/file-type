@@ -55,18 +55,18 @@ const fs = require('fs');
 const crypto = require('crypto');
 const fileType = require('file-type');
 
-const read = fs.createReadStream('encrypted.enc');
-const decipher = crypto.createDecipheriv(alg, key, iv);
+(async () => {
+	const read = fs.createReadStream('encrypted.enc');
+	const decipher = crypto.createDecipheriv(alg, key, iv);
 
-const readableStream = fileType.stream(read.pipe(decipher));
+	const stream = await fileType.stream(read.pipe(decipher));
 
-readableStream.then(stream => {
 	console.log(stream.fileType);
 	//=> {ext: 'mov', mime: 'video/quicktime'}
 
 	const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
 	readableStream.pipe(write);
-});
+})();
 ```
 
 
@@ -95,7 +95,7 @@ Returns an `Object` with:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](http://en.wikipedia.org/wiki/Internet_media_type)
 
-Or `null` when no match.
+Or `null` when there is no match.
 
 #### input
 
