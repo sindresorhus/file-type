@@ -1,5 +1,6 @@
 import {expectType} from 'tsd-check';
-import fileType, {FileTypeResult, FileType} from '.';
+import fileType, {FileTypeResult, FileType, ReadableWithFileType} from '.';
+import * as fs from 'fs';
 
 expectType<FileTypeResult | null>(fileType(new Buffer([0xff, 0xd8, 0xff])));
 expectType<FileTypeResult | null>(fileType(new Uint8Array([0xff, 0xd8, 0xff])));
@@ -11,3 +12,8 @@ if (result != null) {
 }
 
 expectType<number>(fileType.minimumBytes);
+
+const readableStream = fs.createReadStream('file.png');
+const streamWithFileType = fileType.stream(readableStream);
+expectType<Promise<ReadableWithFileType>>(streamWithFileType);
+expectType<FileTypeResult>((await streamWithFileType).fileType);
