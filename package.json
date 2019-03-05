@@ -13,10 +13,11 @@
 		"node": ">=6"
 	},
 	"scripts": {
-		"test": "xo && ava"
+		"test": "xo && ava && tsd-check"
 	},
 	"files": [
-		"index.js"
+		"index.js",
+		"index.d.ts"
 	],
 	"keywords": [
 		"mime",
@@ -120,8 +121,10 @@
 		"pcap"
 	],
 	"devDependencies": {
-		"ava": "^1.0.1",
+		"@types/node": "^11.10.4",
+		"ava": "^1.2.1",
 		"read-chunk": "^3.0.0",
-		"xo": "^0.23.0"
+		"tsd-check": "^0.3.0",
+		"xo": "^0.24.0"
 	}
 }
