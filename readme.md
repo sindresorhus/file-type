@@ -65,7 +65,7 @@ const fileType = require('file-type');
 	//=> {ext: 'mov', mime: 'video/quicktime'}
 
 	const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
-	readableStream.pipe(write);
+	stream.pipe(write);
 })();
 ```
 
@@ -114,6 +114,8 @@ The minimum amount of bytes needed to detect a file type. Currently, it's 4100 b
 Detect the file type of a readable stream.
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
+
+*Note:* This method is only for Node.js.
 
 #### readableStream
 
