@@ -271,4 +271,8 @@ test('validate the input argument type', t => {
 	t.notThrows(() => {
 		fileType(new Uint8Array());
 	});
+
+	t.notThrows(() => {
+		fileType(new ArrayBuffer());
+	});
 });
