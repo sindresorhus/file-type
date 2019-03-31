@@ -13,7 +13,7 @@
 		"node": ">=6"
 	},
 	"scripts": {
-		"test": "xo && ava && tsd-check"
+		"test": "xo && ava && tsd"
 	},
 	"files": [
 		"index.js",
@@ -121,11 +121,11 @@
 		"pcap"
 	],
 	"devDependencies": {
-		"@types/node": "^11.10.4",
-		"ava": "^1.2.1",
+		"@types/node": "^11.12.2",
+		"ava": "^1.4.1",
 		"pify": "^4.0.1",
-		"read-chunk": "^3.0.0",
-		"tsd-check": "^0.3.0",
+		"read-chunk": "^3.2.0",
+		"tsd": "^0.7.1",
 		"xo": "^0.24.0"
 	}
 }
