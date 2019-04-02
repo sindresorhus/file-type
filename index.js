@@ -929,14 +929,18 @@ module.exports.default = fileType;
 
 Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
-module.exports.stream = readableStream => new Promise(resolve => {
+module.exports.stream = readableStream => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
 	readableStream.once('readable', () => {
 		const pass = new stream.PassThrough();
 		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
-		pass.fileType = fileType(chunk);
+		try {
+			pass.fileType = fileType(chunk);
+		} catch (error) {
+			reject(error);
+		}
 		readableStream.unshift(chunk);
 
 		if (stream.pipeline) {
