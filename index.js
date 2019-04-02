@@ -941,6 +941,7 @@ module.exports.stream = readableStream => new Promise((resolve, reject) => {
 		} catch (error) {
 			reject(error);
 		}
+
 		readableStream.unshift(chunk);
 
 		if (stream.pipeline) {
