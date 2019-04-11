@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 expectType<FileTypeResult | null>(fileType(new Buffer([0xff, 0xd8, 0xff])));
 expectType<FileTypeResult | null>(fileType(new Uint8Array([0xff, 0xd8, 0xff])));
+expectType<FileTypeResult | null>(fileType(new ArrayBuffer(42)));
 
 const result = fileType(new Buffer([0xff, 0xd8, 0xff]));
 if (result != null) {

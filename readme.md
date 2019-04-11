@@ -1,6 +1,6 @@
 # file-type [![Build Status](https://travis-ci.org/sindresorhus/file-type.svg?branch=master)](https://travis-ci.org/sindresorhus/file-type)
 
-> Detect the file type of a Buffer/Uint8Array
+> Detect the file type of a Buffer/Uint8Array/ArrayBuffer
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -99,7 +99,7 @@ Or `null` when there is no match.
 
 #### input
 
-Type: `Buffer` `Uint8Array`
+Type: `Buffer | Uint8Array | ArrayBuffer`
 
 It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 

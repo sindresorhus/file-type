@@ -17,8 +17,8 @@ function readUInt64LE(buf, offset = 0) {
 }
 
 const fileType = input => {
-	if (!(input instanceof Uint8Array || Buffer.isBuffer(input))) {
-		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\`, got \`${typeof input}\``);
+	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
+		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
 
 	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);

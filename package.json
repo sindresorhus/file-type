@@ -1,7 +1,7 @@
 {
 	"name": "file-type",
 	"version": "10.10.0",
-	"description": "Detect the file type of a Buffer/Uint8Array",
+	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
 	"author": {
