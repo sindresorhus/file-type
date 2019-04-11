@@ -104,7 +104,9 @@ const types = [
 	'ics',
 	'glb',
 	'pcap',
-	'dsf'
+	'dsf',
+	'lnk',
+	'alias'
 ];
 
 // Define an entry here only if the fixture has a different
