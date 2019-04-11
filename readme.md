@@ -99,7 +99,7 @@ Or `null` when there is no match.
 
 #### input
 
-Type: `Buffer` `Uint8Array` `ArrayBuffer`
+Type: `Buffer | Uint8Array | ArrayBuffer`
 
 It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 
