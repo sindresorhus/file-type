@@ -120,7 +120,9 @@
 		"ics",
 		"glb",
 		"pcap",
-		"dsf"
+		"dsf",
+		"lnk",
+		"alias"
 	],
 	"devDependencies": {
 		"@types/node": "^11.12.2",
