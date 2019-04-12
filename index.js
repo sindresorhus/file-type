@@ -941,7 +941,7 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0x77, 0x0B])) {
+	if (check([0x0B, 0x77])) {
 		return {
 			ext: 'ac3',
 			mime: 'audio/vnd.dolby.dd-raw'

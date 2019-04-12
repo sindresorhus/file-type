@@ -107,7 +107,8 @@ const types = [
 	'dsf',
 	'lnk',
 	'alias',
-	'voc'
+	'voc',
+	'ac3'
 ];
 
 // Define an entry here only if the fixture has a different
