@@ -8,8 +8,7 @@ import fileType from '.';
 
 const check = (ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const fileInfo = fileType(readChunk.sync(file, 0, 4 + 4096)) || {};
-	return fileInfo.ext;
+	return fileType(readChunk.sync(file, 0, 4 + 4096)) || {};
 };
 
 const types = [
@@ -195,7 +194,9 @@ const names = {
 };
 
 const testFile = (t, type, name) => {
-	t.is(check(type, name), type);
+	const {ext, mime} = check(type, name);
+	t.is(ext, type);
+	t.truthy(mime);
 };
 
 const testFileFromStream = async (t, ext, name) => {
