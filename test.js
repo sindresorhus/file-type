@@ -106,7 +106,8 @@ const types = [
 	'pcap',
 	'dsf',
 	'lnk',
-	'alias'
+	'alias',
+	'voc'
 ];
 
 // Define an entry here only if the fixture has a different

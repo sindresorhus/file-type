@@ -122,7 +122,9 @@
 		"pcap",
 		"dsf",
 		"lnk",
-		"alias"
+		"alias",
+		"voc",
+		"ac3"
 	],
 	"devDependencies": {
 		"@types/node": "^11.12.2",
