@@ -118,7 +118,8 @@
 		"wma",
 		"ics",
 		"glb",
-		"pcap"
+		"pcap",
+		"dsf"
 	],
 	"devDependencies": {
 		"@types/node": "^11.12.2",
