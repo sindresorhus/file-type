@@ -16,6 +16,31 @@ function readUInt64LE(buf, offset = 0) {
 	return n;
 }
 
+const tarHeaderChecksumMatches = buf => { // Does not check if checksum field was valid
+	if (buf.length < 512) {
+		return false;
+	}
+
+	let sum = 256;
+	let signedBitCount = 0;
+
+	for (let i = 0; i < 148; i++) {
+		const byte = buf[i];
+		sum += byte;
+		signedBitCount += byte & 0x80;
+	}
+
+	for (let i = 156; i < 512; i++) {
+		const byte = buf[i];
+		sum += byte;
+		signedBitCount += byte & 0x80;
+	}
+
+	const readSum = parseInt(buf.toString('utf8', 148, 154), 8);
+
+	return sum === readSum || ((sum - (signedBitCount << 1)) === readSum);
+};
+
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
@@ -229,7 +254,10 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0x75, 0x73, 0x74, 0x61, 0x72], {offset: 257})) {
+	if (
+		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
+		tarHeaderChecksumMatches(buf)
+	) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
