@@ -266,23 +266,68 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0x33, 0x67, 0x70, 0x35]) || // 3gp5
-		(
-			check([0x0, 0x0, 0x0]) && check([0x66, 0x74, 0x79, 0x70], {offset: 4}) &&
-				(
-					check([0x6D, 0x70, 0x34, 0x31], {offset: 8}) || // MP41
-					check([0x6D, 0x70, 0x34, 0x32], {offset: 8}) || // MP42
-					check([0x69, 0x73, 0x6F, 0x6D], {offset: 8}) || // ISOM
-					check([0x69, 0x73, 0x6F, 0x32], {offset: 8}) || // ISO2
-					check([0x6D, 0x6D, 0x70, 0x34], {offset: 8}) || // MMP4
-					check([0x4D, 0x34, 0x56], {offset: 8}) || // M4V
-					check([0x64, 0x61, 0x73, 0x68], {offset: 8}) // DASH
-				)
-		)) {
+	// `mov` format variants
+	if (
+		check([0x66, 0x72, 0x65, 0x65], {offset: 4}) || // `free`
+		check([0x6D, 0x64, 0x61, 0x74], {offset: 4}) || // `mdat` MJPEG
+		check([0x6D, 0x6F, 0x6F, 0x76], {offset: 4}) || // `moov`
+		check([0x77, 0x69, 0x64, 0x65], {offset: 4}) // `wide`
+	) {
 		return {
-			ext: 'mp4',
-			mime: 'video/mp4'
+			ext: 'mov',
+			mime: 'video/quicktime'
 		};
+	}
+
+	// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
+	// It is not required to be first, but is recommended to, almost all mpeg4 files start with ftyp box
+	// `ftyp` box must contain brand identifier, which must consist of ISO 8859-1 printable characters
+	// Here we check for 8859-1 printable characters + 1 unprintable for check simplicity
+	// They all can have mime video/mp4 except application/mp4 special case which is hard to detect.
+	// For some cases we're specific, everything else falls to video/mp4 with mp4 extension.
+	if (
+		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) && // `ftyp`
+		(buf[8] & 0x60) !== 0x00 && (buf[9] & 0x60) !== 0x00 && (buf[10] & 0x60) !== 0x00 && (buf[11] & 0x60) !== 0x00 // Brand major
+	) {
+		const brandMajor = buf.toString('utf8', 8, 12);
+		switch (brandMajor) {
+			case 'mif1':
+				return {ext: 'heic', mime: 'image/heif'};
+			case 'msf1':
+				return {ext: 'heic', mime: 'image/heif-sequence'};
+			case 'heic': case 'heix':
+				return {ext: 'heic', mime: 'image/heic'};
+			case 'hevc': case 'hevx':
+				return {ext: 'heic', mime: 'image/heic-sequence'};
+			case 'qt  ':
+				return {ext: 'mov', mime: 'video/quicktime'};
+			case 'M4V ': case 'M4VH': case 'M4VP':
+				return {ext: 'm4v', mime: 'video/x-m4v'};
+			case 'M4P ':
+				return {ext: 'm4p', mime: 'video/mp4'};
+			case 'M4B ':
+				return {ext: 'm4b', mime: 'audio/mp4'};
+			case 'M4A ':
+				return {ext: 'm4a', mime: 'audio/mp4'};
+			case 'F4V ':
+				return {ext: 'f4v', mime: 'video/mp4'};
+			case 'F4P ':
+				return {ext: 'f4p', mime: 'video/mp4'};
+			case 'F4A ':
+				return {ext: 'f4a', mime: 'audio/mp4'};
+			case 'F4B ':
+				return {ext: 'f4b', mime: 'audio/mp4'};
+			default:
+				if (brandMajor.substr(0, 2) === '3g') {
+					if (brandMajor[2] === '2') {
+						return {ext: '3g2', mime: 'video/3gpp2'};
+					}
+
+					return {ext: '3gp', mime: 'video/3gpp'};
+				}
+
+				return {ext: 'mp4', mime: 'video/mp4'};
+		}
 	}
 
 	if (check([0x4D, 0x54, 0x68, 0x64])) {
@@ -315,18 +360,6 @@ const fileType = input => {
 				};
 			}
 		}
-	}
-
-	if (check([0x0, 0x0, 0x0, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20]) ||
-		check([0x66, 0x72, 0x65, 0x65], {offset: 4}) || // Type: `free`
-		check([0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20], {offset: 4}) ||
-		check([0x6D, 0x64, 0x61, 0x74], {offset: 4}) || // MJPEG
-		check([0x6D, 0x6F, 0x6F, 0x76], {offset: 4}) || // Type: `moov`
-		check([0x77, 0x69, 0x64, 0x65], {offset: 4})) {
-		return {
-			ext: 'mov',
-			mime: 'video/quicktime'
-		};
 	}
 
 	// RIFF file format which might be AVI, WAV, QCP, etc
@@ -402,13 +435,6 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0x66, 0x74, 0x79, 0x70, 0x33, 0x67], {offset: 4})) {
-		return {
-			ext: '3gp',
-			mime: 'video/3gpp'
-		};
-	}
-
 	// Check for MPEG header at different starting offsets
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
 		if (
@@ -447,15 +473,6 @@ const fileType = input => {
 				mime: 'audio/mpeg'
 			};
 		}
-	}
-
-	if (
-		check([0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41], {offset: 4})
-	) {
-		return { // MPEG-4 layer 3 (audio)
-			ext: 'm4a',
-			mime: 'audio/mp4' // RFC 4337
-		};
 	}
 
 	// Needs to be before `ogg` check
@@ -828,37 +845,6 @@ const fileType = input => {
 			ext: 'mobi',
 			mime: 'application/x-mobipocket-ebook'
 		};
-	}
-
-	// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
-	if (check([0x66, 0x74, 0x79, 0x70], {offset: 4})) {
-		if (check([0x6D, 0x69, 0x66, 0x31], {offset: 8})) {
-			return {
-				ext: 'heic',
-				mime: 'image/heif'
-			};
-		}
-
-		if (check([0x6D, 0x73, 0x66, 0x31], {offset: 8})) {
-			return {
-				ext: 'heic',
-				mime: 'image/heif-sequence'
-			};
-		}
-
-		if (check([0x68, 0x65, 0x69, 0x63], {offset: 8}) || check([0x68, 0x65, 0x69, 0x78], {offset: 8})) {
-			return {
-				ext: 'heic',
-				mime: 'image/heic'
-			};
-		}
-
-		if (check([0x68, 0x65, 0x76, 0x63], {offset: 8}) || check([0x68, 0x65, 0x76, 0x78], {offset: 8})) {
-			return {
-				ext: 'heic',
-				mime: 'image/heic-sequence'
-			};
-		}
 	}
 
 	if (check([0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A])) {

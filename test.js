@@ -108,7 +108,14 @@ const types = [
 	'lnk',
 	'alias',
 	'voc',
-	'ac3'
+	'ac3',
+	'm4v',
+	'm4p',
+	'm4b',
+	'f4v',
+	'f4p',
+	'f4b',
+	'f4a'
 ];
 
 // Define an entry here only if the fixture has a different
@@ -152,7 +159,6 @@ const names = {
 		'fixture-isom',
 		'fixture-isomv2',
 		'fixture-mp4v2',
-		'fixture-m4v',
 		'fixture-dash',
 		'fixture-aac-adts'
 	],

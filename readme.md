@@ -194,6 +194,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`3gp`](https://en.wikipedia.org/wiki/3GP_and_3G2)
+- [`3g2`](https://en.wikipedia.org/wiki/3GP_and_3G2)
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000

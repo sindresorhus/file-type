@@ -21,7 +21,6 @@ declare namespace fileType {
 		| '7z'
 		| 'dmg'
 		| 'mp4'
-		| 'm4v'
 		| 'mid'
 		| 'mkv'
 		| 'webm'
@@ -73,6 +72,7 @@ declare namespace fileType {
 		| 'pptx'
 		| 'xlsx'
 		| '3gp'
+		| '3g2'
 		| 'jp2'
 		| 'jpm'
 		| 'jpx'
@@ -99,7 +99,15 @@ declare namespace fileType {
 		| 'lnk'
 		| 'alias'
 		| 'voc'
-		| 'ac3';
+		| 'ac3'
+		| 'm4a'
+		| 'm4b'
+		| 'm4p'
+		| 'm4v'
+		| 'f4a'
+		| 'f4b'
+		| 'f4p'
+		| 'f4v';
 
 	interface FileTypeResult {
 		/**
