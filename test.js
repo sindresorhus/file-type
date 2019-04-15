@@ -82,6 +82,7 @@ const types = [
 	'pptx',
 	'xlsx',
 	'3gp',
+	'3g2',
 	'jp2',
 	'jpm',
 	'jpx',
