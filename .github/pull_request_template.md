@@ -1,5 +1,6 @@
 If you're adding support for a new file type, please follow the below steps:
 
+- **One PR per file type.**
 - Add a fixture file named `fixture.<extension>` to the `fixture` directory.
 - Add the file extension to the `types` array in `test.js`.
 - Add the file type detection logic to the `index.js` file.
@@ -8,4 +9,4 @@ If you're adding support for a new file type, please follow the below steps:
 - Add the file extension to the `keywords` array in the `package.json` file.
 - Run `$ npm test` to ensure the tests pass.
 - Open a pull request with a title like `Add support for Format`, for example, `Add support for PNG`.
-- The pull request description should include a link to the official page of the file format or some other source. Also include a link to where you found the file type detection / magic bytes.
+- The pull request description should include a link to the official page of the file format or some other source. Also include a link to where you found the file type detection / magic bytes and the MIME type.
