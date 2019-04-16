@@ -196,7 +196,7 @@ const names = {
 const testFile = (t, type, name) => {
 	const {ext, mime} = check(type, name);
 	t.is(ext, type);
-	t.truthy(mime);
+	t.is(typeof mime, 'string');
 };
 
 const testFileFromStream = async (t, ext, name) => {
