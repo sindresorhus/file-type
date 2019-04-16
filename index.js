@@ -920,6 +920,14 @@ const fileType = input => {
 		};
 	}
 
+	// Sony DSD Stream File (DSF)
+	if (check([0x44, 0x53, 0x44, 0x20])) {
+		return {
+			ext: 'dsf',
+			mime: 'audio/x-dsf' // Non-standard
+		};
+	}
+
 	return null;
 };
 

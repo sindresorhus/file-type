@@ -103,7 +103,8 @@ const types = [
 	'dcm',
 	'ics',
 	'glb',
-	'pcap'
+	'pcap',
+	'dsf'
 ];
 
 // Define an entry here only if the fixture has a different

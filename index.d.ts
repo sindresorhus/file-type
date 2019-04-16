@@ -94,7 +94,8 @@ declare namespace fileType {
 		| 'mpc'
 		| 'ics'
 		| 'glb'
-		| 'pcap';
+		| 'pcap'
+		| 'dsf';
 
 	interface FileTypeResult {
 		/**
