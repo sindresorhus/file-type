@@ -308,7 +308,7 @@ const fileType = input => {
 			case 'M4B ':
 				return {ext: 'm4b', mime: 'audio/mp4'};
 			case 'M4A ':
-				return {ext: 'm4a', mime: 'audio/mp4'};
+				return {ext: 'm4a', mime: 'audio/x-m4a'};
 			case 'F4V ':
 				return {ext: 'f4v', mime: 'video/mp4'};
 			case 'F4P ':
