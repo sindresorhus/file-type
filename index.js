@@ -23,7 +23,7 @@ const tarHeaderChecksumMatches = buf => { // Does not check if checksum field ch
 		return false;
 	}
 
-	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces
+	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces in checksum field
 	let signedBitSum = 0; // Initialize signed bit sum
 
 	for (let i = 0; i < 148; i++) {
@@ -31,6 +31,8 @@ const tarHeaderChecksumMatches = buf => { // Does not check if checksum field ch
 		sum += byte; // Add to sum
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
+
+	// Skip checksum field
 
 	for (let i = 156; i < 512; i++) {
 		const byte = buf[i];
@@ -40,9 +42,9 @@ const tarHeaderChecksumMatches = buf => { // Does not check if checksum field ch
 
 	const readSum = parseInt(buf.toString('utf8', 148, 154), 8); // Read sum in header
 
-	// Some implementations compute sum incorrectly using signed bytes
-	return readSum === sum || // Sum in header equals the sum we calculated
-		readSum === (sum - (signedBitSum << 1)); // Sum in header equals sum we calculated plus signed-to-unsigned delta
+	// Some implementations compute checksum incorrectly using signed bytes
+	return readSum === sum || // Checksum in header equals the sum we calculated
+		readSum === (sum - (signedBitSum << 1)); // Checksum in header equals sum we calculated plus signed-to-unsigned delta
 };
 
 const fileType = input => {
