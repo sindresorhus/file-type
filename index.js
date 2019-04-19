@@ -413,7 +413,7 @@ const fileType = input => {
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
 		if (
 			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
-			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE2]}) // MPEG 1 or 2 Layer 3 header
+			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
 		) {
 			return {
 				ext: 'mp3',
@@ -422,7 +422,7 @@ const fileType = input => {
 		}
 
 		if (
-			check([0xFF, 0xE4], {offset: start, mask: [0xFF, 0xE4]}) // MPEG 1 or 2 Layer 2 header
+			check([0xFF, 0xE4], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 2 header
 		) {
 			return {
 				ext: 'mp2',
