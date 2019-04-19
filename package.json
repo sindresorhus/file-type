@@ -17,7 +17,8 @@
 	},
 	"files": [
 		"index.js",
-		"index.d.ts"
+		"index.d.ts",
+		"util.js"
 	],
 	"keywords": [
 		"mime",

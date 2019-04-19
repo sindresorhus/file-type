@@ -1,60 +1,18 @@
 'use strict';
-const toBytes = s => [...s].map(c => c.charCodeAt(0));
-const xpiZipFilename = toBytes('META-INF/mozilla.rsa');
-const oxmlContentTypes = toBytes('[Content_Types].xml');
-const oxmlRels = toBytes('_rels/.rels');
+const {stringToBytes, readUInt64LE, tarHeaderChecksumMatches} = require('./util');
 
-function readUInt64LE(buf, offset = 0) {
-	let n = buf[offset];
-	let mul = 1;
-	let i = 0;
-	while (++i < 8) {
-		mul *= 0x100;
-		n += buf[offset + i] * mul;
-	}
-
-	return n;
-}
-
-const MASK_8TH_BIT = 0x80;
-
-const tarHeaderChecksumMatches = buf => { // Does not check if checksum field characters are valid
-	if (buf.length < 512) { // `tar` header size, can not compute checksum without it
-		return false;
-	}
-
-	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces in checksum field
-	let signedBitSum = 0; // Initialize signed bit sum
-
-	for (let i = 0; i < 148; i++) {
-		const byte = buf[i];
-		sum += byte; // Add to sum
-		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
-	}
-
-	// Skip checksum field
-
-	for (let i = 156; i < 512; i++) {
-		const byte = buf[i];
-		sum += byte; // Add to sum
-		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
-	}
-
-	const readSum = parseInt(buf.toString('utf8', 148, 154), 8); // Read sum in header
-
-	// Some implementations compute checksum incorrectly using signed bytes
-	return readSum === sum || // Checksum in header equals the sum we calculated
-		readSum === (sum - (signedBitSum << 1)); // Checksum in header equals sum we calculated plus signed-to-unsigned delta
-};
+const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
+const oxmlContentTypes = stringToBytes('[Content_Types].xml');
+const oxmlRels = stringToBytes('_rels/.rels');
 
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
 
-	const buf = input instanceof Uint8Array ? input : new Uint8Array(input);
+	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
 
-	if (!(buf && buf.length > 1)) {
+	if (!(buffer && buffer.length > 1)) {
 		return null;
 	}
 
@@ -67,10 +25,10 @@ const fileType = input => {
 			// If a bitmask is set
 			if (options.mask) {
 				// If header doesn't equal `buf` with bits masked off
-				if (header[i] !== (options.mask[i] & buf[i + options.offset])) {
+				if (header[i] !== (options.mask[i] & buffer[i + options.offset])) {
 					return false;
 				}
-			} else if (header[i] !== buf[i + options.offset]) {
+			} else if (header[i] !== buffer[i + options.offset]) {
 				return false;
 			}
 		}
@@ -78,7 +36,7 @@ const fileType = input => {
 		return true;
 	};
 
-	const checkString = (header, options) => check(toBytes(header), options);
+	const checkString = (header, options) => check(stringToBytes(header), options);
 
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {
@@ -240,7 +198,7 @@ const fileType = input => {
 				return type;
 			}
 
-			zipHeaderIndex = findNextZipHeaderIndex(buf, offset);
+			zipHeaderIndex = findNextZipHeaderIndex(buffer, offset);
 		} while (zipHeaderIndex >= 0);
 
 		// No more zip parts available in the buffer, but maybe we are almost certain about the type?
@@ -251,8 +209,8 @@ const fileType = input => {
 
 	if (
 		check([0x50, 0x4B]) &&
-		(buf[2] === 0x3 || buf[2] === 0x5 || buf[2] === 0x7) &&
-		(buf[3] === 0x4 || buf[3] === 0x6 || buf[3] === 0x8)
+		(buffer[2] === 0x3 || buffer[2] === 0x5 || buffer[2] === 0x7) &&
+		(buffer[3] === 0x4 || buffer[3] === 0x6 || buffer[3] === 0x8)
 	) {
 		return {
 			ext: 'zip',
@@ -262,7 +220,7 @@ const fileType = input => {
 
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buf)
+		tarHeaderChecksumMatches(buffer)
 	) {
 		return {
 			ext: 'tar',
@@ -272,7 +230,7 @@ const fileType = input => {
 
 	if (
 		check([0x52, 0x61, 0x72, 0x21, 0x1A, 0x7]) &&
-		(buf[6] === 0x0 || buf[6] === 0x1)
+		(buffer[6] === 0x0 || buffer[6] === 0x1)
 	) {
 		return {
 			ext: 'rar',
@@ -336,7 +294,7 @@ const fileType = input => {
 
 	// https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
 	if (check([0x1A, 0x45, 0xDF, 0xA3])) {
-		const sliced = buf.subarray(4, 4 + 4096);
+		const sliced = buffer.subarray(4, 4 + 4096);
 		const idPos = sliced.findIndex((el, i, arr) => arr[i] === 0x42 && arr[i + 1] === 0x82);
 
 		if (idPos !== -1) {
@@ -402,7 +360,7 @@ const fileType = input => {
 
 		let offset = 30;
 		do {
-			const objectSize = readUInt64LE(buf, offset + 16);
+			const objectSize = readUInt64LE(buffer, offset + 16);
 			if (check([0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65], {offset})) {
 				// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
 				if (check([0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: offset + 24})) {
@@ -425,7 +383,7 @@ const fileType = input => {
 			}
 
 			offset += objectSize;
-		} while (offset + 24 <= buf.length);
+		} while (offset + 24 <= buffer.length);
 
 		// Default to ASF generic extension
 		return {
@@ -452,7 +410,7 @@ const fileType = input => {
 	}
 
 	// Check for MPEG header at different starting offsets
-	for (let start = 0; start < 2 && start < (buf.length - 16); start++) {
+	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
 		if (
 			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
 			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE2]}) // MPEG 1 or 2 Layer 3 header
@@ -602,7 +560,7 @@ const fileType = input => {
 	}
 
 	if (
-		(buf[0] === 0x43 || buf[0] === 0x46) &&
+		(buffer[0] === 0x43 || buffer[0] === 0x46) &&
 		check([0x57, 0x53], {offset: 1})
 	) {
 		return {
@@ -971,7 +929,7 @@ module.exports.default = fileType;
 
 Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
-module.exports.stream = readableStream => new Promise((resolve, reject) => {
+fileType.stream = readableStream => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
