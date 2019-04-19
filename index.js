@@ -16,29 +16,33 @@ function readUInt64LE(buf, offset = 0) {
 	return n;
 }
 
-const tarHeaderChecksumMatches = buf => { // Does not check if checksum field was valid
-	if (buf.length < 512) {
+const MASK_8TH_BIT = 0x80;
+
+const tarHeaderChecksumMatches = buf => { // Does not check if checksum field characters are valid
+	if (buf.length < 512) { // `tar` header size, can not compute checksum without it
 		return false;
 	}
 
-	let sum = 256;
-	let signedBitCount = 0;
+	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces
+	let signedBitSum = 0; // Initialize signed bit sum
 
 	for (let i = 0; i < 148; i++) {
 		const byte = buf[i];
-		sum += byte;
-		signedBitCount += byte & 0x80;
+		sum += byte; // Add to sum
+		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
 	for (let i = 156; i < 512; i++) {
 		const byte = buf[i];
-		sum += byte;
-		signedBitCount += byte & 0x80;
+		sum += byte; // Add to sum
+		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
-	const readSum = parseInt(buf.toString('utf8', 148, 154), 8);
+	const readSum = parseInt(buf.toString('utf8', 148, 154), 8); // Read sum in header
 
-	return sum === readSum || ((sum - (signedBitCount << 1)) === readSum);
+	// Some implementations compute sum incorrectly using signed bytes
+	return readSum === sum || // Sum in header equals the sum we calculated
+		readSum === (sum - (signedBitSum << 1)); // Sum in header equals sum we calculated plus signed-to-unsigned delta
 };
 
 const fileType = input => {
