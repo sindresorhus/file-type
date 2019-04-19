@@ -13,7 +13,7 @@ const fileType = input => {
 	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
 
 	if (!(buffer && buffer.length > 1)) {
-		return null;
+		return;
 	}
 
 	const check = (header, options) => {
@@ -166,7 +166,7 @@ const fileType = input => {
 
 		let zipHeaderIndex = 0; // The first zip header was already found at index 0
 		let oxmlFound = false;
-		let type = null;
+		let type;
 
 		do {
 			const offset = zipHeaderIndex + 30;
@@ -919,8 +919,6 @@ const fileType = input => {
 			mime: 'audio/x-dsf' // Non-standard
 		};
 	}
-
-	return null;
 };
 
 module.exports = fileType;

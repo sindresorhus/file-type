@@ -110,7 +110,7 @@ declare namespace fileType {
 	}
 
 	type ReadableStreamWithFileType = ReadableStream & {
-		readonly fileType: FileTypeResult | null;
+		readonly fileType?: FileTypeResult;
 	};
 }
 
@@ -119,7 +119,7 @@ declare const fileType: {
 	Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`. The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 	@param buffer - It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
-	@returns An object with the detected file type and MIME type or `null` when there was no match.
+	@returns The detected file type and MIME type or `undefined` when there was no match.
 
 	@example
 	```
@@ -148,7 +148,7 @@ declare const fileType: {
 	});
 	```
 	*/
-	(buffer: Buffer | Uint8Array | ArrayBuffer): fileType.FileTypeResult | null;
+	(buffer: Buffer | Uint8Array | ArrayBuffer): fileType.FileTypeResult | undefined;
 
 	/**
 	The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.

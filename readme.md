@@ -95,7 +95,7 @@ Returns an `Object` with:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
-Or `null` when there is no match.
+Or `undefined` when there is no match.
 
 #### input
 
