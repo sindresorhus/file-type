@@ -191,6 +191,10 @@ const names = {
 	pcap: [
 		'fixture-big-endian',
 		'fixture-little-endian'
+	],
+	tar: [
+		'fixture',
+		'fixture-v7'
 	]
 };
 

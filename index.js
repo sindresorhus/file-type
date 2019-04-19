@@ -16,6 +16,37 @@ function readUInt64LE(buf, offset = 0) {
 	return n;
 }
 
+const MASK_8TH_BIT = 0x80;
+
+const tarHeaderChecksumMatches = buf => { // Does not check if checksum field characters are valid
+	if (buf.length < 512) { // `tar` header size, can not compute checksum without it
+		return false;
+	}
+
+	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces in checksum field
+	let signedBitSum = 0; // Initialize signed bit sum
+
+	for (let i = 0; i < 148; i++) {
+		const byte = buf[i];
+		sum += byte; // Add to sum
+		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
+	}
+
+	// Skip checksum field
+
+	for (let i = 156; i < 512; i++) {
+		const byte = buf[i];
+		sum += byte; // Add to sum
+		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
+	}
+
+	const readSum = parseInt(buf.toString('utf8', 148, 154), 8); // Read sum in header
+
+	// Some implementations compute checksum incorrectly using signed bytes
+	return readSum === sum || // Checksum in header equals the sum we calculated
+		readSum === (sum - (signedBitSum << 1)); // Checksum in header equals sum we calculated plus signed-to-unsigned delta
+};
+
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
@@ -229,7 +260,10 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0x75, 0x73, 0x74, 0x61, 0x72], {offset: 257})) {
+	if (
+		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
+		tarHeaderChecksumMatches(buf)
+	) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
