@@ -184,9 +184,6 @@ declare const fileType: {
 	readonly stream: (
 		readableStream: ReadableStream
 	) => Promise<fileType.ReadableStreamWithFileType>;
-
-	// TODO: Remove this for the next major release
-	readonly default: typeof fileType;
 };
 
 export = fileType;

@@ -924,8 +924,6 @@ const fileType = input => {
 };
 
 module.exports = fileType;
-// TODO: Remove this for the next major release
-module.exports.default = fileType;
 
 Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
