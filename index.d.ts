@@ -95,7 +95,9 @@ declare namespace fileType {
 		| 'ics'
 		| 'glb'
 		| 'pcap'
-		| 'dsf';
+		| 'dsf'
+		| 'lnk'
+		| 'alias';
 
 	interface FileTypeResult {
 		/**
