@@ -97,7 +97,9 @@ declare namespace fileType {
 		| 'pcap'
 		| 'dsf'
 		| 'lnk'
-		| 'alias';
+		| 'alias'
+		| 'voc'
+		| 'ac3';
 
 	interface FileTypeResult {
 		/**

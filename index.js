@@ -933,6 +933,20 @@ const fileType = input => {
 			mime: 'application/x.apple.alias' // Invented by us
 		};
 	}
+
+	if (checkString('Creative Voice File')) {
+		return {
+			ext: 'voc',
+			mime: 'audio/x-voc'
+		};
+	}
+
+	if (check([0x0B, 0x77])) {
+		return {
+			ext: 'ac3',
+			mime: 'audio/vnd.dolby.dd-raw'
+		};
+	}
 };
 
 module.exports = fileType;
