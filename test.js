@@ -257,13 +257,15 @@ for (const type of types) {
 	}
 }
 
-test('.stream() method - empty stream', async t => {
-	const emptyStream = fs.createReadStream('/dev/null');
-	await t.throwsAsync(
-		fileType.stream(emptyStream),
-		/Expected the `input` argument to be of type `Uint8Array` /
-	);
-});
+if (process.platform !== 'win32') {
+	test('.stream() method - empty stream', async t => {
+		const emptyStream = fs.createReadStream('/dev/null');
+		await t.throwsAsync(
+			fileType.stream(emptyStream),
+			/Expected the `input` argument to be of type `Uint8Array` /
+		);
+	});
+}
 
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
