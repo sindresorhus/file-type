@@ -99,7 +99,8 @@ declare namespace fileType {
 		| 'lnk'
 		| 'alias'
 		| 'voc'
-		| 'ac3';
+		| 'ac3'
+		| 'aac';
 
 	interface FileTypeResult {
 		/**

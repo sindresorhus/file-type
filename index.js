@@ -443,7 +443,7 @@ const fileType = input => {
 			check([0xFF, 0xF0], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
 		) {
 			return {
-				ext: 'mp4',
+				ext: 'aac',
 				mime: 'audio/mpeg'
 			};
 		}

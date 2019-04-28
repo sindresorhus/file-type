@@ -108,7 +108,9 @@ const types = [
 	'lnk',
 	'alias',
 	'voc',
-	'ac3'
+	'ac3',
+	'pcap',
+	'aac'
 ];
 
 // Define an entry here only if the fixture has a different
@@ -153,8 +155,7 @@ const names = {
 		'fixture-isomv2',
 		'fixture-mp4v2',
 		'fixture-m4v',
-		'fixture-dash',
-		'fixture-aac-adts'
+		'fixture-dash'
 	],
 	tif: [
 		'fixture-big-endian',
@@ -199,6 +200,10 @@ const names = {
 	tar: [
 		'fixture',
 		'fixture-v7'
+	],
+	aac: [
+		'fixture-adts',
+		'fixture-adts-2'
 	]
 };
 
