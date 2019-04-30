@@ -139,8 +139,7 @@ const names = {
 	],
 	mp2: [
 		'fixture',
-		'fixture-mpa',
-		'fixture-faac-adts'
+		'fixture-mpa'
 	],
 	mp3: [
 		'fixture',
@@ -202,8 +201,9 @@ const names = {
 		'fixture-v7'
 	],
 	aac: [
-		'fixture-adts',
-		'fixture-adts-2'
+		'fixture-adts-mpeg4',
+		'fixture-adts-mpeg4-2',
+		'fixture-adts-mpeg2'
 	]
 };
 

@@ -438,8 +438,8 @@ const fileType = input => {
 				// Check for (ADTS) MPEG-2
 				if (check([0x08], {offset: start + 1, mask: [0x08]})) {
 					return {
-						ext: 'mp2',
-						mime: 'audio/mpeg'
+						ext: 'aac',
+						mime: 'audio/aac'
 					};
 				}
 
