@@ -38,6 +38,17 @@ const fileType = input => {
 
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
+	/**
+	 * Specialized function to read ID3 payload length
+	 * @param buf Buffer
+	 * @param off offset in buffer
+	 * @returns {number} ID3 payload length
+	 */
+	function readUINT32SYNCSAFE(buf, off) {
+		return (buf[off + 3] & 0x7F) | ((buf[off + 2]) << 7) |
+			((buf[off + 1]) << 14) | ((buf[off]) << 21);
+	}
+
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {
 			ext: 'jpg',
@@ -409,44 +420,69 @@ const fileType = input => {
 		};
 	}
 
-	// Check for MPEG header at different starting offsets
+	let flagId3 = false;
+
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
-		if (
-			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
-			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
-		) {
-			return {
-				ext: 'mp3',
-				mime: 'audio/mpeg'
-			};
+		// Check for ID3 header
+		if (buffer.length >= start + 10 && checkString('ID3', {offset: start})) {
+			const id3Len = readUINT32SYNCSAFE(buffer, start + 6);
+			start += (10 + id3Len - 1); // Skip ID3 header
+			flagId3 = true;
+			continue;
 		}
 
-		if (
-			check([0xFF, 0xE4], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 2 header
-		) {
-			return {
-				ext: 'mp2',
-				mime: 'audio/mpeg'
-			};
-		}
+		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
+		if (buffer.length >= start + 2 && check([0xFF, 0xE0], {offset: start, mask: [0xFF, 0xE0]})) {
+			// Check for ADTS header (last bit of sync-word 0xFFF & layer=0)
+			if (check([0x10], {offset: start + 1, mask: [0x16]})) {
+				// Check for (ADTS) MPEG-2
+				if (check([0x08], {offset: start + 1, mask: [0x08]})) {
+					return {
+						ext: 'mp2',
+						mime: 'audio/mpeg'
+					};
+				}
 
-		if (
-			check([0xFF, 0xF8], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 2 layer 0 using ADTS
-		) {
-			return {
-				ext: 'mp2',
-				mime: 'audio/mpeg'
-			};
-		}
+				// Must be (ADTS) MPEG-4
+				return {
+					ext: 'aac',
+					mime: 'audio/aac'
+				};
+			}
 
-		if (
-			check([0xFF, 0xF0], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
-		) {
-			return {
-				ext: 'aac',
-				mime: 'audio/mpeg'
-			};
+			// MPEG 1 or 2 Layer 3 header
+			// Check for MPEG layer 3
+			if (check([0x02], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp3',
+					mime: 'audio/mpeg'
+				};
+			}
+
+			// Check for MPEG layer 2
+			if (check([0x04], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp2',
+					mime: 'audio/mpeg'
+				};
+			}
+
+			// Check for MPEG layer 1
+			if (check([0x06], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp1',
+					mime: 'audio/mpeg'
+				};
+			}
 		}
+	}
+
+	if (flagId3) {
+		// Guess it is MP3 if only an ID3 tag header is found
+		return {
+			ext: 'mp3',
+			mime: 'audio/mpeg'
+		};
 	}
 
 	if (
