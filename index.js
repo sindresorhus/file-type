@@ -1174,5 +1174,5 @@ fileType.extensions = new Set([
 	'application/x.ms.shortcut', // Invented by us
 	'application/x.apple.alias', // Invented by us
 	'audio/x-voc',
-	'audio/vnd.dolby.dd-raw',
+	'audio/vnd.dolby.dd-raw'
 ]);
