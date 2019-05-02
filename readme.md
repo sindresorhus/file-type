@@ -121,6 +121,10 @@ Returns a `Promise` which resolves to the original readable stream argument, but
 
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
+### fileType.extensions
+
+Returns a set of supported file extensions and MIME types.
+
 
 ## Supported file types
 
