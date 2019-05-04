@@ -285,11 +285,11 @@ const fileType = input => {
 	// Here we check for 8859-1 printable characters(for check simplicity, it is a mask which also catches one non-printable character).
 	if (
 		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) && // `ftyp`
-		(buf[8] & 0x60) !== 0x00 && (buf[9] & 0x60) !== 0x00 && (buf[10] & 0x60) !== 0x00 && (buf[11] & 0x60) !== 0x00 // Brand major
+		(buffer[8] & 0x60) !== 0x00 && (buffer[9] & 0x60) !== 0x00 && (buffer[10] & 0x60) !== 0x00 && (buffer[11] & 0x60) !== 0x00 // Brand major
 	) {
 		// They all can have mime video/mp4 except application/mp4 special case which is hard to detect.
 		// For some cases we're specific, everything else falls to video/mp4 with mp4 extension.
-		const brandMajor = buf.toString('utf8', 8, 12);
+		const brandMajor = buffer.toString('utf8', 8, 12);
 		switch (brandMajor) {
 			case 'mif1':
 				return {ext: 'heic', mime: 'image/heif'};
@@ -318,8 +318,8 @@ const fileType = input => {
 			case 'F4B ':
 				return {ext: 'f4b', mime: 'audio/mp4'};
 			default:
-				if (brandMajor.substr(0, 2) === '3g') {
-					if (brandMajor[2] === '2') {
+				if (brandMajor.startsWith('3g')) {
+					if (brandMajor.startsWith('3g2')) {
 						return {ext: '3g2', mime: 'video/3gpp2'};
 					}
 
