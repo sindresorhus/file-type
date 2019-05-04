@@ -280,15 +280,15 @@ const fileType = input => {
 	}
 
 	// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
-	// It is not required to be first, but is recommended to, almost all mpeg4 files start with ftyp box
-	// `ftyp` box must contain brand identifier, which must consist of ISO 8859-1 printable characters
-	// Here we check for 8859-1 printable characters + 1 unprintable for check simplicity
-	// They all can have mime video/mp4 except application/mp4 special case which is hard to detect.
-	// For some cases we're specific, everything else falls to video/mp4 with mp4 extension.
+	// It is not required to be first, but is recommended to, almost all ISO base media files start with ftyp box
+	// `ftyp` box must contain brand major identifier, which must consist of ISO 8859-1 printable characters
+	// Here we check for 8859-1 printable characters(for check simplicity, it is a mask which also catches one non-printable character).
 	if (
 		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) && // `ftyp`
 		(buf[8] & 0x60) !== 0x00 && (buf[9] & 0x60) !== 0x00 && (buf[10] & 0x60) !== 0x00 && (buf[11] & 0x60) !== 0x00 // Brand major
 	) {
+		// They all can have mime video/mp4 except application/mp4 special case which is hard to detect.
+		// For some cases we're specific, everything else falls to video/mp4 with mp4 extension.
 		const brandMajor = buf.toString('utf8', 8, 12);
 		switch (brandMajor) {
 			case 'mif1':
