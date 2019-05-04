@@ -192,7 +192,6 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
-- [`3gp`](https://en.wikipedia.org/wiki/3GP_and_3G2)
 - [`3g2`](https://en.wikipedia.org/wiki/3GP_and_3G2)
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
@@ -221,6 +220,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`alias`](https://en.wikipedia.org/wiki/Alias_%28Mac_OS%29) - macOS Alias file
 - [`voc`](https://wiki.multimedia.cx/index.php/Creative_Voice) - Creative Voice File
 - [`ac3`](https://www.atsc.org/standard/a522012-digital-audio-compression-ac-3-e-ac-3-standard-12172012/) - ATSC A/52 Audio File
+- [`3gp`](https://en.wikipedia.org/wiki/3GP_and_3G2#3GP) - Multimedia container format defined by the Third Generation Partnership Project (3GPP) for 3G UMTS multimedia services
 - [`3g2`](https://en.wikipedia.org/wiki/3GP_and_3G2#3G2) - Multimedia container format defined by the 3GPP2 for 3G CDMA2000 multimedia services
 - [`m4v`](https://en.wikipedia.org/wiki/M4V) -  MPEG-4 Visual bitstreams
 - [`m4p`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#Filename_extensions) - MPEG-4 files with audio streams encrypted by FairPlay Digital Rights Management as were sold through the iTunes Store
