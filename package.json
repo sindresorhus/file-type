@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "10.11.0",
+	"version": "11.0.0",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -58,7 +58,6 @@
 		"7z",
 		"dmg",
 		"mp4",
-		"m4v",
 		"mid",
 		"mkv",
 		"webm",
@@ -124,7 +123,16 @@
 		"lnk",
 		"alias",
 		"voc",
-		"ac3"
+		"ac3",
+		"3g2",
+		"m4a",
+		"m4b",
+		"m4p",
+		"m4v",
+		"f4a",
+		"f4b",
+		"f4p",
+		"f4v"
 	],
 	"devDependencies": {
 		"@types/node": "^11.12.2",
