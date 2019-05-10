@@ -962,7 +962,7 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 	});
 });
 
-fileType.extensions = new Set([
+const extensions = [
 	'jpg',
 	'png',
 	'gif',
@@ -1003,7 +1003,6 @@ fileType.extensions = new Set([
 	'3gp',
 	'mp3',
 	'mp2',
-	'm4a',
 	'opus',
 	'ogv',
 	'ogm',
@@ -1063,6 +1062,17 @@ fileType.extensions = new Set([
 	'alias',
 	'voc',
 	'ac3',
+	'3g2',
+	'm4a',
+	'm4b',
+	'm4p',
+	'm4v',
+	'f4v',
+	'f4p',
+	'f4a',
+	'f4b'
+];
+const mimeTypes = [
 	'image/jpeg',
 	'image/png',
 	'image/gif',
@@ -1160,5 +1170,9 @@ fileType.extensions = new Set([
 	'application/x.ms.shortcut', // Invented by us
 	'application/x.apple.alias', // Invented by us
 	'audio/x-voc',
-	'audio/vnd.dolby.dd-raw'
-]);
+	'audio/vnd.dolby.dd-raw',
+	'audio/x-m4a'
+];
+
+Object.defineProperty(fileType, 'extensions', { get: function () { return new Set(extensions); } });
+Object.defineProperty(fileType, 'mimeTypes', { get: function () { return new Set(mimeTypes); } });
