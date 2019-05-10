@@ -1174,5 +1174,9 @@ const mimeTypes = [
 	'audio/x-m4a'
 ];
 
-Object.defineProperty(fileType, 'extensions', {get() {return new Set(extensions);}});
-Object.defineProperty(fileType, 'mimeTypes', {get() {return new Set(mimeTypes);}});
+Object.defineProperty(fileType, 'extensions', {get() {
+	return new Set(extensions);
+}});
+Object.defineProperty(fileType, 'mimeTypes', {get() {
+	return new Set(mimeTypes);
+}});
