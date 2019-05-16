@@ -73,7 +73,7 @@ const fileType = input => {
 		};
 	}
 
-	// Needs to be before `tif` check
+	// Cr2, orf, and arw need to be before `tif` check
 	if (
 		(check([0x49, 0x49, 0x2A, 0x0]) || check([0x4D, 0x4D, 0x0, 0x2A])) &&
 		check([0x43, 0x52], {offset: 8})
@@ -81,6 +81,34 @@ const fileType = input => {
 		return {
 			ext: 'cr2',
 			mime: 'image/x-canon-cr2'
+		};
+	}
+
+	if (check([0x49, 0x49, 0x52, 0x4F, 0x08, 0x00, 0x00, 0x00, 0x18])) {
+		return {
+			ext: 'orf',
+			mime: 'image/x-olympus-orf'
+		};
+	}
+
+	if (check([0x49, 0x49, 0x2A, 0x00, 0x10, 0xFB, 0x86, 0x01])) {
+		return {
+			ext: 'arw',
+			mime: 'image/x-sony-arw'
+		};
+	}
+
+	if (check([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x2D])) {
+		return {
+			ext: 'dng',
+			mime: 'image/x-adobe-dng'
+		};
+	}
+
+	if (check([0x49, 0x49, 0x2A, 0x00, 0x30, 0x3D, 0x72, 0x01, 0x1C])) {
+		return {
+			ext: 'nef',
+			mime: 'image/x-nikon-nef'
 		};
 	}
 
