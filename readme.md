@@ -121,7 +121,6 @@ Returns a `Promise` which resolves to the original readable stream argument, but
 
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
-
 ## Supported file types
 
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG)
@@ -130,6 +129,10 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
 - [`cr2`](https://fileinfo.com/extension/cr2)
+- [`orf`](https://en.wikipedia.org/wiki/ORF_format)
+- [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW)
+- [`dng`](https://en.wikipedia.org/wiki/Digital_Negative)
+- [`nef`](https://en.wikipedia.org/wiki/Raw_image_format)
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
