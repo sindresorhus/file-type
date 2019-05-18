@@ -73,7 +73,7 @@ const fileType = input => {
 		};
 	}
 
-	// Cr2, orf, and arw need to be before `tif` check
+	// `cr2`, `orf`, and `arw` need to be before `tif` check
 	if (
 		(check([0x49, 0x49, 0x2A, 0x0]) || check([0x4D, 0x4D, 0x0, 0x2A])) &&
 		check([0x43, 0x52], {offset: 8})
