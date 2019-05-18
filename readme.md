@@ -121,6 +121,7 @@ Returns a `Promise` which resolves to the original readable stream argument, but
 
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
+
 ## Supported file types
 
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG)
