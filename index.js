@@ -1,5 +1,5 @@
 'use strict';
-const {stringToBytes, readUInt64LE, tarHeaderChecksumMatches} = require('./util');
+const {stringToBytes, readUInt64LE, tarHeaderChecksumMatches, uint8ArrayUtf8ByteString} = require('./util');
 
 const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
@@ -289,7 +289,7 @@ const fileType = input => {
 	) {
 		// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
 		// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
-		const brandMajor = buffer.toString('utf8', 8, 12);
+		const brandMajor = uint8ArrayUtf8ByteString(buffer, 8, 12);
 		switch (brandMajor) {
 			case 'mif1':
 				return {ext: 'heic', mime: 'image/heif'};

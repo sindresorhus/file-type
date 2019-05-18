@@ -2,6 +2,10 @@
 
 exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
 
+const uint8ArrayUtf8ByteString = (array, start, end) => {
+	return String.fromCharCode(...array.slice(start, end));
+};
+
 exports.readUInt64LE = (buffer, offset = 0) => {
 	let n = buffer[offset];
 	let mul = 1;
@@ -39,7 +43,7 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
-	const readSum = parseInt(buffer.toString('utf8', 148, 154), 8); // Read sum in header
+	const readSum = parseInt(uint8ArrayUtf8ByteString(buffer, 148, 154), 8); // Read sum in header
 
 	// Some implementations compute checksum incorrectly using signed bytes
 	return (
@@ -50,3 +54,5 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		readSum === (sum - (signedBitSum << 1))
 	);
 };
+
+exports.uint8ArrayUtf8ByteString = uint8ArrayUtf8ByteString;
