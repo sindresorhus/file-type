@@ -6,11 +6,6 @@ import readChunk from 'read-chunk';
 import pify from 'pify';
 import fileType from '.';
 
-const check = (ext, name) => {
-	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	return fileType(readChunk.sync(file, 0, 4 + 4096)) || {};
-};
-
 const types = [
 	'jpg',
 	'png',
@@ -209,10 +204,18 @@ const names = {
 	]
 };
 
-const testFile = (t, type, name) => {
-	const {ext, mime} = check(type, name);
+const checkBufferLike = (t, type, bufferLike) => {
+	const {ext, mime} = fileType(bufferLike) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
+};
+
+const testFile = (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const chunk = readChunk.sync(file, 0, 4 + 4096);
+	checkBufferLike(t, ext, chunk);
+	checkBufferLike(t, ext, new Uint8Array(chunk));
+	checkBufferLike(t, ext, chunk.buffer);
 };
 
 const testFileFromStream = async (t, ext, name) => {
