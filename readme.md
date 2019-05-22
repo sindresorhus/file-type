@@ -129,7 +129,11 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`gif`](https://en.wikipedia.org/wiki/GIF)
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
-- [`cr2`](https://fileinfo.com/extension/cr2)
+- [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
+- [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
+- [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
+- [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
+- [`nef`](https://www.nikonusa.com/en/learn-and-explore/a/products-and-innovation/nikon-electronic-format-nef.html) - Nikon Electronic Format image file
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
@@ -232,7 +236,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
-*Pull request welcome for additional commonly used file types.*
+*Pull requests are welcome for additional commonly used file types.*
 
 
 ## Related
