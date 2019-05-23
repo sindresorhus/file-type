@@ -11,10 +11,6 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 $ npm install file-type
 ```
 
-<a href="https://www.patreon.com/sindresorhus">
-	<img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
-</a>
-
 
 ## Usage
 
@@ -90,7 +86,7 @@ xhr.send();
 
 ### fileType(input)
 
-Returns an `Object` with:
+Returns an `object` with:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -244,12 +240,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
 
 
-## Created by
+## Maintainers
 
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Mikael Finstad](https://github.com/mifi)
-
-
-## License
-
-MIT
