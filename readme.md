@@ -38,6 +38,7 @@ http.get(url, response => {
 	response.on('readable', () => {
 		const chunk = response.read(fileType.minimumBytes);
 		response.destroy();
+
 		console.log(fileType(chunk));
 		//=> {ext: 'gif', mime: 'image/gif'}
 	});
@@ -47,6 +48,7 @@ http.get(url, response => {
 Or from a stream:
 
 ```js
+const stream = require('stream');
 const fs = require('fs');
 const crypto = require('crypto');
 const fileType = require('file-type');
@@ -55,7 +57,7 @@ const fileType = require('file-type');
 	const read = fs.createReadStream('encrypted.enc');
 	const decipher = crypto.createDecipheriv(alg, key, iv);
 
-	const stream = await fileType.stream(read.pipe(decipher));
+	const stream = await fileType.stream(stream.pipeline(read, decipher));
 
 	console.log(stream.fileType);
 	//=> {ext: 'mov', mime: 'video/quicktime'}

@@ -10,7 +10,7 @@
 		"url": "sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=6"
+		"node": ">=8"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -139,7 +139,7 @@
 		"f4v"
 	],
 	"devDependencies": {
-		"@types/node": "^11.12.2",
+		"@types/node": "^12.0.2",
 		"ava": "^1.4.1",
 		"noop-stream": "^0.1.0",
 		"pify": "^4.0.1",
