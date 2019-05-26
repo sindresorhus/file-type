@@ -124,6 +124,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG)
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics)
+- [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
 - [`gif`](https://en.wikipedia.org/wiki/GIF)
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
