@@ -4,6 +4,7 @@ import stream from 'stream';
 import test from 'ava';
 import readChunk from 'read-chunk';
 import pify from 'pify';
+import {readableNoopStream} from 'noop-stream';
 import fileType from '.';
 
 const types = [
@@ -272,9 +273,8 @@ for (const type of types) {
 }
 
 test('.stream() method - empty stream', async t => {
-	const emptyStream = fs.createReadStream('/dev/null');
 	await t.throwsAsync(
-		fileType.stream(emptyStream),
+		fileType.stream(readableNoopStream()),
 		/Expected the `input` argument to be of type `Uint8Array` /
 	);
 });
