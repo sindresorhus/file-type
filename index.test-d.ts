@@ -8,7 +8,7 @@ expectType<FileTypeResult | undefined>(fileType(new Uint8Array([0xff, 0xd8, 0xff
 expectType<FileTypeResult | undefined>(fileType(new ArrayBuffer(42)));
 
 const result = fileType(new Buffer([0xff, 0xd8, 0xff]));
-if (result != null) {
+if (result !== undefined) {
 	expectType<FileType>(result.ext);
 	expectType<string>(result.mime);
 }
