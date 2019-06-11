@@ -132,6 +132,8 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
 - [`nef`](https://www.nikonusa.com/en/learn-and-explore/a/products-and-innovation/nikon-electronic-format-nef.html) - Nikon Electronic Format image file
+- [`rw2`](https://en.wikipedia.org/wiki/Raw_image_format) - Panasonic RAW image file
+- [`raf`](https://en.wikipedia.org/wiki/Raw_image_format) - Fujifilm RAW image file
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)

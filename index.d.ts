@@ -13,6 +13,8 @@ declare namespace fileType {
 		| 'arw'
 		| 'dng'
 		| 'nef'
+		| 'rw2'
+		| 'raf'
 		| 'tif'
 		| 'bmp'
 		| 'jxr'
