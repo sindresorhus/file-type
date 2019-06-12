@@ -125,6 +125,21 @@ const fileType = input => {
 		};
 	}
 
+	if (check([0x49, 0x49, 0x55, 0x00, 0x18, 0x00, 0x00, 0x00, 0x88, 0xE7, 0x74, 0xD8])) {
+		return {
+			ext: 'rw2',
+			mime: 'image/x-panasonic-rw2'
+		};
+	}
+
+	// `raf` is here just to keep all the raw image detectors together.
+	if (checkString('FUJIFILMCCD-RAW')) {
+		return {
+			ext: 'raf',
+			mime: 'image/x-fujifilm-raf'
+		};
+	}
+
 	if (
 		check([0x49, 0x49, 0x2A, 0x0]) ||
 		check([0x4D, 0x4D, 0x0, 0x2A])
