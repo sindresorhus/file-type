@@ -5,6 +5,7 @@ declare namespace fileType {
 	type FileType =
 		| 'jpg'
 		| 'png'
+		| 'apng'
 		| 'gif'
 		| 'webp'
 		| 'flif'

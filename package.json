@@ -42,6 +42,7 @@
 		"uint8array",
 		"jpg",
 		"png",
+		"apng",
 		"gif",
 		"webp",
 		"flif",

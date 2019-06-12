@@ -10,6 +10,7 @@ import fileType from '.';
 const types = [
 	'jpg',
 	'png',
+	'apng',
 	'gif',
 	'webp',
 	'flif',
