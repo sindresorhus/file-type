@@ -122,6 +122,20 @@ const types = [
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
 const names = {
+	arw: [
+		'fixture',
+		'fixture2',
+		'fixture3',
+		'fixture4'
+	],
+	dng: [
+		'fixture',
+		'fixture2'
+	],
+	nef: [
+		'fixture',
+		'fixture2'
+	],
 	'3gp': [
 		'fixture',
 		'fixture2'
