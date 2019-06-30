@@ -237,7 +237,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
-*Pull requests are welcome for additional commonly used file types.*
+*Pull requests are welcome for additional commonly used file types, except for `doc`, `xls`, `ppt`.*
 
 
 ## Related
