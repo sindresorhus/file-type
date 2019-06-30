@@ -197,6 +197,9 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 - [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
+- [`doc`](https://en.wikipedia.org/wiki/Doc_\(computing\)) - Microsoft Word 97–2003
+- [`xls`](https://en.wikipedia.org/wiki/Microsoft_Excel) - Excel 97-2003
+- [`ppt`](https://zh.wikipedia.org/wiki/Microsoft_PowerPoint) - PowerPoint 97–2003
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000

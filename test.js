@@ -81,8 +81,11 @@ const types = [
 	'mts',
 	'blend',
 	'bpg',
+	'doc',
 	'docx',
+	'ppt',
 	'pptx',
+	'xls',
 	'xlsx',
 	'3gp',
 	'3g2',
@@ -232,9 +235,23 @@ const checkBufferLike = (t, type, bufferLike) => {
 	t.is(typeof mime, 'string');
 };
 
+const preCheckMimimumRequiredBytes = chunk => {
+	// Check minimumRequiredBytes chunk size
+	// For file types like .doc, .xls, ppt, they require much large chunk to identify the document type.
+	// If the initial chunk size is not big enough to identify .doc, .xls, .ppt.
+	// A property 'minimumRequiredBytes' will be returned.
+	return (fileType(chunk) || {}).minimumRequiredBytes;
+};
+
 const testFile = (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const chunk = readChunk.sync(file, 0, 4 + 4096);
+	let chunk = readChunk.sync(file, 0, 4 + 4096);
+
+	const mimimumRequiredBytes = preCheckMimimumRequiredBytes(chunk);
+	if (mimimumRequiredBytes) {
+		chunk = readChunk.sync(file, 0, mimimumRequiredBytes);
+	}
+
 	checkBufferLike(t, ext, chunk);
 	checkBufferLike(t, ext, new Uint8Array(chunk));
 	checkBufferLike(t, ext, chunk.buffer);
@@ -244,7 +261,13 @@ const testFileFromStream = async (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 	const readableStream = await fileType.stream(fs.createReadStream(file));
 
-	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
+	let chunk = readChunk.sync(file, 0, fileType.minimumBytes);
+	const mimimumRequiredBytes = preCheckMimimumRequiredBytes(chunk);
+	if (mimimumRequiredBytes) {
+		chunk = readChunk.sync(file, 0, mimimumRequiredBytes);
+	}
+
+	t.deepEqual(readableStream.fileType, fileType(chunk));
 };
 
 const testStream = async (t, ext, name) => {
