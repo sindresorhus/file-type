@@ -834,6 +834,51 @@ const fileType = input => {
 	}
 
 	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])) {
+		// Use CLSIDs to check old Microsoft Office file types: .doc, .xls, .ppt
+		// Ref: http://fileformats.archiveteam.org/wiki/Microsoft_Compound_File
+		let sectorSize = 1 << buffer[30]
+		let index = buffer[49] * 256 + buffer[48]
+		index = (index + 1) * sectorSize + 80
+
+		// If the CLSID block is located outside the buffer, it will return an extra field `minimumRequiredBytes`.
+		// Therefore, user can optionally retry it with a larger buffer.
+		if (index + 16 > buffer.length) {
+			return {
+				ext: 'msi',
+				mime: 'application/x-msi',
+				minimumRequiredBytes: index + 16
+			}
+		}
+
+		// If the CLSID block is located within the buffer, it will try to identify its file type (.doc, .xls, .ppt) by CLSID.
+		if (check([0x06, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46], {offset: index})) {
+			return {
+				ext: 'doc',
+				mime: 'application/msword'
+			}
+		}
+
+		if (check([0x10, 0x08, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46], {offset: index})) {
+			return {
+				ext: 'xls',
+				mime: 'application/vnd.ms-excel'
+			}
+		}
+
+		if (check([0x20, 0x08, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46], {offset: index})) {
+			return {
+				ext: 'xls',
+				mime: 'application/vnd.ms-excel'
+			}
+		}
+
+		if (check([0x10, 0x8D, 0x81, 0x64, 0x9B, 0x4F, 0xCF, 0x11, 0x86, 0xEA, 0x00, 0xAA, 0x00, 0xB9, 0x29, 0xE8], {offset: index})) {
+			return {
+				ext: 'ppt',
+				mime: 'application/vnd.ms-powerpoint'
+			}
+		}
+
 		return {
 			ext: 'msi',
 			mime: 'application/x-msi'
@@ -1013,25 +1058,58 @@ module.exports = fileType;
 
 Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
 
-fileType.stream = readableStream => new Promise((resolve, reject) => {
+fileType.stream = readableStream => {
+	let onEnd, onError
+	const readBytes = (rs, num = 0) => {
+		let buf = rs.read(num);
+		if (buf) {
+			return new Promise(r => r(buf));
+		} else {
+			return new Promise((resolve, reject) => {
+				rs.once('readable', () => {
+					rs.removeListener('end', onEnd)
+					rs.removeListener('error', onError)
+					readBytes(rs, num).then(b => resolve(b)).catch(e => reject(e));
+				});
+				rs.once('end', onEnd = () => resolve(rs.read()));
+				rs.once('error', onError = (e) => reject(e))
+			});
+		}
+	}
+
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
-	readableStream.once('readable', () => {
-		const pass = new stream.PassThrough();
-		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
-		try {
-			pass.fileType = fileType(chunk);
-		} catch (error) {
-			reject(error);
-		}
+	// A recursive function will first try to check the file type by using the first 'minimumBytes' chunk.
+	// If the first 'minimumBytes' chunk is not enough to identify the file type, e.g. .doc, it will try it again with a larger chunk as specified by 'minimumRequiredBytes'.
+	// It returns a promise which resolves a PassThrough stream plus a `fileType` field.
+	const streamFileType = (inputStream, minimumBytes) => {
+		const outputStream = new stream.PassThrough();
+		return new Promise((resolve, reject) => {
+			readBytes(inputStream, minimumBytes)
+				.then(chunk => {
+					try {
+						let ft = fileType(chunk);
+						outputStream.write(chunk)
+						if (stream.pipeline) {
+							stream.pipeline(inputStream, outputStream, () => {});
+						} else {
+							inputStream.pipe(outputStream);
+						}
 
-		readableStream.unshift(chunk);
+						if (ft && ft.minimumRequiredBytes) {
+							streamFileType(outputStream, ft.minimumRequiredBytes).then(os => resolve(os)).catch(e => reject(e))
+						} else {
+							outputStream.fileType = ft
+							resolve(outputStream)
+						}
+					} catch (e) {
+						reject(e)
+					}
+				})
+				.catch(e => reject(e))
+		})
+	}
 
-		if (stream.pipeline) {
-			resolve(stream.pipeline(readableStream, pass, () => {}));
-		} else {
-			resolve(readableStream.pipe(pass));
-		}
-	});
-});
+	return streamFileType(readableStream, module.exports.minimumBytes)
+};
