@@ -296,6 +296,17 @@ test('.stream() method - empty stream', async t => {
 	);
 });
 
+test('.stream() method - error event', async t => {
+	const errMsg = 'Demo read error';
+	const rStream = new stream.Readable({
+		read() {
+			process.nextTick(() => this.emit('error', new Error(errMsg)));
+		}
+	});
+
+	await t.throwsAsync(fileType.stream(rStream), errMsg);
+});
+
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
 });
