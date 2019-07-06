@@ -296,6 +296,20 @@ test('.stream() method - empty stream', async t => {
 	);
 });
 
+test('.stream() method - error event', async t => {
+	const errorMessage = 'Fixture';
+
+	const readableStream = new stream.Readable({
+		read() {
+			process.nextTick(() => {
+				this.emit('error', new Error(errorMessage));
+			});
+		}
+	});
+
+	await t.throwsAsync(fileType.stream(readableStream), errorMessage);
+});
+
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
 });

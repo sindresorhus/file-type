@@ -1017,6 +1017,7 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
+	readableStream.on('error', reject);
 	readableStream.once('readable', () => {
 		const pass = new stream.PassThrough();
 		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
