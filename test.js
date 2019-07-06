@@ -297,14 +297,17 @@ test('.stream() method - empty stream', async t => {
 });
 
 test('.stream() method - error event', async t => {
-	const errMsg = 'Demo read error';
-	const rStream = new stream.Readable({
+	const errorMessage = 'Fixture';
+
+	const readableStream = new stream.Readable({
 		read() {
-			process.nextTick(() => this.emit('error', new Error(errMsg)));
+			process.nextTick(() => {
+				this.emit('error', new Error(errorMessage));
+			});
 		}
 	});
 
-	await t.throwsAsync(fileType.stream(rStream), errMsg);
+	await t.throwsAsync(fileType.stream(readableStream), errorMessage);
 });
 
 test('fileType.minimumBytes', t => {
