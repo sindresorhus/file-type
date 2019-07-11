@@ -17,6 +17,7 @@
 	},
 	"files": [
 		"index.js",
+		"supported.js",
 		"index.d.ts",
 		"util.js"
 	],
