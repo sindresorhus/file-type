@@ -4,6 +4,7 @@ const {stringToBytes, readUInt64LE, tarHeaderChecksumMatches, uint8ArrayUtf8Byte
 const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
 const oxmlRels = stringToBytes('_rels/.rels');
+const supported = require('./supported');
 
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
@@ -1036,3 +1037,11 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 		}
 	});
 });
+
+Object.defineProperty(fileType, 'extensions', {get() {
+	return new Set(supported.extensions);
+}});
+
+Object.defineProperty(fileType, 'mimeTypes', {get() {
+	return new Set(supported.types);
+}});
