@@ -173,6 +173,18 @@ declare const fileType: {
 	The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
 	*/
 	readonly minimumBytes: number;
+	
+	/** 
+	Returns set of extensions supported by this library.
+	*/
+	
+	readonly extensions: object;
+	
+	/** 
+	Returns set of mime types supported by this library.
+	*/
+	
+	readonly mimeTypes: object;
 
 	/**
 	Detect the file type of a readable stream.
