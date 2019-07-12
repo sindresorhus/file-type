@@ -237,7 +237,7 @@ const fileType = input => {
 		// - one entry named '[Content_Types].xml' or '_rels/.rels',
 		// - one entry indicating specific type of file.
 		// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
-		const findNextZipHeaderIndex = (buf, startAt = 0) => buf.indexOf(zipHeader, startAt);
+		const findNextZipHeaderIndex = (buffer, startAt = 0) => buffer.indexOf(zipHeader, startAt);
 
 		let zipHeaderIndex = 0; // The first zip header was already found at index 0
 		let oxmlFound = false;
