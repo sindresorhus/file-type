@@ -279,13 +279,13 @@ declare const fileType: {
 	Set of extensions supported by this library.
 	*/
 
-	readonly extensions: FileType;
+	readonly extensions: fileType.FileType;
 
 	/**
 	Set of mime types supported by this library.
 	*/
 
-	readonly mimeTypes: MimeType;
+	readonly mimeTypes: fileType.MimeType;
 
 	/**
 	Detect the file type of a readable stream.
