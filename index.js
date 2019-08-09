@@ -1043,5 +1043,5 @@ Object.defineProperty(fileType, 'extensions', {get() {
 }});
 
 Object.defineProperty(fileType, 'mimeTypes', {get() {
-	return new Set(supported.types);
+	return new Set(supported.mimeTypes);
 }});

@@ -238,7 +238,7 @@ declare const fileType: {
 	/**
 	Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`. The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-	@param buffer - It only needs the first `.minimumBytes` bytes. The exception is detection of `docx` `pptx` and `xlsx` which potentially requires reading the whole file.
+	@param buffer - It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
 	@returns The detected file type and MIME type or `undefined` when there was no match.
 
 	@example
@@ -246,10 +246,10 @@ declare const fileType: {
 	import readChunk = require('read-chunk');
 	import fileType = require('file-type');
 
-	const buffer = readChunk.sync('unicorn.png' 0 fileType.minimumBytes);
+	const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
 
 	fileType(buffer);
-	//=> {ext: 'png' mime: 'image/png'}
+	//=> {ext: 'png', mime: 'image/png'}
 
 
 	// Or from a remote location:
@@ -258,12 +258,12 @@ declare const fileType: {
 
 	const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
 
-	http.get(url response => {
-		response.on('readable' () => {
+	http.get(url, response => {
+		response.on('readable', () => {
 			const chunk = response.read(fileType.minimumBytes);
 			response.destroy();
 			console.log(fileType(chunk));
-			//=> {ext: 'gif' mime: 'image/gif'}
+			//=> {ext: 'gif', mime: 'image/gif'}
 		});
 	});
 	```
@@ -271,7 +271,7 @@ declare const fileType: {
 	(buffer: Buffer | Uint8Array | ArrayBuffer): fileType.FileTypeResult | undefined;
 
 	/**
-	The minimum amount of bytes needed to detect a file type. Currently it's 4100 bytes but it can change so don't hard-code it.
+	The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
 	*/
 	readonly minimumBytes: number;
 
@@ -290,8 +290,8 @@ declare const fileType: {
 	/**
 	Detect the file type of a readable stream.
 
-	@param readableStream - A readable stream containing a file to examine see: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
-	@returns A `Promise` which resolves to the original readable stream argument but with an added `fileType` property which is an object like the one returned from `fileType()`.
+	@param readableStream - A readable stream containing a file to examine, see: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
 
 	@example
 	```
@@ -301,12 +301,12 @@ declare const fileType: {
 
 	(async () => {
 		const read = fs.createReadStream('encrypted.enc');
-		const decipher = crypto.createDecipheriv(alg key iv);
+		const decipher = crypto.createDecipheriv(alg, key, iv);
 
 		const stream = await fileType.stream(read.pipe(decipher));
 
 		console.log(stream.fileType);
-		//=> {ext: 'mov' mime: 'video/quicktime'}
+		//=> {ext: 'mov', mime: 'video/quicktime'}
 
 		const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
 		stream.pipe(write);

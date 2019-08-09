@@ -113,7 +113,7 @@ module.exports = {
 		'f4b',
 		'f4a'
 	],
-	types: [
+	mimeTypes: [
 		'image/jpeg',
 		'image/png',
 		'image/gif',
