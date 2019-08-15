@@ -17,8 +17,8 @@
 	},
 	"files": [
 		"index.js",
-		"supported.js",
 		"index.d.ts",
+		"supported.js",
 		"util.js"
 	],
 	"keywords": [
