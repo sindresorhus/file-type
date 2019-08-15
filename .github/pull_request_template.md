@@ -2,9 +2,11 @@ If you're adding support for a new file type, please follow the below steps:
 
 - **One PR per file type.**
 - Add a fixture file named `fixture.<extension>` to the `fixture` directory.
-- Add the file extension to the `types` array in `test.js`.
+- Add the file extension to the `extensions` array in `supported.js`.
+- Add the file's MIME type to the `types` array in `supported.js`.
 - Add the file type detection logic to the `index.js` file.
 - Add the file extension to the `FileType` type in `index.d.ts`.
+- Add the file's MIME type to the `MimeType` type in `index.d.ts`.
 - Add the file extension to the `Supported file types` section in the readme, in the format ```- [`<extension>`](URL) - Format name```, for example, ```- [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics```
 - Add the file extension to the `keywords` array in the `package.json` file.
 - Run `$ npm test` to ensure the tests pass.

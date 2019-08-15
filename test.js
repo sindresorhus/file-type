@@ -7,120 +7,9 @@ import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
 import fileType from '.';
 
-const types = [
-	'jpg',
-	'png',
-	'apng',
-	'gif',
-	'webp',
-	'flif',
-	'cr2',
-	'orf',
-	'arw',
-	'dng',
-	'nef',
-	'rw2',
-	'raf',
-	'tif',
-	'bmp',
-	'jxr',
-	'psd',
-	'zip',
-	'tar',
-	'rar',
-	'gz',
-	'bz2',
-	'7z',
-	'dmg',
-	'mp4',
-	'mid',
-	'mkv',
-	'webm',
-	'mov',
-	'avi',
-	'wmv',
-	'mpg',
-	'mp2',
-	'mp3',
-	'm4a',
-	'oga',
-	'ogg',
-	'ogv',
-	'opus',
-	'flac',
-	'wav',
-	'spx',
-	'amr',
-	'pdf',
-	'epub',
-	'exe',
-	'swf',
-	'rtf',
-	'wasm',
-	'woff',
-	'woff2',
-	'eot',
-	'ttf',
-	'otf',
-	'ico',
-	'flv',
-	'ps',
-	'xz',
-	'sqlite',
-	'nes',
-	'crx',
-	'xpi',
-	'cab',
-	'deb',
-	'ar',
-	'rpm',
-	'Z',
-	'lz',
-	'msi',
-	'mxf',
-	'mts',
-	'blend',
-	'bpg',
-	'docx',
-	'pptx',
-	'xlsx',
-	'3gp',
-	'3g2',
-	'jp2',
-	'jpm',
-	'jpx',
-	'mj2',
-	'aif',
-	'qcp',
-	'odt',
-	'ods',
-	'odp',
-	'xml',
-	'mobi',
-	'heic',
-	'cur',
-	'ktx',
-	'ape',
-	'wv',
-	'wmv',
-	'wma',
-	'dcm',
-	'ics',
-	'glb',
-	'pcap',
-	'dsf',
-	'lnk',
-	'alias',
-	'voc',
-	'ac3',
-	'm4v',
-	'm4p',
-	'm4b',
-	'f4v',
-	'f4p',
-	'f4b',
-	'f4a'
-];
+const supported = require('./supported');
+
+const types = supported.extensions;
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -312,6 +201,16 @@ test('.stream() method - error event', async t => {
 
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
+});
+
+test('fileType.extensions.has', t => {
+	t.true(fileType.extensions.has('jpg'));
+	t.false(fileType.extensions.has('blah'));
+});
+
+test('fileType.mimeTypes.has', t => {
+	t.true(fileType.mimeTypes.has('video/mpeg'));
+	t.false(fileType.mimeTypes.has('video/blah'));
 });
 
 test('validate the input argument type', t => {
