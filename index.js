@@ -1038,10 +1038,14 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 	});
 });
 
-Object.defineProperty(fileType, 'extensions', {get() {
-	return new Set(supported.extensions);
-}});
+Object.defineProperty(fileType, 'extensions', {
+	get() {
+		return new Set(supported.extensions);
+	}
+});
 
-Object.defineProperty(fileType, 'mimeTypes', {get() {
-	return new Set(supported.mimeTypes);
-}});
+Object.defineProperty(fileType, 'mimeTypes', {
+	get() {
+		return new Set(supported.mimeTypes);
+	}
+});
