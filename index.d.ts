@@ -276,15 +276,13 @@ declare const fileType: {
 	readonly minimumBytes: number;
 
 	/**
-	Set of extensions supported by this library.
+	Supported file extensions.
 	*/
-
 	readonly extensions: fileType.FileType;
 
 	/**
-	Set of mime types supported by this library.
+	Supported MIME types.
 	*/
-
 	readonly mimeTypes: fileType.MimeType;
 
 	/**
