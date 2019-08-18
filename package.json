@@ -143,8 +143,8 @@
 		"f4v"
 	],
 	"devDependencies": {
-		"@types/node": "^12.0.2",
-		"ava": "^1.4.1",
+		"@types/node": "^12.7.2",
+		"ava": "^2.3.0",
 		"noop-stream": "^0.1.0",
 		"pify": "^4.0.1",
 		"read-chunk": "^3.2.0",

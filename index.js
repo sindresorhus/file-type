@@ -1,10 +1,16 @@
 'use strict';
-const {multiByteIndexOf, stringToBytes, readUInt64LE, tarHeaderChecksumMatches, uint8ArrayUtf8ByteString} = require('./util');
+const {
+	multiByteIndexOf,
+	stringToBytes,
+	readUInt64LE,
+	tarHeaderChecksumMatches,
+	uint8ArrayUtf8ByteString
+} = require('./util');
+const supported = require('./supported');
 
 const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
 const oxmlRels = stringToBytes('_rels/.rels');
-const supported = require('./supported');
 
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {

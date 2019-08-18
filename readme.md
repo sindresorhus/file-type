@@ -127,6 +127,7 @@ Returns a set of supported file extensions.
 
 Returns a set of supported MIME types.
 
+
 ## Supported file types
 
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG)
