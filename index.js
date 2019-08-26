@@ -11,6 +11,7 @@ const supported = require('./supported');
 const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
 const oxmlRels = stringToBytes('_rels/.rels');
+const plugins = new Map();
 
 const fileType = input => {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
@@ -45,6 +46,13 @@ const fileType = input => {
 	};
 
 	const checkString = (header, options) => check(stringToBytes(header), options);
+
+	for (const plugin of plugins) {
+		const pluginResult = plugin[1] && plugin[1](buffer, {check, checkString});
+		if (pluginResult) {
+			return pluginResult;
+		}
+	}
 
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {
@@ -1052,5 +1060,17 @@ Object.defineProperty(fileType, 'extensions', {
 Object.defineProperty(fileType, 'mimeTypes', {
 	get() {
 		return new Set(supported.mimeTypes);
+	}
+});
+
+Object.defineProperty(fileType, 'plugin', {
+	get() {
+		return (type, func) => {
+			if (fileType.extensions.has(type)) {
+				return;
+			}
+
+			plugins.set(type, func);
+		};
 	}
 });

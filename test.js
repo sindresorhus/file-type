@@ -238,6 +238,19 @@ test('fileType.mimeTypes.has', t => {
 	t.false(fileType.mimeTypes.has('video/blah'));
 });
 
+test('fileType.plugin', t => {
+	fileType.plugin('test', (_, ctx) => {
+		if (ctx.check([0x87, 0x88, 0x89, 0x90])) {
+			return {
+				ext: 'test',
+				mime: 'application/test'
+			};
+		}
+	});
+	const result = fileType(new Uint8Array([0x87, 0x88, 0x89, 0x90]));
+	t.true(result && result.ext === 'test');
+});
+
 test('validate the input argument type', t => {
 	t.throws(() => {
 		fileType('x');
