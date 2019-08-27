@@ -329,7 +329,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 
 	// Helpers
-	// Find elements that are in defined twice
+	// Find extensions/mimes that are defined twice in a file
 	function findDuplicates(input) {
 		return input.reduce((acc, el, i, arr) => {
 			if (arr.indexOf(el) !== i && acc.indexOf(el) < 0) {
