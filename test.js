@@ -291,9 +291,6 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		return {extArray, mimeArray};
 	}
 
-	// File: test.js
-	const testExts = types.concat(missingTests); // Override missing files
-
 	// File: package.json
 	function readPackageJSON() {
 		const index = fs.readFileSync('./package.json', {encoding: 'utf8'});
@@ -361,34 +358,44 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		return missing;
 	}
 
+	// Test runner
+	function validate(found, baseTruth, fileName, extOrMime) {
+		const duplicates = findDuplicates(found);
+		const extras = findExtras(found, baseTruth);
+		const missing = findMissing(found, baseTruth);
+		t.is(duplicates.length, 0, `Found duplicate ${extOrMime}: ${duplicates} in ${fileName}.`);
+		t.is(extras.length, 0, `Extra ${extOrMime}: ${extras} in ${fileName}.`);
+		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
+	}
+
 	// Get the base truth of extensions and mimes supported from index.js
 	const {exts, mimes} = readIndexJS();
 
-	const fileMap = {
+	// Validate all extensions
+	const filesWithExtensions = {
 		'index.d.ts': readIndexDTS().extArray,
-		'test.js': testExts,
+		'supported.js': supported.extensions,
 		'package.json': readPackageJSON(),
 		'readme.md': readReadmeMD()
 	};
 
-	// Validate all extensions
-	for (const fileName in fileMap) {
-		if (fileMap[fileName]) {
-			const foundExtensions = fileMap[fileName];
-			const duplicateExtensions = findDuplicates(foundExtensions);
-			const extraExtensions = findExtras(foundExtensions, exts);
-			const missingExtensions = findMissing(foundExtensions, exts);
-			t.is(duplicateExtensions.length, 0, `Found duplicate extensions: ${duplicateExtensions} in ${fileName}.`);
-			t.is(extraExtensions.length, 0, `Extra extensions: ${extraExtensions} in ${fileName}.`);
-			t.is(missingExtensions.length, 0, `Missing extensions: ${missingExtensions} in ${fileName}.`);
+	for (const fileName in filesWithExtensions) {
+		if (filesWithExtensions[fileName]) {
+			const foundExtensions = filesWithExtensions[fileName];
+			validate(foundExtensions, exts, fileName, 'extensions');
 		}
 	}
 
 	// Validate all mimes
-	const duplicateMimes = findDuplicates(supported.mimeTypes);
-	const extraMimes = findExtras(supported.mimeTypes, mimes);
-	const missingMimes = findMissing(supported.mimeTypes, mimes);
-	t.is(duplicateMimes.length, 0, `Found duplicate mimes: ${duplicateMimes} in supported.js.`);
-	t.is(extraMimes.length, 0, `Extra mimes: ${extraMimes} in supported.js.`);
-	t.is(missingMimes.length, 0, `Missing mimes: ${missingMimes} in supported.js.`);
+	const filesWithMimeTypes = {
+		'index.d.ts': readIndexDTS().mimeArray,
+		'supported.js': supported.mimeTypes
+	};
+
+	for (const fileName in filesWithMimeTypes) {
+		if (filesWithMimeTypes[fileName]) {
+			const foundMimeTypes = filesWithMimeTypes[fileName];
+			validate(foundMimeTypes, mimes, fileName, 'mimes');
+		}
+	}
 });

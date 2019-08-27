@@ -218,7 +218,16 @@ declare namespace fileType {
 		| 'application/x.apple.alias' // Invented by us
 		| 'audio/x-voc'
 		| 'audio/vnd.dolby.dd-raw'
-		| 'audio/x-m4a';
+		| 'audio/x-m4a'
+		| 'image/apng'
+		| 'image/x-olympus-orf'
+		| 'image/x-sony-arw'
+		| 'image/x-adobe-dng'
+		| 'image/x-nikon-nef'
+		| 'image/x-panasonic-rw2'
+		| 'image/x-fujifilm-raf'
+		| 'video/x-m4v'
+		| 'video/3gpp2';
 
 	interface FileTypeResult {
 		/**
