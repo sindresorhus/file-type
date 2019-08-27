@@ -444,23 +444,4 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			t.is(missingExtensions.length, 0, `Missing extensions: ${missingExtensions} in ${fileName}.`);
 		}
 	}
-
-	// // Validate all mimes
-	// const {mimes} = readIndexJS();
-
-	// const testMimes = [];
-	// for (const type in names) {
-	// 	if (names[type]) {
-	// 		for (const subtype of names[type]) {
-	// 			testMimes.push(`${type}/${subtype}`);
-	// 		}
-	// 	}
-	// }
-
-	// const duplicateMimes = findDuplicates(testMimes);
-	// const extraMimes = findExtras(testMimes, mimes);
-	// const missingMimes = findMissing(testMimes, mimes);
-	// t.is(duplicateMimes.length, 0, `Found duplicate mimes: ${duplicateMimes} in test.js.`);
-	// t.is(extraMimes.length, 0, `Extra mimes: ${extraMimes} in test.js.`);
-	// t.is(missingMimes.length, 0, `Missing mimes: ${missingMimes} in test.js.`);
 });
