@@ -385,16 +385,6 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 
 	// Validate all mimes
-
-	// const testMimes = [];
-	// for (const type in names) {
-	// 	if (names[type]) {
-	// 		for (const subtype of names[type]) {
-	// 			testMimes.push(`${type}/${subtype}`);
-	// 		}
-	// 	}
-	// }
-
 	const duplicateMimes = findDuplicates(supported.mimeTypes);
 	const extraMimes = findExtras(supported.mimeTypes, mimes);
 	const missingMimes = findMissing(supported.mimeTypes, mimes);
