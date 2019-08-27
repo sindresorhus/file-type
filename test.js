@@ -102,7 +102,6 @@ const types = [
 	'ktx',
 	'ape',
 	'wv',
-	'wmv',
 	'wma',
 	'dcm',
 	'ics',
@@ -118,8 +117,12 @@ const types = [
 	'm4b',
 	'f4v',
 	'f4p',
-	'f4b',
-	'f4a'
+	'f4b'
+	// TODO needs test file 'f4a',
+	// TODO needs test file 'asf',
+	// TODO needs test file 'ogm',
+	// TODO needs test file 'ogx',
+	// TODO needs test file 'mpc'
 ];
 
 // Define an entry here only if the fixture has a different
@@ -330,4 +333,134 @@ test('validate the input argument type', t => {
 	t.notThrows(() => {
 		fileType(new ArrayBuffer());
 	});
+});
+
+test('validate the repo has all extensions and mimes in sync', t => {
+	// File: index.js (base truth)
+	function readIndexJS() {
+		const index = fs.readFileSync('./index.js', {encoding: 'utf8'});
+		const extArray = index.match(/(?<=ext:\s')(.*)(?=',)/g);
+		const mimeArray = index.match(/(?<=mime:\s')(.*)(?=')/g);
+		const exts = new Set(extArray);
+		const mimes = new Set(mimeArray);
+		return {exts, mimes};
+	}
+
+	// File: index.d.ts
+	function readIndexDTS() {
+		const index = fs.readFileSync('./index.d.ts', {encoding: 'utf8'});
+		const extArray = index.match(/(?<=\|\s')(.*)(?=')/g);
+		return extArray;
+	}
+
+	// File: test.js
+	const testExts = types.concat(['f4a', 'asf', 'ogm', 'ogx', 'mpc']); // Override missing files
+
+	// File: package.json
+	function readPackageJSON() {
+		const index = fs.readFileSync('./package.json', {encoding: 'utf8'});
+		const {keywords} = JSON.parse(index);
+		const allowedExtras = new Set([
+			'mime',
+			'file',
+			'type',
+			'archive',
+			'image',
+			'img',
+			'pic',
+			'picture',
+			'flash',
+			'photo',
+			'video',
+			'detect',
+			'check',
+			'is',
+			'exif',
+			'binary',
+			'buffer',
+			'uint8array',
+			'webassembly'
+		]);
+
+		const extArray = keywords.filter(keyword => !allowedExtras.has(keyword));
+		return extArray;
+	}
+
+	// File: readme.md
+	function readReadmeMD() {
+		const index = fs.readFileSync('./readme.md', {encoding: 'utf8'});
+		const extArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
+		return extArray;
+	}
+
+	// Helpers
+	// Find elements that are in defined twice
+	function findDuplicates(input) {
+		return input.reduce((acc, el, i, arr) => {
+			if (arr.indexOf(el) !== i && acc.indexOf(el) < 0) {
+				acc.push(el);
+			}
+
+			return acc;
+		}, []);
+	}
+
+	// Find extensions/mimes that are in another file but not in index.js
+	function findExtras(arr, set) {
+		return arr.filter(elt => !set.has(elt));
+	}
+
+	// Find extensions/mimes that are in index.js but missing from another file
+	function findMissing(arr, set) {
+		const missing = [];
+		const other = new Set(arr);
+		for (const elt of set) {
+			if (!other.has(elt)) {
+				missing.push(elt);
+			}
+		}
+
+		return missing;
+	}
+
+	const {exts} = readIndexJS();
+
+	const fileMap = {
+		'index.d.ts': readIndexDTS(),
+		'test.js': testExts,
+		'package.json': readPackageJSON(),
+		'readme.md': readReadmeMD()
+	};
+
+	// Validate all extensions
+	for (const fileName in fileMap) {
+		if (fileMap[fileName]) {
+			const foundExtensions = fileMap[fileName];
+			const duplicateExtensions = findDuplicates(foundExtensions);
+			const extraExtensions = findExtras(foundExtensions, exts);
+			const missingExtensions = findMissing(foundExtensions, exts);
+			t.is(duplicateExtensions.length, 0, `Found duplicate extensions: ${duplicateExtensions} in ${fileName}.`);
+			t.is(extraExtensions.length, 0, `Extra extensions: ${extraExtensions} in ${fileName}.`);
+			t.is(missingExtensions.length, 0, `Missing extensions: ${missingExtensions} in ${fileName}.`);
+		}
+	}
+
+	// // Validate all mimes
+	// const {mimes} = readIndexJS();
+
+	// const testMimes = [];
+	// for (const type in names) {
+	// 	if (names[type]) {
+	// 		for (const subtype of names[type]) {
+	// 			testMimes.push(`${type}/${subtype}`);
+	// 		}
+	// 	}
+	// }
+
+	// const duplicateMimes = findDuplicates(testMimes);
+	// const extraMimes = findExtras(testMimes, mimes);
+	// const missingMimes = findMissing(testMimes, mimes);
+	// t.is(duplicateMimes.length, 0, `Found duplicate mimes: ${duplicateMimes} in test.js.`);
+	// t.is(extraMimes.length, 0, `Extra mimes: ${extraMimes} in test.js.`);
+	// t.is(missingMimes.length, 0, `Missing mimes: ${missingMimes} in test.js.`);
 });

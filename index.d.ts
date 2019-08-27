@@ -96,7 +96,6 @@ declare namespace fileType {
 		| 'wv'
 		| 'asf'
 		| 'wma'
-		| 'wmv'
 		| 'dcm'
 		| 'mpc'
 		| 'ics'
@@ -107,14 +106,18 @@ declare namespace fileType {
 		| 'alias'
 		| 'voc'
 		| 'ac3'
-		| 'm4a'
 		| 'm4b'
 		| 'm4p'
 		| 'm4v'
 		| 'f4a'
 		| 'f4b'
 		| 'f4p'
-		| 'f4v';
+		| 'f4v'
+		| 'ogv'
+		| 'ogm'
+		| 'oga'
+		| 'spx'
+		| 'ogx';
 
 	interface FileTypeResult {
 		/**
