@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "12.1.0",
+	"version": "12.2.0",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -18,6 +18,7 @@
 	"files": [
 		"index.js",
 		"index.d.ts",
+		"supported.js",
 		"util.js"
 	],
 	"keywords": [
@@ -157,8 +158,8 @@
 		"mpc"
 	],
 	"devDependencies": {
-		"@types/node": "^12.0.2",
-		"ava": "^1.4.1",
+		"@types/node": "^12.7.2",
+		"ava": "^2.3.0",
 		"noop-stream": "^0.1.0",
 		"pify": "^4.0.1",
 		"read-chunk": "^3.2.0",

@@ -1,5 +1,12 @@
 'use strict';
-const {stringToBytes, readUInt64LE, tarHeaderChecksumMatches, uint8ArrayUtf8ByteString} = require('./util');
+const {
+	multiByteIndexOf,
+	stringToBytes,
+	readUInt64LE,
+	tarHeaderChecksumMatches,
+	uint8ArrayUtf8ByteString
+} = require('./util');
+const supported = require('./supported');
 
 const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
@@ -10,7 +17,7 @@ const fileType = input => {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
 
-	const buffer = Buffer.from(input);
+	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
 
 	if (!(buffer && buffer.length > 1)) {
 		return;
@@ -191,7 +198,7 @@ const fileType = input => {
 
 	// Zip-based file formats
 	// Need to be before the `zip` check
-	const zipHeader = Buffer.from([0x50, 0x4B, 0x3, 0x4]);
+	const zipHeader = [0x50, 0x4B, 0x3, 0x4];
 	if (check(zipHeader)) {
 		if (
 			check([0x6D, 0x69, 0x6D, 0x65, 0x74, 0x79, 0x70, 0x65, 0x61, 0x70, 0x70, 0x6C, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6F, 0x6E, 0x2F, 0x65, 0x70, 0x75, 0x62, 0x2B, 0x7A, 0x69, 0x70], {offset: 30})
@@ -237,8 +244,6 @@ const fileType = input => {
 		// - one entry named '[Content_Types].xml' or '_rels/.rels',
 		// - one entry indicating specific type of file.
 		// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
-		const findNextZipHeaderIndex = (buffer, startAt = 0) => buffer.indexOf(zipHeader, startAt);
-
 		let zipHeaderIndex = 0; // The first zip header was already found at index 0
 		let oxmlFound = false;
 		let type;
@@ -273,7 +278,7 @@ const fileType = input => {
 				return type;
 			}
 
-			zipHeaderIndex = findNextZipHeaderIndex(buffer, offset);
+			zipHeaderIndex = multiByteIndexOf(buffer, zipHeader, offset);
 		} while (zipHeaderIndex >= 0);
 
 		// No more zip parts available in the buffer, but maybe we are almost certain about the type?
@@ -834,7 +839,7 @@ const fileType = input => {
 		};
 	}
 
-	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])) {
+	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E])) {
 		return {
 			ext: 'msi',
 			mime: 'application/x-msi'
@@ -1036,4 +1041,16 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 			resolve(readableStream.pipe(pass));
 		}
 	});
+});
+
+Object.defineProperty(fileType, 'extensions', {
+	get() {
+		return new Set(supported.extensions);
+	}
+});
+
+Object.defineProperty(fileType, 'mimeTypes', {
+	get() {
+		return new Set(supported.mimeTypes);
+	}
 });

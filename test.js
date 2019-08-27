@@ -7,123 +7,16 @@ import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
 import fileType from '.';
 
-const types = [
-	'jpg',
-	'png',
-	'apng',
-	'gif',
-	'webp',
-	'flif',
-	'cr2',
-	'orf',
-	'arw',
-	'dng',
-	'nef',
-	'rw2',
-	'raf',
-	'tif',
-	'bmp',
-	'jxr',
-	'psd',
-	'zip',
-	'tar',
-	'rar',
-	'gz',
-	'bz2',
-	'7z',
-	'dmg',
-	'mp4',
-	'mid',
-	'mkv',
-	'webm',
-	'mov',
-	'avi',
-	'wmv',
-	'mpg',
-	'mp2',
-	'mp3',
-	'm4a',
-	'oga',
-	'ogg',
-	'ogv',
-	'opus',
-	'flac',
-	'wav',
-	'spx',
-	'amr',
-	'pdf',
-	'epub',
-	'exe',
-	'swf',
-	'rtf',
-	'wasm',
-	'woff',
-	'woff2',
-	'eot',
-	'ttf',
-	'otf',
-	'ico',
-	'flv',
-	'ps',
-	'xz',
-	'sqlite',
-	'nes',
-	'crx',
-	'xpi',
-	'cab',
-	'deb',
-	'ar',
-	'rpm',
-	'Z',
-	'lz',
-	'msi',
-	'mxf',
-	'mts',
-	'blend',
-	'bpg',
-	'docx',
-	'pptx',
-	'xlsx',
-	'3gp',
-	'3g2',
-	'jp2',
-	'jpm',
-	'jpx',
-	'mj2',
-	'aif',
-	'qcp',
-	'odt',
-	'ods',
-	'odp',
-	'xml',
-	'mobi',
-	'heic',
-	'cur',
-	'ktx',
-	'ape',
-	'wv',
-	'wma',
-	'dcm',
-	'ics',
-	'glb',
-	'pcap',
-	'dsf',
-	'lnk',
-	'alias',
-	'voc',
-	'ac3',
-	'm4v',
-	'm4p',
-	'm4b',
-	'f4v',
-	'f4p',
-	'f4b'
-	// TODO needs test file 'f4a',
-	// TODO needs test file 'asf',
-	// TODO needs test file 'ogm',
-	// TODO needs test file 'ogx',
-	// TODO needs test file 'mpc'
+const supported = require('./supported');
+
+const missingTests = [
+	'asf',
+	'ogm',
+	'ogx',
+	'mpc'
 ];
+
+const types = supported.extensions.filter(ext => !missingTests.includes(ext));
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -229,6 +122,16 @@ const names = {
 	]
 };
 
+// Define an entry here only if the file type has potential
+// for false-positives
+const falsePositives = {
+	msi: [
+		'fixture-ppt',
+		'fixture-doc',
+		'fixture-xls'
+	]
+};
+
 const checkBufferLike = (t, type, bufferLike) => {
 	const {ext, mime} = fileType(bufferLike) || {};
 	t.is(ext, type);
@@ -241,6 +144,15 @@ const testFile = (t, ext, name) => {
 	checkBufferLike(t, ext, chunk);
 	checkBufferLike(t, ext, new Uint8Array(chunk));
 	checkBufferLike(t, ext, chunk.buffer);
+};
+
+const testFalsePositive = (t, ext, name) => {
+	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
+	const chunk = readChunk.sync(file, 0, 4 + 4096);
+
+	t.is(fileType(chunk), undefined);
+	t.is(fileType(new Uint8Array(chunk)), undefined);
+	t.is(fileType(chunk.buffer), undefined);
 };
 
 const testFileFromStream = async (t, ext, name) => {
@@ -290,6 +202,12 @@ for (const type of types) {
 		test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type);
 		test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type);
 	}
+
+	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
+		for (const falsePositiveFile of falsePositives[type]) {
+			test(`false positive - ${type} ${i++}`, testFalsePositive, type, falsePositiveFile);
+		}
+	}
 }
 
 test('.stream() method - empty stream', async t => {
@@ -315,6 +233,16 @@ test('.stream() method - error event', async t => {
 
 test('fileType.minimumBytes', t => {
 	t.true(fileType.minimumBytes > 4000);
+});
+
+test('fileType.extensions.has', t => {
+	t.true(fileType.extensions.has('jpg'));
+	t.false(fileType.extensions.has('blah'));
+});
+
+test('fileType.mimeTypes.has', t => {
+	t.true(fileType.mimeTypes.has('video/mpeg'));
+	t.false(fileType.mimeTypes.has('video/blah'));
 });
 
 test('validate the input argument type', t => {
@@ -349,12 +277,22 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// File: index.d.ts
 	function readIndexDTS() {
 		const index = fs.readFileSync('./index.d.ts', {encoding: 'utf8'});
-		const extArray = index.match(/(?<=\|\s')(.*)(?=')/g);
-		return extArray;
+		const matches = index.match(/(?<=\|\s')(.*)(?=')/g);
+		const extArray = [];
+		const mimeArray = [];
+		matches.forEach(match => {
+			if (match.includes('/')) {
+				mimeArray.push(match);
+			} else {
+				extArray.push(match);
+			}
+		});
+
+		return {extArray, mimeArray};
 	}
 
 	// File: test.js
-	const testExts = types.concat(['f4a', 'asf', 'ogm', 'ogx', 'mpc']); // Override missing files
+	const testExts = types.concat(missingTests); // Override missing files
 
 	// File: package.json
 	function readPackageJSON() {
@@ -426,7 +364,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	const {exts} = readIndexJS();
 
 	const fileMap = {
-		'index.d.ts': readIndexDTS(),
+		'index.d.ts': readIndexDTS().extArray,
 		'test.js': testExts,
 		'package.json': readPackageJSON(),
 		'readme.md': readReadmeMD()
