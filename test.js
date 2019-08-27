@@ -361,7 +361,8 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		return missing;
 	}
 
-	const {exts} = readIndexJS();
+	// Get the base truth of extensions and mimes supported from index.js
+	const {exts, mimes} = readIndexJS();
 
 	const fileMap = {
 		'index.d.ts': readIndexDTS().extArray,
@@ -382,4 +383,22 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			t.is(missingExtensions.length, 0, `Missing extensions: ${missingExtensions} in ${fileName}.`);
 		}
 	}
+
+	// Validate all mimes
+
+	// const testMimes = [];
+	// for (const type in names) {
+	// 	if (names[type]) {
+	// 		for (const subtype of names[type]) {
+	// 			testMimes.push(`${type}/${subtype}`);
+	// 		}
+	// 	}
+	// }
+
+	const duplicateMimes = findDuplicates(supported.mimeTypes);
+	const extraMimes = findExtras(supported.mimeTypes, mimes);
+	const missingMimes = findMissing(supported.mimeTypes, mimes);
+	t.is(duplicateMimes.length, 0, `Found duplicate mimes: ${duplicateMimes} in supported.js.`);
+	t.is(extraMimes.length, 0, `Extra mimes: ${extraMimes} in supported.js.`);
+	t.is(missingMimes.length, 0, `Missing mimes: ${missingMimes} in supported.js.`);
 });
