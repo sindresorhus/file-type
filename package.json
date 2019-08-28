@@ -140,7 +140,8 @@
 		"f4a",
 		"f4b",
 		"f4p",
-		"f4v"
+		"f4v",
+		"mie"
 	],
 	"devDependencies": {
 		"@types/node": "^12.7.2",

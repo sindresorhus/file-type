@@ -114,7 +114,8 @@ declare namespace fileType {
 		| 'f4a'
 		| 'f4b'
 		| 'f4p'
-		| 'f4v';
+		| 'f4v'
+		| 'mie';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -189,6 +190,7 @@ declare namespace fileType {
 		| 'application/x-compress'
 		| 'application/x-lzip'
 		| 'application/x-msi'
+		| 'application/x-mie'
 		| 'application/mxf'
 		| 'video/mp2t'
 		| 'application/x-blender'

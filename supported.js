@@ -113,7 +113,8 @@ module.exports = {
 		'f4v',
 		'f4p',
 		'f4b',
-		'f4a'
+		'f4a',
+		'mie'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -188,6 +189,7 @@ module.exports = {
 		'application/x-compress',
 		'application/x-lzip',
 		'application/x-msi',
+		'application/x-mie',
 		'application/mxf',
 		'video/mp2t',
 		'application/x-blender',
