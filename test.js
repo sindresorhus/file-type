@@ -266,35 +266,44 @@ test('validate the input argument type', t => {
 test('validate the repo has all extensions and mimes in sync', t => {
 	// File: index.js (base truth)
 	function readIndexJS() {
-		const index = fs.readFileSync('./index.js', {encoding: 'utf8'});
+		const index = fs.readFileSync('index.js', {encoding: 'utf8'});
 		const extArray = index.match(/(?<=ext:\s')(.*)(?=',)/g);
 		const mimeArray = index.match(/(?<=mime:\s')(.*)(?=')/g);
 		const exts = new Set(extArray);
 		const mimes = new Set(mimeArray);
-		return {exts, mimes};
+
+		return {
+			exts,
+			mimes
+		};
 	}
 
 	// File: index.d.ts
 	function readIndexDTS() {
-		const index = fs.readFileSync('./index.d.ts', {encoding: 'utf8'});
+		const index = fs.readFileSync('index.d.ts', {encoding: 'utf8'});
 		const matches = index.match(/(?<=\|\s')(.*)(?=')/g);
 		const extArray = [];
 		const mimeArray = [];
-		matches.forEach(match => {
+
+		for (const match of matches) {
 			if (match.includes('/')) {
 				mimeArray.push(match);
 			} else {
 				extArray.push(match);
 			}
-		});
+		}
 
-		return {extArray, mimeArray};
+		return {
+			extArray,
+			mimeArray
+		};
 	}
 
 	// File: package.json
 	function readPackageJSON() {
-		const index = fs.readFileSync('./package.json', {encoding: 'utf8'});
+		const index = fs.readFileSync('package.json', {encoding: 'utf8'});
 		const {keywords} = JSON.parse(index);
+
 		const allowedExtras = new Set([
 			'mime',
 			'file',
@@ -323,7 +332,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 	// File: readme.md
 	function readReadmeMD() {
-		const index = fs.readFileSync('./readme.md', {encoding: 'utf8'});
+		const index = fs.readFileSync('readme.md', {encoding: 'utf8'});
 		const extArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
 		return extArray;
 	}
@@ -331,27 +340,27 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Helpers
 	// Find extensions/mimes that are defined twice in a file
 	function findDuplicates(input) {
-		return input.reduce((acc, el, i, arr) => {
-			if (arr.indexOf(el) !== i && acc.indexOf(el) < 0) {
-				acc.push(el);
+		return input.reduce((accumulator, element, index, array) => {
+			if (array.indexOf(element) !== index && accumulator.indexOf(element) < 0) {
+				accumulator.push(element);
 			}
 
-			return acc;
+			return accumulator;
 		}, []);
 	}
 
-	// Find extensions/mimes that are in another file but not in index.js
-	function findExtras(arr, set) {
-		return arr.filter(elt => !set.has(elt));
+	// Find extensions/mimes that are in another file but not in `index.js`
+	function findExtras(array, set) {
+		return array.filter(element => !set.has(element));
 	}
 
-	// Find extensions/mimes that are in index.js but missing from another file
-	function findMissing(arr, set) {
+	// Find extensions/mimes that are in `index.js` but missing from another file
+	function findMissing(array, set) {
 		const missing = [];
-		const other = new Set(arr);
-		for (const elt of set) {
-			if (!other.has(elt)) {
-				missing.push(elt);
+		const other = new Set(array);
+		for (const elemenet of set) {
+			if (!other.has(elemenet)) {
+				missing.push(elemenet);
 			}
 		}
 
