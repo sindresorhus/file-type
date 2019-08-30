@@ -9,7 +9,14 @@ import fileType from '.';
 
 const supported = require('./supported');
 
-const types = supported.extensions;
+const missingTests = [
+	'asf',
+	'ogm',
+	'ogx',
+	'mpc'
+];
+
+const types = supported.extensions.filter(ext => !missingTests.includes(ext));
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -254,4 +261,141 @@ test('validate the input argument type', t => {
 	t.notThrows(() => {
 		fileType(new ArrayBuffer());
 	});
+});
+
+test('validate the repo has all extensions and mimes in sync', t => {
+	// File: index.js (base truth)
+	function readIndexJS() {
+		const index = fs.readFileSync('./index.js', {encoding: 'utf8'});
+		const extArray = index.match(/(?<=ext:\s')(.*)(?=',)/g);
+		const mimeArray = index.match(/(?<=mime:\s')(.*)(?=')/g);
+		const exts = new Set(extArray);
+		const mimes = new Set(mimeArray);
+		return {exts, mimes};
+	}
+
+	// File: index.d.ts
+	function readIndexDTS() {
+		const index = fs.readFileSync('./index.d.ts', {encoding: 'utf8'});
+		const matches = index.match(/(?<=\|\s')(.*)(?=')/g);
+		const extArray = [];
+		const mimeArray = [];
+		matches.forEach(match => {
+			if (match.includes('/')) {
+				mimeArray.push(match);
+			} else {
+				extArray.push(match);
+			}
+		});
+
+		return {extArray, mimeArray};
+	}
+
+	// File: package.json
+	function readPackageJSON() {
+		const index = fs.readFileSync('./package.json', {encoding: 'utf8'});
+		const {keywords} = JSON.parse(index);
+		const allowedExtras = new Set([
+			'mime',
+			'file',
+			'type',
+			'archive',
+			'image',
+			'img',
+			'pic',
+			'picture',
+			'flash',
+			'photo',
+			'video',
+			'detect',
+			'check',
+			'is',
+			'exif',
+			'binary',
+			'buffer',
+			'uint8array',
+			'webassembly'
+		]);
+
+		const extArray = keywords.filter(keyword => !allowedExtras.has(keyword));
+		return extArray;
+	}
+
+	// File: readme.md
+	function readReadmeMD() {
+		const index = fs.readFileSync('./readme.md', {encoding: 'utf8'});
+		const extArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
+		return extArray;
+	}
+
+	// Helpers
+	// Find extensions/mimes that are defined twice in a file
+	function findDuplicates(input) {
+		return input.reduce((acc, el, i, arr) => {
+			if (arr.indexOf(el) !== i && acc.indexOf(el) < 0) {
+				acc.push(el);
+			}
+
+			return acc;
+		}, []);
+	}
+
+	// Find extensions/mimes that are in another file but not in index.js
+	function findExtras(arr, set) {
+		return arr.filter(elt => !set.has(elt));
+	}
+
+	// Find extensions/mimes that are in index.js but missing from another file
+	function findMissing(arr, set) {
+		const missing = [];
+		const other = new Set(arr);
+		for (const elt of set) {
+			if (!other.has(elt)) {
+				missing.push(elt);
+			}
+		}
+
+		return missing;
+	}
+
+	// Test runner
+	function validate(found, baseTruth, fileName, extOrMime) {
+		const duplicates = findDuplicates(found);
+		const extras = findExtras(found, baseTruth);
+		const missing = findMissing(found, baseTruth);
+		t.is(duplicates.length, 0, `Found duplicate ${extOrMime}: ${duplicates} in ${fileName}.`);
+		t.is(extras.length, 0, `Extra ${extOrMime}: ${extras} in ${fileName}.`);
+		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
+	}
+
+	// Get the base truth of extensions and mimes supported from index.js
+	const {exts, mimes} = readIndexJS();
+
+	// Validate all extensions
+	const filesWithExtensions = {
+		'index.d.ts': readIndexDTS().extArray,
+		'supported.js': supported.extensions,
+		'package.json': readPackageJSON(),
+		'readme.md': readReadmeMD()
+	};
+
+	for (const fileName in filesWithExtensions) {
+		if (filesWithExtensions[fileName]) {
+			const foundExtensions = filesWithExtensions[fileName];
+			validate(foundExtensions, exts, fileName, 'extensions');
+		}
+	}
+
+	// Validate all mimes
+	const filesWithMimeTypes = {
+		'index.d.ts': readIndexDTS().mimeArray,
+		'supported.js': supported.mimeTypes
+	};
+
+	for (const fileName in filesWithMimeTypes) {
+		if (filesWithMimeTypes[fileName]) {
+			const foundMimeTypes = filesWithMimeTypes[fileName];
+			validate(foundMimeTypes, mimes, fileName, 'mimes');
+		}
+	}
 });
