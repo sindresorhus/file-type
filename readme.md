@@ -260,6 +260,7 @@ Returns a set of supported MIME types.
 
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Mikael Finstad](https://github.com/mifi)
+- [Ben Brook](https://github.com/bencmbrook)
 
 
 ---
