@@ -96,7 +96,6 @@ declare namespace fileType {
 		| 'wv'
 		| 'asf'
 		| 'wma'
-		| 'wmv'
 		| 'dcm'
 		| 'mpc'
 		| 'ics'
@@ -107,7 +106,6 @@ declare namespace fileType {
 		| 'alias'
 		| 'voc'
 		| 'ac3'
-		| 'm4a'
 		| 'm4b'
 		| 'm4p'
 		| 'm4v'
@@ -115,7 +113,12 @@ declare namespace fileType {
 		| 'f4b'
 		| 'f4p'
 		| 'f4v'
-		| 'mie';
+		| 'mie'
+		| 'ogv'
+		| 'ogm'
+		| 'oga'
+		| 'spx'
+		| 'ogx';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -217,7 +220,16 @@ declare namespace fileType {
 		| 'application/x.apple.alias' // Invented by us
 		| 'audio/x-voc'
 		| 'audio/vnd.dolby.dd-raw'
-		| 'audio/x-m4a';
+		| 'audio/x-m4a'
+		| 'image/apng'
+		| 'image/x-olympus-orf'
+		| 'image/x-sony-arw'
+		| 'image/x-adobe-dng'
+		| 'image/x-nikon-nef'
+		| 'image/x-panasonic-rw2'
+		| 'image/x-fujifilm-raf'
+		| 'video/x-m4v'
+		| 'video/3gpp2';
 
 	interface FileTypeResult {
 		/**
