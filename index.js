@@ -1013,6 +1013,13 @@ const fileType = input => {
 			mime: 'audio/vnd.dolby.dd-raw'
 		};
 	}
+
+	if ((check([0x7E, 0x10, 0x04]) || check([0x7E, 0x18, 0x04])) && check([0x30, 0x4D, 0x49, 0x45], {offset: 4})) {
+		return {
+			ext: 'mie',
+			mime: 'application/x-mie'
+		};
+	}
 };
 
 module.exports = fileType;
