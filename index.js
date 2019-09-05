@@ -46,6 +46,16 @@ const fileType = input => {
 
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
+	if (
+		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
+		tarHeaderChecksumMatches(buffer)
+	) {
+		return {
+			ext: 'tar',
+			mime: 'application/x-tar'
+		};
+	}
+
 	if (check([0xFF, 0xD8, 0xFF])) {
 		return {
 			ext: 'jpg',
@@ -295,16 +305,6 @@ const fileType = input => {
 		return {
 			ext: 'zip',
 			mime: 'application/zip'
-		};
-	}
-
-	if (
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buffer)
-	) {
-		return {
-			ext: 'tar',
-			mime: 'application/x-tar'
 		};
 	}
 
