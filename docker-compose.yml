@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  app:
+    image: sindresorhus/file-type
+    command: npm run test
+    build: .
+    volumes:
+    - ./package.json:/app/package.json:rw
+    - ./readme.md:/app/readme.md:ro
+    - ./index.js:/app/index.js:ro
+    - ./index.d.ts:/app/index.d.ts:ro
+    - ./index.test-d.ts:/app/index.test-d.ts:ro
+    - ./supported.js:/app/supported.js:ro
+    - ./util.js:/app/util.js:ro
+    - ./test.js:/app/test.js:ro
+    - ./fixture:/app/fixture:ro
