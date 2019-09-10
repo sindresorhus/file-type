@@ -46,7 +46,7 @@ const fileType = input => {
 
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
-	// we have to check for tar type before any other type
+	// We have to check for tar type before any other type
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
 		tarHeaderChecksumMatches(buffer)
