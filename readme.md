@@ -57,13 +57,13 @@ const fileType = require('file-type');
 	const read = fs.createReadStream('encrypted.enc');
 	const decipher = crypto.createDecipheriv(alg, key, iv);
 
-	const stream = await fileType.stream(stream.pipeline(read, decipher));
+	const fileTypeStream = await fileType.stream(stream.pipeline(read, decipher));
 
-	console.log(stream.fileType);
+	console.log(fileTypeStream.fileType);
 	//=> {ext: 'mov', mime: 'video/quicktime'}
 
-	const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
-	stream.pipe(write);
+	const write = fs.createWriteStream(`decrypted.${fileTypeStream.fileType.ext}`);
+	fileTypeStream.pipe(write);
 })();
 ```
 
