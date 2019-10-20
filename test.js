@@ -25,7 +25,8 @@ const names = {
 		'fixture',
 		'fixture2',
 		'fixture3',
-		'fixture4'
+		'fixture4',
+		'fixture5'
 	],
 	dng: [
 		'fixture',
