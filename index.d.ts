@@ -118,7 +118,8 @@ declare namespace fileType {
 		| 'ogm'
 		| 'oga'
 		| 'spx'
-		| 'ogx';
+		| 'ogx'
+		| 'arrow';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -194,6 +195,7 @@ declare namespace fileType {
 		| 'application/x-lzip'
 		| 'application/x-msi'
 		| 'application/x-mie'
+		| 'application/x-apache-arrow'
 		| 'application/mxf'
 		| 'video/mp2t'
 		| 'application/x-blender'
