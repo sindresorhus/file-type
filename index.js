@@ -1020,6 +1020,13 @@ const fileType = input => {
 			mime: 'application/x-mie'
 		};
 	}
+
+	if (check([0x27, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], {offset: 2})) {
+		return {
+			ext: 'shp',
+			mime: 'application/x-esri-shape'
+		};
+	}
 };
 
 module.exports = fileType;
