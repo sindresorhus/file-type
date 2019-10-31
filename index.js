@@ -1025,8 +1025,8 @@ const fileType = input => {
 		return {
 			ext: 'arrow',
 			mime: 'application/x-apache-arrow'
-    };
-  }
+		};
+	}
 
 	if (check([0x27, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], {offset: 2})) {
 		return {
