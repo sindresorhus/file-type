@@ -157,7 +157,8 @@
 		"ktx",
 		"dcm",
 		"mpc",
-		"arrow"
+		"arrow",
+		"shp"
 	],
 	"devDependencies": {
 		"@types/node": "^12.7.2",

@@ -119,7 +119,8 @@ declare namespace fileType {
 		| 'oga'
 		| 'spx'
 		| 'ogx'
-		| 'arrow';
+		| 'arrow'
+		| 'shp';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -231,7 +232,8 @@ declare namespace fileType {
 		| 'image/x-panasonic-rw2'
 		| 'image/x-fujifilm-raf'
 		| 'video/x-m4v'
-		| 'video/3gpp2';
+		| 'video/3gpp2'
+		| 'application/x-esri-shape';
 
 	interface FileTypeResult {
 		/**

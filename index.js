@@ -1020,11 +1020,18 @@ const fileType = input => {
 			mime: 'application/x-mie'
 		};
 	}
-
+  
 	if (check([0x41, 0x52, 0x52, 0x4F, 0x57, 0x31, 0x00, 0x00])) {
 		return {
 			ext: 'arrow',
 			mime: 'application/x-apache-arrow'
+    };
+  }
+
+	if (check([0x27, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], {offset: 2})) {
+		return {
+			ext: 'shp',
+			mime: 'application/x-esri-shape'
 		};
 	}
 };

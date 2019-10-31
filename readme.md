@@ -247,10 +247,18 @@ Returns a set of supported MIME types.
 - [`f4b`](https://en.wikipedia.org/wiki/Flash_Video) - Audiobook and podcast ISO base media file format used by Adobe Flash Player
 - [`mie`](https://en.wikipedia.org/wiki/Sidecar_file) - Dedicated meta information format which supports storage of binary as well as textual meta information.
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
+- [`shp`](https://en.wikipedia.org/wiki/Shapefile) - Geospatial vector data format
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
 *Pull requests are welcome for additional commonly used file types, except for `doc`, `xls`, `ppt`.*
+
+
+## file-type for enterprise
+
+Available as part of the Tidelift Subscription.
+
+The maintainers of file-type and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/npm-file-type?utm_source=npm-file-type&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
 
 ## Related
@@ -263,16 +271,3 @@ Returns a set of supported MIME types.
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Mikael Finstad](https://github.com/mifi)
 - [Ben Brook](https://github.com/bencmbrook)
-
-
----
-
-<div align="center">
-	<b>
-		<a href="https://tidelift.com/subscription/pkg/npm-file-type?utm_source=npm-file-type&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
-	</b>
-	<br>
-	<sub>
-		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
-	</sub>
-</div>
