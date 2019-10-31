@@ -117,7 +117,8 @@ module.exports = {
 		'asf',
 		'ogm',
 		'ogx',
-		'mpc'
+		'mpc',
+		'shp'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -228,6 +229,7 @@ module.exports = {
 		'image/x-panasonic-rw2',
 		'image/x-fujifilm-raf',
 		'video/x-m4v',
-		'video/3gpp2'
+		'video/3gpp2',
+		'application/x-esri-shape'
 	]
 };

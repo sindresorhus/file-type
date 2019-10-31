@@ -156,7 +156,8 @@
 		"crx",
 		"ktx",
 		"dcm",
-		"mpc"
+		"mpc",
+		"shp"
 	],
 	"devDependencies": {
 		"@types/node": "^12.7.2",
