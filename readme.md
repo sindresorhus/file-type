@@ -11,26 +11,51 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 $ npm install file-type
 ```
 
-
 ## Usage
+
+❗️ Please be aware, the API changed, to support smarter and more specialized methods to determine the file type ❗️
 
 ##### Node.js
 
+Determine file type from a file:
 ```js
-const readChunk = require('read-chunk');
-const fileType = require('file-type');
+import FileType from 'file-type';
 
-const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
+(async () => {
+    const fileType = await FileType.fromFile('/home/borewit/Pictures/background.png');
+    // fileType = {ext: 'png', mime: 'image/png'}
+})();
+```
 
-fileType(buffer);
-//=> {ext: 'png', mime: 'image/png'}
+Determine file type from a Buffer, which may be a portion of the beginning of a file.
+```js
+import FileType from 'file-type';
+import readChunk from 'read-chunk';
+
+(async () => {
+    const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
+    const fileType = await FileType.fromBuffer(buffer);
+    // fileType = {ext: 'png', mime: 'image/png'}
+})();
+```
+
+Determine file type from a stream
+```js
+import FileType from 'file-type';
+import fs from 'fs';
+
+(async () => {
+    const stream = fs.createReadStream('/Users/adam/myFile.mp4');
+    const fileType = await FileType.fromStream(stream);
+    // fileType = {ext: 'mp4', mime: 'image/mp4'}
+)();
 ```
 
 Or from a remote location:
 
 ```js
-const http = require('http');
-const fileType = require('file-type');
+import FileType from 'file-type';
+import http from 'http';
 
 const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
 
@@ -39,7 +64,7 @@ http.get(url, response => {
 		const chunk = response.read(fileType.minimumBytes);
 		response.destroy();
 
-		console.log(fileType(chunk));
+		console.log(FileType.fromBuffer(chunk)); // ToDo change to stream
 		//=> {ext: 'gif', mime: 'image/gif'}
 	});
 });
@@ -57,7 +82,7 @@ const fileType = require('file-type');
 	const read = fs.createReadStream('encrypted.enc');
 	const decipher = crypto.createDecipheriv(alg, key, iv);
 
-	const fileTypeStream = await fileType.stream(stream.pipeline(read, decipher));
+	const fileTypeStream = await FileType.stream(stream.pipeline(read, decipher));
 
 	console.log(fileTypeStream.fileType);
 	//=> {ext: 'mov', mime: 'video/quicktime'}
@@ -70,17 +95,15 @@ const fileType = require('file-type');
 
 ##### Browser
 
+Will be moved to a module with specialized browser methods:
+
 ```js
-const xhr = new XMLHttpRequest();
-xhr.open('GET', 'unicorn.png');
-xhr.responseType = 'arraybuffer';
+import FileType from 'file-type-browser'; // ToDo
 
-xhr.onload = () => {
-	fileType(new Uint8Array(this.response));
-	//=> {ext: 'png', mime: 'image/png'}
-};
 
-xhr.send();
+FileType.parseBlob(); // ToDo
+
+FileType.parseStream(); // ToDo
 ```
 
 

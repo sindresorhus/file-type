@@ -1,4 +1,5 @@
 'use strict';
+const strtok3 = require('strtok3');
 const {
 	multiByteIndexOf,
 	stringToBytes,
@@ -12,17 +13,47 @@ const xpiZipFilename = stringToBytes('META-INF/mozilla.rsa');
 const oxmlContentTypes = stringToBytes('[Content_Types].xml');
 const oxmlRels = stringToBytes('_rels/.rels');
 
-const fileType = input => {
+async function fromStream(stream) {
+	const tokenizer = await strtok3.fromStream(stream);
+	try {
+		return await fromTokenizer(tokenizer);
+	} finally {
+		await tokenizer.close();
+	}
+}
+
+function fromBuffer(input) {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
 
-	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
+	const buffer = input instanceof Buffer ? input : Buffer.from(input);
 
 	if (!(buffer && buffer.length > 1)) {
 		return;
 	}
 
+	const tokenizer = strtok3.fromBuffer(buffer);
+	return fromTokenizer(tokenizer);
+}
+
+async function fromFile(path) {
+	const tokenizer = await strtok3.fromFile(path);
+	try {
+		return await fromTokenizer(tokenizer);
+	} finally {
+		await tokenizer.close();
+	}
+}
+
+async function fromTokenizer(tokenizer) {
+	const buffer = Buffer.alloc(tokenizer.fileSize);
+
+	await tokenizer.readBuffer(buffer, 0, tokenizer.fileSize);
+	return _fromBuffer(buffer);
+}
+
+function _fromBuffer(buffer) {
 	const check = (header, options) => {
 		options = {
 			offset: 0,
@@ -1034,22 +1065,19 @@ const fileType = input => {
 			mime: 'application/x-esri-shape'
 		};
 	}
-};
+}
 
-module.exports = fileType;
-
-Object.defineProperty(fileType, 'minimumBytes', {value: 4100});
-
-fileType.stream = readableStream => new Promise((resolve, reject) => {
+const stream = readableStream => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
 
 	readableStream.on('error', reject);
-	readableStream.once('readable', () => {
+	readableStream.once('readable', async () => {
 		const pass = new stream.PassThrough();
-		const chunk = readableStream.read(module.exports.minimumBytes) || readableStream.read();
+		const chunk = readableStream.read(fileType.minimumBytes) || readableStream.read();
 		try {
-			pass.fileType = fileType(chunk);
+			const fileType = await fromBuffer(chunk);
+			pass.fileType = fileType;
 		} catch (error) {
 			reject(error);
 		}
@@ -1057,12 +1085,22 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 		readableStream.unshift(chunk);
 
 		if (stream.pipeline) {
-			resolve(stream.pipeline(readableStream, pass, () => {}));
+			resolve(stream.pipeline(readableStream, pass, () => {
+			}));
 		} else {
 			resolve(readableStream.pipe(pass));
 		}
 	});
 });
+
+const fileType = {
+	fromStream,
+	fromTokenizer,
+	fromBuffer,
+	fromFile,
+	stream,
+	minimumBytes: 4100
+};
 
 Object.defineProperty(fileType, 'extensions', {
 	get() {
@@ -1075,3 +1113,5 @@ Object.defineProperty(fileType, 'mimeTypes', {
 		return new Set(supported.mimeTypes);
 	}
 });
+
+module.exports = fileType;
