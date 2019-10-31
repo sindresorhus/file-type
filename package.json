@@ -157,6 +157,7 @@
 		"ktx",
 		"dcm",
 		"mpc",
+		"arrow",
 		"shp"
 	],
 	"devDependencies": {

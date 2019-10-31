@@ -119,6 +119,7 @@ declare namespace fileType {
 		| 'oga'
 		| 'spx'
 		| 'ogx'
+		| 'arrow'
 		| 'shp';
 
 	type MimeType =
@@ -195,6 +196,7 @@ declare namespace fileType {
 		| 'application/x-lzip'
 		| 'application/x-msi'
 		| 'application/x-mie'
+		| 'application/x-apache-arrow'
 		| 'application/mxf'
 		| 'video/mp2t'
 		| 'application/x-blender'

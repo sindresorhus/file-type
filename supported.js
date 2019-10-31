@@ -118,6 +118,7 @@ module.exports = {
 		'ogm',
 		'ogx',
 		'mpc',
+		'arrow',
 		'shp'
 	],
 	mimeTypes: [
@@ -146,6 +147,7 @@ module.exports = {
 		'application/x-bzip2',
 		'application/x-7z-compressed',
 		'application/x-apple-diskimage',
+		'application/x-apache-arrow',
 		'video/mp4',
 		'audio/midi',
 		'video/x-matroska',

@@ -247,6 +247,7 @@ Returns a set of supported MIME types.
 - [`f4b`](https://en.wikipedia.org/wiki/Flash_Video) - Audiobook and podcast ISO base media file format used by Adobe Flash Player
 - [`mie`](https://en.wikipedia.org/wiki/Sidecar_file) - Dedicated meta information format which supports storage of binary as well as textual meta information
 - [`shp`](https://en.wikipedia.org/wiki/Shapefile) - Geospatial vector data format
+- [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
