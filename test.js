@@ -163,6 +163,7 @@ function testFalsePositive(ext, name) {
 
 async function testFileFromStream(ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	console.log(file);
 	const readableStream = await fileType.stream(fs.createReadStream(file));
 
 	assert.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
@@ -198,20 +199,20 @@ async function testStream(ext, name) {
 describe('.stream() method', () => {
 
 	let i = 0;
-	for (const type of types) {
+	for (const type of types /*.filter(type => type !== 'pptx' && type !== 'xlsx')*/ ) {
 		describe(`${type}`, () => {
 			if (Object.prototype.hasOwnProperty.call(names, type)) {
 				for (const name of names[type]) {
 					it(`${i++}`, () => {
 						testFile(type, name)
 					});
-					it(`same fileType ${i++}`, () => testFileFromStream(type, name));
-					it(`identical streams ${i++}`, () => testStream(type, name));
+					it('same fileType', () => testFileFromStream(type, name));
+					it('identical streams', () => testStream(type, name));
 				}
 			} else {
-				it(`test-file`, () => testFile(type));
-				it(`same fileType`, () => testFileFromStream(type));
-				it(`identical streams`, () => testStream(type));
+				it('test-file', () => testFile(type));
+				it('same fileType', () => testFileFromStream(type));
+				it('identical streams', () => testStream(type));
 			}
 
 			if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
