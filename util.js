@@ -55,33 +55,4 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 	);
 };
 
-exports.multiByteIndexOf = (buffer, bytesToSearch, startAt = 0) => {
-	// `Buffer#indexOf()` can search for multiple bytes
-	if (Buffer && Buffer.isBuffer(buffer)) {
-		return buffer.indexOf(Buffer.from(bytesToSearch), startAt);
-	}
-
-	const nextBytesMatch = (buffer, bytes, startIndex) => {
-		for (let i = 1; i < bytes.length; i++) {
-			if (bytes[i] !== buffer[startIndex + i]) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-	// `Uint8Array#indexOf()` can search for only a single byte
-	let index = buffer.indexOf(bytesToSearch[0], startAt);
-	while (index >= 0) {
-		if (nextBytesMatch(buffer, bytesToSearch, index)) {
-			return index;
-		}
-
-		index = buffer.indexOf(bytesToSearch[0], index + 1);
-	}
-
-	return -1;
-};
-
 exports.uint8ArrayUtf8ByteString = uint8ArrayUtf8ByteString;
