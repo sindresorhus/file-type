@@ -64,7 +64,6 @@ const names = {
 	],
 	mp3: [
 		'fixture',
-		'fixture-offset1-id3',
 		'fixture-offset1',
 		'fixture-mp2l3',
 		'fixture-ffe3'

@@ -4,6 +4,7 @@ const strtok3 = require('strtok3');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
+	uint32SyncSafeToken,
 	uint8ArrayUtf8ByteString
 } = require('./util');
 const supported = require('./supported');
@@ -75,7 +76,7 @@ async function fromTokenizer(tokenizer) {
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
 	const sampleBuffer = Buffer.alloc(minimumBytes); // For backward compatibility
-	await tokenizer.peekBuffer(sampleBuffer, 0, Math.min(minimumBytes, tokenizer.fileSize)); // For backward compatibility
+	await tokenizer.peekBuffer(sampleBuffer, 0, Math.min(minimumBytes, tokenizer.fileSize - tokenizer.position)); // For backward compatibility
 
 	await tokenizer.peekBuffer(buffer, 0, bytesRead);
 
@@ -126,6 +127,21 @@ async function fromTokenizer(tokenizer) {
 			ext: 'bz2',
 			mime: 'application/x-bzip2'
 		};
+	}
+
+	if (checkString('ID3')) {
+		await tokenizer.ignore(6); // Skip ID3 header until the header size
+		const id3HeaderLen = await tokenizer.readToken(uint32SyncSafeToken);
+		if (tokenizer.position + id3HeaderLen > tokenizer.fileSize) {
+			// Guess file type based on ID3 header for backward compatibility
+			return {
+				ext: 'mp3',
+				mime: 'audio/mpeg'
+			};
+		}
+
+		await tokenizer.ignore(id3HeaderLen);
+		return fromTokenizer(tokenizer); // Skip ID3 header, recursion
 	}
 
 	if (check([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {
@@ -713,6 +729,44 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
+	// Check for MPEG header at different starting offsets
+	if (
+		check([0x49, 0x44, 0x33]) || // ID3 header
+		check([0xFF, 0xE2], {mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
+	) {
+		return {
+			ext: 'mp3',
+			mime: 'audio/mpeg'
+		};
+	}
+
+	if (
+		check([0xFF, 0xE4], {mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 2 header
+	) {
+		return {
+			ext: 'mp2',
+			mime: 'audio/mpeg'
+		};
+	}
+
+	if (
+		check([0xFF, 0xF8], {mask: [0xFF, 0xFC]}) // MPEG 2 layer 0 using ADTS
+	) {
+		return {
+			ext: 'mp2',
+			mime: 'audio/mpeg'
+		};
+	}
+
+	if (
+		check([0xFF, 0xF0], {mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
+	) {
+		return {
+			ext: 'mp4',
+			mime: 'audio/mpeg'
+		};
+	}
+
 	return _fromBuffer(sampleBuffer);
 }
 
@@ -752,7 +806,6 @@ function _fromBuffer(buffer) {
 	// Check for MPEG header at different starting offsets
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
 		if (
-			check([0x49, 0x44, 0x33], {offset: start}) || // ID3 header
 			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
 		) {
 			return {
