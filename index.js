@@ -3,7 +3,6 @@ const Token = require('token-types');
 const strtok3 = require('strtok3');
 const {
 	stringToBytes,
-	readUInt64LE,
 	tarHeaderChecksumMatches,
 	uint8ArrayUtf8ByteString
 } = require('./util');
@@ -632,6 +631,67 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
+	// ASF_Header_Object first 80 bytes
+	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
+		async function readHeader() {
+			const guid = Buffer.alloc(16);
+			await tokenizer.readBuffer(guid);
+			return {
+				id: guid,
+				size: await tokenizer.readNumber(Token.UINT64_LE)
+			};
+		}
+
+		await tokenizer.ignore(30);
+		// Search for header should be in first 1KB of file.
+		while (tokenizer.position + 24 < tokenizer.fileSize) {
+			const header = await readHeader();
+			let payload = header.size - 24;
+			if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
+				// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
+				const typeId = Buffer.alloc(16);
+				payload -= await tokenizer.readBuffer(typeId);
+
+				if (_check(typeId, [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
+					// Found audio:
+					return {
+						ext: 'wma',
+						mime: 'audio/x-ms-wma'
+					};
+				}
+
+				if (_check(typeId, [0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
+					// Found video:
+					return {
+						ext: 'wmv',
+						mime: 'video/x-ms-asf'
+					};
+				}
+
+				break;
+			}
+
+			await tokenizer.ignore(payload);
+		}
+
+		// Default to ASF generic extension
+		return {
+			ext: 'asf',
+			mime: 'application/vnd.ms-asf'
+		};
+	}
+
+	// Due to unsafe signature, check as one of the last
+	if (
+		check([0x0, 0x0, 0x1, 0xBA]) ||
+		check([0x0, 0x0, 0x1, 0xB3])
+	) {
+		return {
+			ext: 'mpg',
+			mime: 'video/mpeg'
+		};
+	}
+
 	if (check([0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A])) {
 		return {
 			ext: 'ktx',
@@ -650,17 +710,6 @@ async function fromTokenizer(tokenizer) {
 		return {
 			ext: 'shp',
 			mime: 'application/x-esri-shape'
-		};
-	}
-
-	// Due to unsafe signature, check as one of the last
-	if (
-		check([0x0, 0x0, 0x1, 0xBA]) ||
-		check([0x0, 0x0, 0x1, 0xB3])
-	) {
-		return {
-			ext: 'mpg',
-			mime: 'video/mpeg'
 		};
 	}
 
@@ -690,32 +739,6 @@ function _fromBuffer(buffer) {
 		};
 	}
 
-	// Zip-based file formats
-	// Need to be before the `zip` check
-	const zipHeader = [0x50, 0x4B, 0x3, 0x4];
-	if (check(zipHeader)) {
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.text', {offset: 30})) {
-			return {
-				ext: 'odt',
-				mime: 'application/vnd.oasis.opendocument.text'
-			};
-		}
-
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.spreadsheet', {offset: 30})) {
-			return {
-				ext: 'ods',
-				mime: 'application/vnd.oasis.opendocument.spreadsheet'
-			};
-		}
-
-		if (checkString('mimetypeapplication/vnd.oasis.opendocument.presentation', {offset: 30})) {
-			return {
-				ext: 'odp',
-				mime: 'application/vnd.oasis.opendocument.presentation'
-			};
-		}
-	}
-
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
 		tarHeaderChecksumMatches(buffer)
@@ -723,44 +746,6 @@ function _fromBuffer(buffer) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
-		};
-	}
-
-	// ASF_Header_Object first 80 bytes
-	if (check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
-		// Search for header should be in first 1KB of file.
-
-		let offset = 30;
-		do {
-			const objectSize = readUInt64LE(buffer, offset + 16);
-			if (check([0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65], {offset})) {
-				// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
-				if (check([0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: offset + 24})) {
-					// Found audio:
-					return {
-						ext: 'wma',
-						mime: 'audio/x-ms-wma'
-					};
-				}
-
-				if (check([0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B], {offset: offset + 24})) {
-					// Found video:
-					return {
-						ext: 'wmv',
-						mime: 'video/x-ms-asf'
-					};
-				}
-
-				break;
-			}
-
-			offset += objectSize;
-		} while (offset + 24 <= buffer.length);
-
-		// Default to ASF generic extension
-		return {
-			ext: 'asf',
-			mime: 'application/vnd.ms-asf'
 		};
 	}
 

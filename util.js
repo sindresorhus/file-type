@@ -6,19 +6,6 @@ const uint8ArrayUtf8ByteString = (array, start, end) => {
 	return String.fromCharCode(...array.slice(start, end));
 };
 
-exports.readUInt64LE = (buffer, offset = 0) => {
-	let n = buffer[offset];
-	let mul = 1;
-	let i = 0;
-
-	while (++i < 8) {
-		mul *= 0x100;
-		n += buffer[offset + i] * mul;
-	}
-
-	return n;
-};
-
 exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum field characters are valid
 	if (buffer.length < 512) { // `tar` header size, cannot compute checksum without it
 		return false;
