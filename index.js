@@ -638,7 +638,7 @@ async function fromTokenizer(tokenizer) {
 			await tokenizer.readBuffer(guid);
 			return {
 				id: guid,
-				size: await tokenizer.readNumber(Token.UINT64_LE)
+				size: await tokenizer.readToken(Token.UINT64_LE)
 			};
 		}
 
