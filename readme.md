@@ -13,8 +13,7 @@ $ npm install file-type
 
 ## Usage
 
-❗️ Please be aware, the API changed, to support smarter and more specialized methods to determine the file type ❗️
-
+❗ Please be aware, the API changed, to support smarter and more specialized methods to determine the file type ❗
 ##### Node.js
 
 Determine file type from a file:
@@ -22,8 +21,8 @@ Determine file type from a file:
 const fileType = require('file-type');
 
 (async () => {
-    const fileType = await fileType.fromFile('/home/borewit/Pictures/background.png');
-    // fileType = {ext: 'png', mime: 'image/png'}
+	const fileType = await fileType.fromFile('/home/borewit/Pictures/background.png');
+	// fileType = {ext: 'png', mime: 'image/png'}
 })();
 ```
 
@@ -33,9 +32,9 @@ const fileType = require('file-type');
 const readChunk = require('read-chunk');
 
 (async () => {
-    const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
-    const fileType = await fileType.fromBuffer(buffer);
-    // fileType = {ext: 'png', mime: 'image/png'}
+	const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
+	const fileType = await fileType.fromBuffer(buffer);
+	// fileType = {ext: 'png', mime: 'image/png'}
 })();
 ```
 
@@ -45,9 +44,9 @@ const fileType = require('file-type');
 const fs = require('fs');
 
 (async () => {
-    const stream = fs.createReadStream('/Users/adam/myFile.mp4');
-    const fileType = await fileType.fromStream(stream);
-    // fileType = {ext: 'mp4', mime: 'image/mp4'}
+	const stream = fs.createReadStream('/Users/adam/myFile.mp4');
+	const fileType = await fileType.fromStream(stream);
+	// fileType = {ext: 'mp4', mime: 'image/mp4'}
 }
 )();
 ```

@@ -243,65 +243,56 @@ declare namespace fileType {
 
 		/**
 		The detected [MIME type](https://en.wikipedia.org/wiki/Internet_media_type).
-		*/
+		 */
 		mime: MimeType;
 	}
 
 	type ReadableStreamWithFileType = ReadableStream & {
 		readonly fileType?: FileTypeResult;
 	};
-}
 
-declare const fileType: {
 	/**
 	Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`. The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-	@param buffer - It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
+ 	If file access is available, it is recommended to use `fromFile()` instead
+
+	@param buffer - It works best if the buffer contains the entire file, it may work with a smaller portion as well
 	@returns The detected file type and MIME type or `undefined` when there was no match.
-
-	@example
-	```
-	import readChunk = require('read-chunk');
-	import fileType = require('file-type');
-
-	const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
-
-	fileType(buffer);
-	//=> {ext: 'png', mime: 'image/png'}
-
-
-	// Or from a remote location:
-
-	import * as http from 'http';
-
-	const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
-
-	http.get(url, response => {
-		response.on('readable', () => {
-			const chunk = response.read(fileType.minimumBytes);
-			response.destroy();
-			console.log(fileType(chunk));
-			//=> {ext: 'gif', mime: 'image/gif'}
-		});
-	});
-	```
-	*/
-	(buffer: Buffer | Uint8Array | ArrayBuffer): fileType.FileTypeResult | undefined;
+	 */
+	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer):  Promise<fileType.FileTypeResult | undefined>;
 
 	/**
-	The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
-	*/
-	readonly minimumBytes: number;
+	Detect the file type of a file path.
+  The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+	@param path - The file path to parse
+	@returns The detected file type and MIME type or `undefined` when there was no match.
+	 */
+	function fromFile(path: string):  Promise<fileType.FileTypeResult | undefined>;
+
+	/**
+	Detect the file type of a Node.js ReadableStream.
+  The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+	@param stream - Node.js readable stream
+	@returns The detected file type and MIME type or `undefined` when there was no match.
+	 */
+	function fromStream(stream: ReadableStream): Promise<fileType.FileTypeResult | undefined>;
+
+	/**
+	Deprecated: The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
+	 */
+  const minimumBytes: number;
 
 	/**
 	Supported file extensions.
-	*/
-	readonly extensions: fileType.FileType;
+	 */
+	const extensions: fileType.FileType;
 
 	/**
 	Supported MIME types.
-	*/
-	readonly mimeTypes: fileType.MimeType;
+	 */
+	const mimeTypes: fileType.MimeType;
 
 	/**
 	Detect the file type of a readable stream.
@@ -329,9 +320,8 @@ declare const fileType: {
 	})();
 	```
 	*/
-	readonly stream: (
-		readableStream: ReadableStream
-	) => Promise<fileType.ReadableStreamWithFileType>;
-};
+	function stream(readableStream: ReadableStream): Promise<fileType.ReadableStreamWithFileType>
+
+}
 
 export = fileType;

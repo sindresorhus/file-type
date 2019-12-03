@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "12.4.0",
+	"version": "12.3.1",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -13,7 +13,6 @@
 		"node": ">=8"
 	},
 	"scripts": {
-		"ava": "ava",
 		"test": "xo && ava && tsd"
 	},
 	"files": [
@@ -177,7 +176,8 @@
 	"xo": {
 		"rules": {
 			"no-inner-declarations": 1,
-			"no-await-in-loop": 1
+			"no-await-in-loop": 1,
+			"promise/prefer-await-to-then": 1
 		}
 	}
 }
