@@ -29,18 +29,18 @@ fileType(buffer);
 Or from a remote location:
 
 ```js
-const http = require('http');
+const https = require('https');
 const fileType = require('file-type');
 
-const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
+const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-http.get(url, response => {
+https.get(url, response => {
 	response.on('readable', () => {
 		const chunk = response.read(fileType.minimumBytes);
 		response.destroy();
 
 		console.log(fileType(chunk));
-		//=> {ext: 'gif', mime: 'image/gif'}
+		//=> {ext: 'jpg', mime: 'image/jpeg'}
 	});
 });
 ```
