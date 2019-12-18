@@ -296,7 +296,7 @@ declare const fileType: {
 	/**
 	Supported file extensions.
 	*/
-	readonly extensions: ReadonlyArray<fileType.FileType>;
+	readonly extensions: readonly fileType.FileType[];
 
 	/**
 	Supported MIME types.
