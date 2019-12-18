@@ -296,12 +296,12 @@ declare const fileType: {
 	/**
 	Supported file extensions.
 	*/
-	readonly extensions: fileType.FileType;
+	readonly extensions: ReadonlyArray<fileType.FileType>;
 
 	/**
 	Supported MIME types.
 	*/
-	readonly mimeTypes: fileType.MimeType;
+	readonly mimeTypes: ReadonlyArray<fileType.MimeType>;
 
 	/**
 	Detect the file type of a readable stream.
