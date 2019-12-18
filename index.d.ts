@@ -301,7 +301,7 @@ declare const fileType: {
 	/**
 	Supported MIME types.
 	*/
-	readonly mimeTypes: ReadonlyArray<fileType.MimeType>;
+	readonly mimeTypes: readonly fileType.MimeType[];
 
 	/**
 	Detect the file type of a readable stream.
