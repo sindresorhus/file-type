@@ -15,9 +15,9 @@ if (result !== undefined) {
 
 expectType<number>(fileType.minimumBytes);
 
-expectType<fileType.FileType>(fileType.extensions);
+expectType<ReadonlyArray<fileType.FileType>>(fileType.extensions);
 
-expectType<fileType.MimeType>(fileType.mimeTypes);
+expectType<ReadonlyArray<fileType.MimeType>>(fileType.mimeTypes);
 
 const readableStream = fs.createReadStream('file.png');
 const streamWithFileType = fileType.stream(readableStream);
