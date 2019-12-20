@@ -124,6 +124,9 @@ const names = {
 	mie: [
 		'fixture-big-endian',
 		'fixture-little-endian'
+	],
+	m4a: [
+		'fixture-babys-songbook.m4b' // Actually it is an .m4b
 	]
 };
 

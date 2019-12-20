@@ -364,12 +364,12 @@ const fileType = input => {
 	// `ftyp` box must contain a brand major identifier, which must consist of ISO 8859-1 printable characters.
 	// Here we check for 8859-1 printable characters (for simplicity, it's a mask which also catches one non-printable character).
 	if (
-		check([0x66, 0x74, 0x79, 0x70], {offset: 4}) && // `ftyp`
-		(buffer[8] & 0x60) !== 0x00 && (buffer[9] & 0x60) !== 0x00 && (buffer[10] & 0x60) !== 0x00 && (buffer[11] & 0x60) !== 0x00 // Brand major
+		checkString('ftyp', {offset: 4}) &&
+		(buffer[8] & 0x60) !== 0x00 // Brand major, first character ASCII?
 	) {
 		// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
 		// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
-		const brandMajor = uint8ArrayUtf8ByteString(buffer, 8, 12);
+		const brandMajor = uint8ArrayUtf8ByteString(buffer, 8, 12).replace('\0', ' ').trim();
 		switch (brandMajor) {
 			case 'mif1':
 				return {ext: 'heic', mime: 'image/heif'};
@@ -379,23 +379,23 @@ const fileType = input => {
 				return {ext: 'heic', mime: 'image/heic'};
 			case 'hevc': case 'hevx':
 				return {ext: 'heic', mime: 'image/heic-sequence'};
-			case 'qt  ':
+			case 'qt':
 				return {ext: 'mov', mime: 'video/quicktime'};
-			case 'M4V ': case 'M4VH': case 'M4VP':
+			case 'M4V': case 'M4VH': case 'M4VP':
 				return {ext: 'm4v', mime: 'video/x-m4v'};
-			case 'M4P ':
+			case 'M4P':
 				return {ext: 'm4p', mime: 'video/mp4'};
-			case 'M4B ':
+			case 'M4B':
 				return {ext: 'm4b', mime: 'audio/mp4'};
-			case 'M4A ':
+			case 'M4A':
 				return {ext: 'm4a', mime: 'audio/x-m4a'};
-			case 'F4V ':
+			case 'F4V':
 				return {ext: 'f4v', mime: 'video/mp4'};
-			case 'F4P ':
+			case 'F4P':
 				return {ext: 'f4p', mime: 'video/mp4'};
-			case 'F4A ':
+			case 'F4A':
 				return {ext: 'f4a', mime: 'audio/mp4'};
-			case 'F4B ':
+			case 'F4B':
 				return {ext: 'f4b', mime: 'audio/mp4'};
 			default:
 				if (brandMajor.startsWith('3g')) {
