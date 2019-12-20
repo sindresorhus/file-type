@@ -1052,6 +1052,7 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 			pass.fileType = fileType(chunk);
 		} catch (error) {
 			reject(error);
+			return;
 		}
 
 		readableStream.unshift(chunk);
