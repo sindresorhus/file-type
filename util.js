@@ -6,19 +6,6 @@ const uint8ArrayUtf8ByteString = (array, start, end) => {
 	return String.fromCharCode(...array.slice(start, end));
 };
 
-exports.readUInt64LE = (buffer, offset = 0) => {
-	let n = buffer[offset];
-	let mul = 1;
-	let i = 0;
-
-	while (++i < 8) {
-		mul *= 0x100;
-		n += buffer[offset + i] * mul;
-	}
-
-	return n;
-};
-
 exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum field characters are valid
 	if (buffer.length < 512) { // `tar` header size, cannot compute checksum without it
 		return false;
@@ -55,33 +42,15 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 	);
 };
 
-exports.multiByteIndexOf = (buffer, bytesToSearch, startAt = 0) => {
-	// `Buffer#indexOf()` can search for multiple bytes
-	if (Buffer && Buffer.isBuffer(buffer)) {
-		return buffer.indexOf(Buffer.from(bytesToSearch), startAt);
-	}
-
-	const nextBytesMatch = (buffer, bytes, startIndex) => {
-		for (let i = 1; i < bytes.length; i++) {
-			if (bytes[i] !== buffer[startIndex + i]) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-	// `Uint8Array#indexOf()` can search for only a single byte
-	let index = buffer.indexOf(bytesToSearch[0], startAt);
-	while (index >= 0) {
-		if (nextBytesMatch(buffer, bytesToSearch, index)) {
-			return index;
-		}
-
-		index = buffer.indexOf(bytesToSearch[0], index + 1);
-	}
-
-	return -1;
-};
-
 exports.uint8ArrayUtf8ByteString = uint8ArrayUtf8ByteString;
+
+/**
+ * ID3 UINT32 sync-safe tokenizer token
+ * 28 bits (representing up to 256MB) integer, the msb is 0 to avoid 'false syncsignals'
+ */
+exports.uint32SyncSafeToken = {
+	get: (buffer, offset) => {
+		return (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2]) << 7) | ((buffer[offset + 1]) << 14) | ((buffer[offset]) << 21);
+	},
+	len: 4
+};

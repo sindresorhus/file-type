@@ -168,5 +168,16 @@
 		"read-chunk": "^3.2.0",
 		"tsd": "^0.7.1",
 		"xo": "^0.24.0"
+	},
+	"dependencies": {
+		"strtok3": "^3.1.1",
+		"token-types": "^1.1.0"
+	},
+	"xo": {
+		"rules": {
+			"no-inner-declarations": 1,
+			"no-await-in-loop": 1,
+			"promise/prefer-await-to-then": 1
+		}
 	}
 }
