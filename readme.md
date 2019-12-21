@@ -184,6 +184,7 @@ Returns a set of supported MIME types.
 - [`mov`](https://en.wikipedia.org/wiki/QuickTime_File_Format)
 - [`avi`](https://en.wikipedia.org/wiki/Audio_Video_Interleave)
 - [`mpg`](https://en.wikipedia.org/wiki/MPEG-1)
+- [`mp1`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_I) - MPEG-1 Audio Layer I
 - [`mp2`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_II)
 - [`mp3`](https://en.wikipedia.org/wiki/MP3)
 - [`ogg`](https://en.wikipedia.org/wiki/Ogg)
@@ -271,6 +272,7 @@ Returns a set of supported MIME types.
 - [`mie`](https://en.wikipedia.org/wiki/Sidecar_file) - Dedicated meta information format which supports storage of binary as well as textual meta information
 - [`shp`](https://en.wikipedia.org/wiki/Shapefile) - Geospatial vector data format
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
+- [`aac`](https://en.wikipedia.org/wiki/Advanced_Audio_Coding) - Advanced Audio Coding
 
 *SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
