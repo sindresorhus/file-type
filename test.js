@@ -5,7 +5,7 @@ import test from 'ava';
 import readChunk from 'read-chunk';
 import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
-import FileType from './core';
+import FileType from '.';
 
 const supported = require('./supported');
 

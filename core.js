@@ -1,6 +1,6 @@
 'use strict';
 const Token = require('token-types');
-const strtok3 = require('strtok3');
+const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -33,15 +33,6 @@ function fromBuffer(input) {
 
 	const tokenizer = strtok3.fromBuffer(buffer);
 	return fromTokenizer(tokenizer);
-}
-
-async function fromFile(path) {
-	const tokenizer = await strtok3.fromFile(path);
-	try {
-		return await fromTokenizer(tokenizer);
-	} finally {
-		await tokenizer.close();
-	}
 }
 
 function _check(buffer, header, options) {
@@ -1270,7 +1261,6 @@ const fileType = {
 	fromStream,
 	fromTokenizer,
 	fromBuffer,
-	fromFile,
 	stream,
 	minimumBytes: 4100
 };

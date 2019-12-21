@@ -1,7 +1,7 @@
 /// <reference types="node"/>
-import {Readable as ReadableStream} from 'stream';
+import {Readable} from 'stream';
 
-declare namespace fileType {
+declare namespace core {
 	type FileType =
 		| 'jpg'
 		| 'png'
@@ -238,7 +238,7 @@ declare namespace fileType {
 	interface FileTypeResult {
 		/**
 		One of the supported [file types](https://github.com/sindresorhus/file-type#supported-file-types).
-		*/
+		 */
 		ext: FileType;
 
 		/**
@@ -247,7 +247,7 @@ declare namespace fileType {
 		mime: MimeType;
 	}
 
-	type ReadableStreamWithFileType = ReadableStream & {
+	type ReadableStreamWithFileType = Readable & {
 		readonly fileType?: FileTypeResult;
 	};
 
@@ -259,25 +259,16 @@ declare namespace fileType {
 	@param buffer - It works best if the buffer contains the entire file, it may work with a smaller portion as well
 	@returns The detected file type and MIME type or `undefined` when there was no match.
 	 */
-	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer):  Promise<fileType.FileTypeResult | undefined>;
+	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer):  Promise<core.FileTypeResult | undefined>;
 
 	/**
-	Detect the file type of a file path.
-  The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
-
-	@param path - The file path to parse
-	@returns The detected file type and MIME type or `undefined` when there was no match.
-	 */
-	function fromFile(path: string):  Promise<fileType.FileTypeResult | undefined>;
-
-	/**
-	Detect the file type of a Node.js ReadableStream.
+	Detect the file type of a Node.js Readable.
   The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 	@param stream - Node.js readable stream
 	@returns The detected file type and MIME type or `undefined` when there was no match.
 	 */
-	function fromStream(stream: ReadableStream): Promise<fileType.FileTypeResult | undefined>;
+	function fromStream(stream: Readable): Promise<core.FileTypeResult | undefined>;
 
 	/**
 	Deprecated: The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
@@ -287,12 +278,12 @@ declare namespace fileType {
 	/**
 	Supported file extensions.
 	 */
-	const extensions: fileType.FileType;
+	const extensions: core.FileType;
 
 	/**
 	Supported MIME types.
 	 */
-	const mimeTypes: fileType.MimeType;
+	const mimeTypes: core.MimeType;
 
 	/**
 	Detect the file type of a readable stream.
@@ -319,9 +310,10 @@ declare namespace fileType {
 		stream.pipe(write);
 	})();
 	```
-	*/
-	function stream(readableStream: ReadableStream): Promise<fileType.ReadableStreamWithFileType>
+	 */
+	function stream(readableStream: Readable): Promise<core.ReadableStreamWithFileType>
 
 }
 
-export = fileType;
+export = core;
+
