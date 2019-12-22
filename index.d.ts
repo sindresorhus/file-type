@@ -47,12 +47,12 @@ export const minimumBytes: number;
 /**
 	Supported file extensions.
  */
-export const extensions: core.FileType;
+export const extensions: readonly core.FileType[];
 
 /**
 	Supported MIME types.
  */
-export const mimeTypes: core.MimeType;
+export const mimeTypes: readonly core.MimeType[];
 
 /**
 	Detect the file type of a readable stream.
