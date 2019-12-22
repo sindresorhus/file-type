@@ -18,6 +18,8 @@
 	"files": [
 		"index.js",
 		"index.d.ts",
+		"core.js",
+		"core.d.ts",
 		"supported.js",
 		"util.js"
 	],

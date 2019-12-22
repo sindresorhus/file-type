@@ -249,16 +249,16 @@ test('.stream() method - error event', async t => {
 	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
 });
 
-test('fileType.minimumBytes', t => {
+test('FileType.minimumBytes', t => {
 	t.true(FileType.minimumBytes > 4000);
 });
 
-test('fileType.extensions.has', t => {
+test('FileType.extensions.has', t => {
 	t.true(FileType.extensions.has('jpg'));
 	t.false(FileType.extensions.has('blah'));
 });
 
-test('fileType.mimeTypes.has', t => {
+test('FileType.mimeTypes.has', t => {
 	t.true(FileType.mimeTypes.has('video/mpeg'));
 	t.false(FileType.mimeTypes.has('video/blah'));
 });
@@ -282,11 +282,11 @@ test('validate the input argument type', async t => {
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
-	// File: index.js (base truth)
+	// File: core.js (base truth)
 	function readIndexJS() {
-		const index = fs.readFileSync('index.js', {encoding: 'utf8'});
-		const extArray = index.match(/(?<=ext:\s')(.*)(?=',)/g);
-		const mimeArray = index.match(/(?<=mime:\s')(.*)(?=')/g);
+		const core = fs.readFileSync('core.js', {encoding: 'utf8'});
+		const extArray = core.match(/(?<=ext:\s')(.*)(?=',)/g);
+		const mimeArray = core.match(/(?<=mime:\s')(.*)(?=')/g);
 		const exts = new Set(extArray);
 		const mimes = new Set(mimeArray);
 
@@ -296,10 +296,10 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		};
 	}
 
-	// File: index.d.ts
+	// File: core.d.ts
 	function readIndexDTS() {
-		const index = fs.readFileSync('index.d.ts', {encoding: 'utf8'});
-		const matches = index.match(/(?<=\|\s')(.*)(?=')/g);
+		const core = fs.readFileSync('core.d.ts', {encoding: 'utf8'});
+		const matches = core.match(/(?<=\|\s')(.*)(?=')/g);
 		const extArray = [];
 		const mimeArray = [];
 
@@ -319,8 +319,8 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 	// File: package.json
 	function readPackageJSON() {
-		const index = fs.readFileSync('package.json', {encoding: 'utf8'});
-		const {keywords} = JSON.parse(index);
+		const packageJson = fs.readFileSync('package.json', {encoding: 'utf8'});
+		const {keywords} = JSON.parse(packageJson);
 
 		const allowedExtras = new Set([
 			'mime',
@@ -367,12 +367,12 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		}, []);
 	}
 
-	// Find extensions/mimes that are in another file but not in `index.js`
+	// Find extensions/mimes that are in another file but not in `core.js`
 	function findExtras(array, set) {
 		return array.filter(element => !set.has(element));
 	}
 
-	// Find extensions/mimes that are in `index.js` but missing from another file
+	// Find extensions/mimes that are in `core.js` but missing from another file
 	function findMissing(array, set) {
 		const missing = [];
 		const other = new Set(array);
@@ -395,12 +395,12 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
 	}
 
-	// Get the base truth of extensions and mimes supported from index.js
+	// Get the base truth of extensions and mimes supported from core.js
 	const {exts, mimes} = readIndexJS();
 
 	// Validate all extensions
 	const filesWithExtensions = {
-		'index.d.ts': readIndexDTS().extArray,
+		'core.d.ts': readIndexDTS().extArray,
 		'supported.js': supported.extensions,
 		'package.json': readPackageJSON(),
 		'readme.md': readReadmeMD()
@@ -415,7 +415,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 	// Validate all mimes
 	const filesWithMimeTypes = {
-		'index.d.ts': readIndexDTS().mimeArray,
+		'core.d.ts': readIndexDTS().mimeArray,
 		'supported.js': supported.mimeTypes
 	};
 
