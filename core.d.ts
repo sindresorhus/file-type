@@ -278,12 +278,12 @@ declare namespace core {
 	/**
 	Supported file extensions.
 	 */
-	const extensions: core.FileType;
+	const extensions: readonly core.FileType[];
 
 	/**
 	Supported MIME types.
 	 */
-	const mimeTypes: core.MimeType;
+	const mimeTypes: readonly core.MimeType[];
 
 	/**
 	Detect the file type of a readable stream.
