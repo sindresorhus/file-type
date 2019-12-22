@@ -985,35 +985,6 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
-	// Check for MPEG header
-	if (
-		check([0x49, 0x44, 0x33]) || // ID3 header
-		check([0xFF, 0xE2], {mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
-	) {
-		return {
-			ext: 'mp3',
-			mime: 'audio/mpeg'
-		};
-	}
-
-	if (
-		check([0xFF, 0xE4], {mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 2 header
-	) {
-		return {
-			ext: 'mp2',
-			mime: 'audio/mpeg'
-		};
-	}
-
-	if (
-		check([0xFF, 0xF8], {mask: [0xFF, 0xFC]}) // MPEG 2 layer 0 using ADTS
-	) {
-		return {
-			ext: 'mp2',
-			mime: 'audio/mpeg'
-		};
-	}
-
 	if (check([0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A])) {
 		// JPEG-2000 family
 
@@ -1043,15 +1014,6 @@ async function fromTokenizer(tokenizer) {
 			default:
 				return;
 		}
-	}
-
-	if (
-		check([0xFF, 0xF0], {mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
-	) {
-		return {
-			ext: 'mp4',
-			mime: 'audio/mpeg'
-		};
 	}
 
 	// -- Unsafe signatures --
@@ -1193,40 +1155,48 @@ async function fromTokenizer(tokenizer) {
 
 	// Check for MPEG header at different starting offsets
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
-		if (
-			check([0xFF, 0xE2], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 3 header
-		) {
-			return {
-				ext: 'mp3',
-				mime: 'audio/mpeg'
-			};
-		}
+		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
+		if (buffer.length >= start + 2 && check([0xFF, 0xE0], {offset: start, mask: [0xFF, 0xE0]})) {
+			if (check([0x10], {offset: start + 1, mask: [0x16]})) {
+				// Check for (ADTS) MPEG-2
+				if (check([0x08], {offset: start + 1, mask: [0x08]})) {
+					return {
+						ext: 'aac',
+						mime: 'audio/aac'
+					};
+				}
 
-		if (
-			check([0xFF, 0xE4], {offset: start, mask: [0xFF, 0xE6]}) // MPEG 1 or 2 Layer 2 header
-		) {
-			return {
-				ext: 'mp2',
-				mime: 'audio/mpeg'
-			};
-		}
+				// Must be (ADTS) MPEG-4
+				return {
+					ext: 'aac',
+					mime: 'audio/aac'
+				};
+			}
 
-		if (
-			check([0xFF, 0xF8], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 2 layer 0 using ADTS
-		) {
-			return {
-				ext: 'mp2',
-				mime: 'audio/mpeg'
-			};
-		}
+			// MPEG 1 or 2 Layer 3 header
+			// Check for MPEG layer 3
+			if (check([0x02], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp3',
+					mime: 'audio/mpeg'
+				};
+			}
 
-		if (
-			check([0xFF, 0xF0], {offset: start, mask: [0xFF, 0xFC]}) // MPEG 4 layer 0 using ADTS
-		) {
-			return {
-				ext: 'mp4',
-				mime: 'audio/mpeg'
-			};
+			// Check for MPEG layer 2
+			if (check([0x04], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp2',
+					mime: 'audio/mpeg'
+				};
+			}
+
+			// Check for MPEG layer 1
+			if (check([0x06], {offset: start + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp1',
+					mime: 'audio/mpeg'
+				};
+			}
 		}
 	}
 }

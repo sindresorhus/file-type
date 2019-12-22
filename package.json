@@ -161,7 +161,9 @@
 		"dcm",
 		"mpc",
 		"arrow",
-		"shp"
+		"shp",
+		"aac",
+		"mp1"
 	],
 	"devDependencies": {
 		"@types/node": "^12.7.2",

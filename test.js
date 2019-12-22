@@ -21,6 +21,11 @@ const types = supported.extensions.filter(ext => !missingTests.includes(ext));
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
 const names = {
+	aac: [
+		'fixture-adts-mpeg2',
+		'fixture-adts-mpeg4',
+		'fixture-adts-mpeg4-2'
+	],
 	arw: [
 		'fixture',
 		'fixture2',
@@ -59,12 +64,10 @@ const names = {
 	],
 	mp2: [
 		'fixture',
-		'fixture-mpa',
-		'fixture-faac-adts'
+		'fixture-mpa'
 	],
 	mp3: [
 		'fixture',
-		'fixture-offset1',
 		'fixture-mp2l3',
 		'fixture-ffe3'
 	],
@@ -73,8 +76,7 @@ const names = {
 		'fixture-isom',
 		'fixture-isomv2',
 		'fixture-mp4v2',
-		'fixture-dash',
-		'fixture-aac-adts'
+		'fixture-dash'
 	],
 	tif: [
 		'fixture-big-endian',

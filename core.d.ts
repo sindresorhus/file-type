@@ -120,7 +120,9 @@ declare namespace core {
 		| 'spx'
 		| 'ogx'
 		| 'arrow'
-		| 'shp';
+		| 'shp'
+		| 'aac'
+		| 'mp1';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -233,7 +235,8 @@ declare namespace core {
 		| 'image/x-fujifilm-raf'
 		| 'video/x-m4v'
 		| 'video/3gpp2'
-		| 'application/x-esri-shape';
+		| 'application/x-esri-shape'
+		| 'audio/aac'
 
 	interface FileTypeResult {
 		/**

@@ -119,7 +119,9 @@ module.exports = {
 		'ogx',
 		'mpc',
 		'arrow',
-		'shp'
+		'shp',
+		'aac',
+		'mp1'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -232,6 +234,7 @@ module.exports = {
 		'image/x-fujifilm-raf',
 		'video/x-m4v',
 		'video/3gpp2',
-		'application/x-esri-shape'
+		'application/x-esri-shape',
+		'audio/aac'
 	]
 };
