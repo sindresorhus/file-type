@@ -98,12 +98,12 @@ const fileType = require('file-type');
 Will be moved to a module with specialized browser methods:
 
 ```js
-import FileType from 'file-type-browser'; // ToDo
+const FileType = require('file-type/browser');
 
 
-fileType.parseBlob(); // ToDo
+FileType.parseBlob(); // ToDo
 
-fileType.parseStream(); // ToDo
+FileType.parseStream(); // ToDo
 ```
 
 
