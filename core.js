@@ -314,7 +314,7 @@ async function fromTokenizer(tokenizer) {
 				}
 			}
 
-			tokenizer.ignore(zipHeader.compressedSize);
+			await tokenizer.ignore(zipHeader.compressedSize);
 		}
 
 		return {
@@ -646,12 +646,12 @@ async function fromTokenizer(tokenizer) {
 					return tokenizer.readToken(new Token.StringType(e.len, 'utf-8')); // Return DocType
 				}
 
-				tokenizer.ignore(e.len); // ignore payload
+				await tokenizer.ignore(e.len); // ignore payload
 				--children;
 			}
 		}
 
-		const re = await readElement(0);
+		const re = await readElement();
 		const docType = await readChildren(1, re.len);
 
 		switch (docType) {
