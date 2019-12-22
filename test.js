@@ -209,10 +209,10 @@ let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			test(`${type} ${i++} .fromFile()`, testFromFile, type, name);
-			test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type, name);
-			test(`${type} ${i++} .stream() - same fileType`, testFileFromStream, type, name);
-			test(`${type} ${i++} .stream() - identical streams`, testStream, type, name);
+			test(`${name}.${type} ${i++} .fromFile()`, testFromFile, type, name);
+			test(`${name}.${type} ${i++} .fromBuffer()`, testFromBuffer, type, name);
+			test(`${name}.${type} ${i++} .stream() - same fileType`, testFileFromStream, type, name);
+			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
 		}
 	} else {
 		test(`${type} ${i++} .fromFile()`, testFromFile, type);
