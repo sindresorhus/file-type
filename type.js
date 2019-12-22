@@ -1,5 +1,4 @@
 #!/usr/bin/node
-
 const FileType = require('.');
 
 if (process.argv.length !== 3) {
@@ -14,7 +13,7 @@ const file2test = process.argv[2];
 
 	if (fileType) {
 		console.log(`MIME-type: ${fileType.mime}`);
-		console.log(`extension: ${fileType.ext}`);
+		console.log(`Extension: ${fileType.ext}`);
 	} else {
 		console.log('Could not determine file type.');
 	}
