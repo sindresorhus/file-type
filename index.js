@@ -99,7 +99,7 @@ const fileType = input => {
 		};
 	}
 
-	// `cr2`, `orf`, and `arw` need to be before `tif` check
+	// `cr2`, `cr3`, `orf`, and `arw` need to be before `tif` check
 	if (
 		(check([0x49, 0x49, 0x2A, 0x0]) || check([0x4D, 0x4D, 0x0, 0x2A])) &&
 		check([0x43, 0x52], {offset: 8})
@@ -107,6 +107,13 @@ const fileType = input => {
 		return {
 			ext: 'cr2',
 			mime: 'image/x-canon-cr2'
+		};
+	}
+
+	if (check([0x18, 0x66, 0x74, 0x79, 0x70, 0x63, 0x72], {offset: 3})) {
+		return {
+			ext: 'cr3',
+			mime: 'image/x-canon-cr3'
 		};
 	}
 
@@ -132,7 +139,7 @@ const fileType = input => {
 	if (
 		check([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00]) &&
 		(check([0x2D, 0x00, 0xFE, 0x00], {offset: 8}) ||
-		check([0x27, 0x00, 0xFE, 0x00], {offset: 8}))
+			check([0x27, 0x00, 0xFE, 0x00], {offset: 8}))
 	) {
 		return {
 			ext: 'dng',
@@ -375,13 +382,17 @@ const fileType = input => {
 				return {ext: 'heic', mime: 'image/heif'};
 			case 'msf1':
 				return {ext: 'heic', mime: 'image/heif-sequence'};
-			case 'heic': case 'heix':
+			case 'heic':
+			case 'heix':
 				return {ext: 'heic', mime: 'image/heic'};
-			case 'hevc': case 'hevx':
+			case 'hevc':
+			case 'hevx':
 				return {ext: 'heic', mime: 'image/heic-sequence'};
 			case 'qt':
 				return {ext: 'mov', mime: 'video/quicktime'};
-			case 'M4V': case 'M4VH': case 'M4VP':
+			case 'M4V':
+			case 'M4VH':
+			case 'M4VP':
 				return {ext: 'm4v', mime: 'video/x-m4v'};
 			case 'M4P':
 				return {ext: 'm4p', mime: 'video/mp4'};
@@ -1058,7 +1069,8 @@ fileType.stream = readableStream => new Promise((resolve, reject) => {
 		readableStream.unshift(chunk);
 
 		if (stream.pipeline) {
-			resolve(stream.pipeline(readableStream, pass, () => {}));
+			resolve(stream.pipeline(readableStream, pass, () => {
+			}));
 		} else {
 			resolve(readableStream.pipe(pass));
 		}

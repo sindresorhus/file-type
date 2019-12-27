@@ -137,6 +137,7 @@ Returns a set of supported MIME types.
 - [`webp`](https://en.wikipedia.org/wiki/WebP)
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
+- [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
 - [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file

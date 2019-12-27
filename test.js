@@ -28,6 +28,9 @@ const names = {
 		'fixture4',
 		'fixture5'
 	],
+	cr3: [
+		'fixture'
+	],
 	dng: [
 		'fixture',
 		'fixture2'
