@@ -54,15 +54,17 @@ const fs = require('fs');
 Which can also be used to read from a remote location:
 
 ```js
-const fetch = require('node-fetch');
+const got = require('got');
 const FileType = require('file-type');
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 (async () => {
-	const response = await fetch(url);
-	const fileType = await FileType.fromStream(response.body);
-	console.log(fileType); // { ext: 'jpg', mime: 'image/jpeg' }
+	const stream = got.stream(url);
+	const fileType = await FileType.fromStream(stream);
+
+	console.log(fileType);
+	//=> {ext: 'jpg', mime: 'image/jpeg'}
 })();
 ```
 
