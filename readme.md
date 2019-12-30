@@ -98,7 +98,11 @@ Will be moved to a module with specialized browser methods:
 const FileType = require('file-type/browser');
 
 (async () => {
-	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], { type: 'plain/text', endings: 'native' });
+	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+		type: 'plain/text',
+		endings: 'native'
+	});
+
 	const fileType = await FileType.parseBlob(blob);
 })();
 ```
@@ -111,7 +115,9 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 (async () => {
 	const response = await fetch(url);
 	const fileType = await FileType.fromStream(response.body);
-	console.log(fileType); // { ext: 'jpg', mime: 'image/jpeg' }
+
+	console.log(fileType);
+	//=> {ext: 'jpg', mime: 'image/jpeg'}
 })();
 ```
 
