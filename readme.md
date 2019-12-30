@@ -51,32 +51,30 @@ const fs = require('fs');
 )();
 ```
 
-Or from a remote location:
+Which can also be used to read from a remote location:
 
 ```js
+const got = require('got');
 const FileType = require('file-type');
-const http = require('http');
 
-const url = 'https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif';
+const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-http.get(url, response => {
-	response.on('readable', () => {
-		const chunk = response.read(FileType.minimumBytes);
-		response.destroy();
+(async () => {
+	const stream = got.stream(url);
+	const fileType = await FileType.fromStream(stream);
 
-		console.log(FileType.fromBuffer(chunk)); // ToDo change to stream
-		//=> {ext: 'gif', mime: 'image/gif'}
-	});
-});
+	console.log(fileType);
+	//=> {ext: 'jpg', mime: 'image/jpeg'}
+})();
 ```
 
-Or from a stream:
+Or through a stream:
 
 ```js
 const stream = require('stream');
 const fs = require('fs');
 const crypto = require('crypto');
-const fileType = require('file-type');
+const FileType = require('file-type');
 
 (async () => {
 	const read = fs.createReadStream('encrypted.enc');
@@ -92,7 +90,6 @@ const fileType = require('file-type');
 })();
 ```
 
-
 ##### Browser
 
 Will be moved to a module with specialized browser methods:
@@ -100,12 +97,29 @@ Will be moved to a module with specialized browser methods:
 ```js
 const FileType = require('file-type/browser');
 
+(async () => {
+	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+		type: 'plain/text',
+		endings: 'native'
+	});
 
-FileType.parseBlob(); // ToDo
-
-FileType.parseStream(); // ToDo
+	const fileType = await FileType.parseBlob(blob);
+})();
 ```
 
+```js
+const FileType = require('file-type/browser');
+
+const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
+
+(async () => {
+	const response = await fetch(url);
+	const fileType = await FileType.fromStream(response.body);
+
+	console.log(fileType);
+	//=> {ext: 'jpg', mime: 'image/jpeg'}
+})();
+```
 
 ## API
 
