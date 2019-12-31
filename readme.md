@@ -33,9 +33,9 @@ const FileType = require('file-type');
 const readChunk = require('read-chunk');
 
 (async () => {
-    const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
-    const fileType = await FileType.fromBuffer(buffer);
-    // fileType = {ext: 'png', mime: 'image/png'}
+	const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
+	const fileType = await FileType.fromBuffer(buffer);
+	// fileType = {ext: 'png', mime: 'image/png'}
 })();
 ```
 Determine file type from a stream
@@ -123,44 +123,114 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 ## API
 
-### fileType(input)
 
-Returns an `object` with:
+### FileType.fromBuffer(buffer)
+Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
+If file access is available, it is recommended to use `fromFile()` instead.
+
+Arguments:
+* `path`
+   * _type_: [`Buffer`](https://nodejs.org/api/buffer.html) or [`Uint8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)  or [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
+   * _description_: Buffer representing file content
+
+Returns a `Promise` resolving the detected file type and MIME type:
+- `ext` - One of the [supported file types](#supported-file-types)
+- `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
+
+### FileType.fromFile(path)
+Detect the file type of a file path.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+Arguments:
+* `path`
+    * _type_: string
+    * _description_: The file path to parse
+
+Returns a `Promise` resolving the detected file type and MIME type:
+- `ext` - One of the [supported file types](#supported-file-types)
+- `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
+
+### FileType.fromStream(stream)
+
+Detect the file type of a [Node.js Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+Arguments:
+* `stream`
+    * _type_: [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+    * _description_: Input stream
+
+Returns a `Promise` resolving the detected file type and MIME type:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
 Or `undefined` when there is no match.
 
-#### input
+### FileType.fromTokenizer(tokenizer)
 
-Type: `Buffer | Uint8Array | ArrayBuffer`
+Detect the file type from an ITokenizer source.
+This method is used internally, but can also be used for a special 'tokenizer' reader.
 
-It only needs the first `.minimumBytes` bytes. The exception is detection of `docx`, `pptx`, and `xlsx` which potentially requires reading the whole file.
+A [_tokenizer_](https://github.com/Borewit/strtok3#tokenizer) propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
-### fileType.minimumBytes
+Arguments:
+* `tokenizer`
+    * _type_: [ITokenizer](https://github.com/Borewit/strtok3#tokenizer)
+    * _description_: File source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer)
 
-Type: `number`
+Returns a `Promise` resolving the detected file type and MIME type:
+- `ext` - One of the [supported file types](#supported-file-types)
+- `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
-The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hardcode it.
+Or `undefined` when there is no match.
 
-### fileType.stream(readableStream)
+An example is [@tokenizer/http](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests).
+A difference with a conventional stream and the [_tokenizer_](https://github.com/Borewit/strtok3#tokenizer), is that it is able to _ignore_ (seek, fast-forward) in the stream. 
+For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
+```js
+const {HttpTokenizer} = require('@tokenizer/http');
+const FileType = require('file-type');
+
+const config = {
+	avoidHeadRequests: true
+};
+
+const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
+
+(async () => {
+	const httpTokenizer = HttpTokenizer.fromUrl(audioTrackUrl, config);
+	await httpTokenizer.init();
+
+	const fileType = await FileType.fromTokenizer(httpTokenizer);
+	console.log(fileType);
+	// { ext: 'mp3', mime: 'audio/mpeg' }
+})();
+```
+
+### FileType.stream(readableStream)
 Detect the file type of a readable stream.
+
+Arguments:
+* `readableStream`
+    * _type_: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+    * _description_: Input stream 
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
 
-*Note:* This method is only for Node.js.
+*Note:* This method is only available using Node.js.
 
-#### readableStream
+### FileType.minimumBytes
+Type: `number`
+The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hardcode it.
 
-Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-
-### fileType.extensions
+### FileType.extensions
 
 Returns a set of supported file extensions.
 
-### fileType.mimeTypes
+### FileType.mimeTypes
 
 Returns a set of supported MIME types.
 
