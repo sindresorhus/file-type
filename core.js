@@ -148,7 +148,7 @@ async function fromTokenizer(tokenizer) {
 	if (checkString('ID3')) {
 		await tokenizer.ignore(6); // Skip ID3 header until the header size
 		const id3HeaderLen = await tokenizer.readToken(uint32SyncSafeToken);
-		if (tokenizer.position + id3HeaderLen > tokenizer.fileSize) {
+		if (tokenizer.position + id3HeaderLen > tokenizer.fileInfo.size) {
 			// Guess file type based on ID3 header for backward compatibility
 			return {
 				ext: 'mp3',
@@ -226,7 +226,7 @@ async function fromTokenizer(tokenizer) {
 	// Zip-based file formats
 	// Need to be before the `zip` check
 	if (check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
-		while (tokenizer.position < tokenizer.fileSize) {
+		while (tokenizer.position < tokenizer.fileInfo.size) {
 			await tokenizer.readBuffer(buffer, 0, 30);
 
 			// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
@@ -866,7 +866,7 @@ async function fromTokenizer(tokenizer) {
 				default:
 					await tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
 			}
-		} while (tokenizer.position < tokenizer.fileSize);
+		} while (tokenizer.position < tokenizer.fileInfo.size);
 	}
 
 	if (check([0x41, 0x52, 0x52, 0x4F, 0x57, 0x31, 0x00, 0x00])) {
@@ -927,7 +927,7 @@ async function fromTokenizer(tokenizer) {
 
 		await tokenizer.ignore(30);
 		// Search for header should be in first 1KB of file.
-		while (tokenizer.position + 24 < tokenizer.fileSize) {
+		while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
 			const header = await readHeader();
 			let payload = header.size - 24;
 			if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
@@ -1050,7 +1050,7 @@ async function fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 12 to 256
-	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileSize));
+	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileInfo.size));
 
 	// `raf` is here just to keep all the raw image detectors together.
 	if (checkString('FUJIFILMCCD-RAW')) {
@@ -1141,7 +1141,7 @@ async function fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 256 to 512
-	await tokenizer.peekBuffer(buffer, 0, Math.min(512, tokenizer.fileSize));
+	await tokenizer.peekBuffer(buffer, 0, Math.min(512, tokenizer.fileInfo.size));
 
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum

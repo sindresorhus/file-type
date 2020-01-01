@@ -1,6 +1,6 @@
 /// <reference types="node"/>
 import { Readable } from 'stream';
-import { ITokenizer } from 'strtok3/lib/type';
+import { ITokenizer } from 'strtok3/lib/core';
 
 declare namespace core {
 	type FileType =
