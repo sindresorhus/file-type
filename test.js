@@ -5,7 +5,7 @@ import test from 'ava';
 import readChunk from 'read-chunk';
 import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
-import fileType from '.';
+import FileType from '.';
 
 const supported = require('./supported');
 
@@ -21,6 +21,11 @@ const types = supported.extensions.filter(ext => !missingTests.includes(ext));
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
 const names = {
+	aac: [
+		'fixture-adts-mpeg2',
+		'fixture-adts-mpeg4',
+		'fixture-adts-mpeg4-2'
+	],
 	arw: [
 		'fixture',
 		'fixture2',
@@ -59,13 +64,10 @@ const names = {
 	],
 	mp2: [
 		'fixture',
-		'fixture-mpa',
-		'fixture-faac-adts'
+		'fixture-mpa'
 	],
 	mp3: [
 		'fixture',
-		'fixture-offset1-id3',
-		'fixture-offset1',
 		'fixture-mp2l3',
 		'fixture-ffe3'
 	],
@@ -74,8 +76,7 @@ const names = {
 		'fixture-isom',
 		'fixture-isomv2',
 		'fixture-mp4v2',
-		'fixture-dash',
-		'fixture-aac-adts'
+		'fixture-dash'
 	],
 	tif: [
 		'fixture-big-endian',
@@ -140,40 +141,52 @@ const falsePositives = {
 	]
 };
 
-const checkBufferLike = (t, type, bufferLike) => {
-	const {ext, mime} = fileType(bufferLike) || {};
+async function checkBufferLike(t, type, bufferLike) {
+	const {ext, mime} = await FileType.fromBuffer(bufferLike) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
-};
+}
 
-const testFile = (t, ext, name) => {
+async function checkFile(t, type, filePath) {
+	const {ext, mime} = await FileType.fromFile(filePath) || {};
+	t.is(ext, type);
+	t.is(typeof mime, 'string');
+}
+
+async function testFromFile(t, ext, name) {
+	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	return checkFile(t, ext, file);
+}
+
+async function testFromBuffer(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 	const chunk = readChunk.sync(file, 0, 4 + 4096);
-	checkBufferLike(t, ext, chunk);
-	checkBufferLike(t, ext, new Uint8Array(chunk));
-	checkBufferLike(t, ext, chunk.buffer);
-};
+	await checkBufferLike(t, ext, chunk);
+	await checkBufferLike(t, ext, new Uint8Array(chunk));
+	await checkBufferLike(t, ext, chunk.buffer);
+}
 
-const testFalsePositive = (t, ext, name) => {
+const testFalsePositive = async (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
 	const chunk = readChunk.sync(file, 0, 4 + 4096);
 
-	t.is(fileType(chunk), undefined);
-	t.is(fileType(new Uint8Array(chunk)), undefined);
-	t.is(fileType(chunk.buffer), undefined);
+	t.is(await FileType.fromBuffer(chunk), undefined);
+	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
+	t.is(await FileType.fromBuffer(chunk.buffer), undefined);
 };
 
 const testFileFromStream = async (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const readableStream = await fileType.stream(fs.createReadStream(file));
+	const readableStream = await FileType.stream(fs.createReadStream(file));
 
-	t.deepEqual(readableStream.fileType, fileType(readChunk.sync(file, 0, fileType.minimumBytes)));
+	const _fileType = await FileType.fromBuffer(readChunk.sync(file, 0, FileType.minimumBytes));
+	t.deepEqual(readableStream.fileType, _fileType);
 };
 
 const testStream = async (t, ext, name) => {
 	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
 
-	const readableStream = await fileType.stream(fs.createReadStream(file));
+	const readableStream = await FileType.stream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
 
 	const loadEntireFile = async readable => {
@@ -201,14 +214,16 @@ let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			test(`${type} ${i++}`, testFile, type, name);
-			test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type, name);
-			test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type, name);
+			test(`${name}.${type} ${i++} .fromFile()`, testFromFile, type, name);
+			test(`${name}.${type} ${i++} .fromBuffer()`, testFromBuffer, type, name);
+			test(`${name}.${type} ${i++} .stream() - same fileType`, testFileFromStream, type, name);
+			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
 		}
 	} else {
-		test(`${type} ${i++}`, testFile, type);
-		test(`.stream() method - same fileType - ${type} ${i++}`, testFileFromStream, type);
-		test(`.stream() method - identical streams - ${type} ${i++}`, testStream, type);
+		test(`${type} ${i++} .fromFile()`, testFromFile, type);
+		test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
+		test(`${type} ${i++} .stream() method - same fileType`, testFileFromStream, type);
+		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
 	}
 
 	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
@@ -220,7 +235,7 @@ for (const type of types) {
 
 test('.stream() method - empty stream', async t => {
 	await t.throwsAsync(
-		fileType.stream(readableNoopStream()),
+		FileType.stream(readableNoopStream()),
 		/Expected the `input` argument to be of type `Uint8Array` /
 	);
 });
@@ -236,47 +251,47 @@ test('.stream() method - error event', async t => {
 		}
 	});
 
-	await t.throwsAsync(fileType.stream(readableStream), errorMessage);
+	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
 });
 
-test('fileType.minimumBytes', t => {
-	t.true(fileType.minimumBytes > 4000);
+test('FileType.minimumBytes', t => {
+	t.true(FileType.minimumBytes > 4000);
 });
 
-test('fileType.extensions.has', t => {
-	t.true(fileType.extensions.has('jpg'));
-	t.false(fileType.extensions.has('blah'));
+test('FileType.extensions.has', t => {
+	t.true(FileType.extensions.has('jpg'));
+	t.false(FileType.extensions.has('blah'));
 });
 
-test('fileType.mimeTypes.has', t => {
-	t.true(fileType.mimeTypes.has('video/mpeg'));
-	t.false(fileType.mimeTypes.has('video/blah'));
+test('FileType.mimeTypes.has', t => {
+	t.true(FileType.mimeTypes.has('video/mpeg'));
+	t.false(FileType.mimeTypes.has('video/blah'));
 });
 
-test('validate the input argument type', t => {
-	t.throws(() => {
-		fileType('x');
+test('validate the input argument type', async t => {
+	await t.throwsAsync(async () => {
+		await FileType.fromBuffer('x');
 	}, /Expected the `input` argument to be of type `Uint8Array`/);
 
-	t.notThrows(() => {
-		fileType(Buffer.from('x'));
+	await t.notThrowsAsync(async () => {
+		await FileType.fromBuffer(Buffer.from('x'));
 	});
 
-	t.notThrows(() => {
-		fileType(new Uint8Array());
+	await t.notThrowsAsync(async () => {
+		await FileType.fromBuffer(new Uint8Array());
 	});
 
-	t.notThrows(() => {
-		fileType(new ArrayBuffer());
+	await t.notThrowsAsync(async () => {
+		await FileType.fromBuffer(new ArrayBuffer());
 	});
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
-	// File: index.js (base truth)
+	// File: core.js (base truth)
 	function readIndexJS() {
-		const index = fs.readFileSync('index.js', {encoding: 'utf8'});
-		const extArray = index.match(/(?<=ext:\s')(.*)(?=',)/g);
-		const mimeArray = index.match(/(?<=mime:\s')(.*)(?=')/g);
+		const core = fs.readFileSync('core.js', {encoding: 'utf8'});
+		const extArray = core.match(/(?<=ext:\s')(.*)(?=',)/g);
+		const mimeArray = core.match(/(?<=mime:\s')(.*)(?=')/g);
 		const exts = new Set(extArray);
 		const mimes = new Set(mimeArray);
 
@@ -286,10 +301,10 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		};
 	}
 
-	// File: index.d.ts
+	// File: core.d.ts
 	function readIndexDTS() {
-		const index = fs.readFileSync('index.d.ts', {encoding: 'utf8'});
-		const matches = index.match(/(?<=\|\s')(.*)(?=')/g);
+		const core = fs.readFileSync('core.d.ts', {encoding: 'utf8'});
+		const matches = core.match(/(?<=\|\s')(.*)(?=')/g);
 		const extArray = [];
 		const mimeArray = [];
 
@@ -309,8 +324,8 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 	// File: package.json
 	function readPackageJSON() {
-		const index = fs.readFileSync('package.json', {encoding: 'utf8'});
-		const {keywords} = JSON.parse(index);
+		const packageJson = fs.readFileSync('package.json', {encoding: 'utf8'});
+		const {keywords} = JSON.parse(packageJson);
 
 		const allowedExtras = new Set([
 			'mime',
@@ -357,12 +372,12 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		}, []);
 	}
 
-	// Find extensions/mimes that are in another file but not in `index.js`
+	// Find extensions/mimes that are in another file but not in `core.js`
 	function findExtras(array, set) {
 		return array.filter(element => !set.has(element));
 	}
 
-	// Find extensions/mimes that are in `index.js` but missing from another file
+	// Find extensions/mimes that are in `core.js` but missing from another file
 	function findMissing(array, set) {
 		const missing = [];
 		const other = new Set(array);
@@ -385,12 +400,12 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
 	}
 
-	// Get the base truth of extensions and mimes supported from index.js
+	// Get the base truth of extensions and mimes supported from core.js
 	const {exts, mimes} = readIndexJS();
 
 	// Validate all extensions
 	const filesWithExtensions = {
-		'index.d.ts': readIndexDTS().extArray,
+		'core.d.ts': readIndexDTS().extArray,
 		'supported.js': supported.extensions,
 		'package.json': readPackageJSON(),
 		'readme.md': readReadmeMD()
@@ -405,7 +420,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 	// Validate all mimes
 	const filesWithMimeTypes = {
-		'index.d.ts': readIndexDTS().mimeArray,
+		'core.d.ts': readIndexDTS().mimeArray,
 		'supported.js': supported.mimeTypes
 	};
 

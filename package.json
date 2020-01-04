@@ -18,6 +18,9 @@
 	"files": [
 		"index.js",
 		"index.d.ts",
+		"browser.js",
+		"core.js",
+		"core.d.ts",
 		"supported.js",
 		"util.js"
 	],
@@ -158,7 +161,9 @@
 		"dcm",
 		"mpc",
 		"arrow",
-		"shp"
+		"shp",
+		"aac",
+		"mp1"
 	],
 	"devDependencies": {
 		"@types/node": "^12.7.2",
@@ -168,5 +173,22 @@
 		"read-chunk": "^3.2.0",
 		"tsd": "^0.7.1",
 		"xo": "^0.24.0"
+	},
+	"dependencies": {
+		"readable-web-to-node-stream": "^2.0.0",
+		"strtok3": "^5.0.0",
+		"token-types": "^2.0.0",
+		"typedarray-to-buffer": "^3.1.5"
+	},
+	"xo": {
+		"envs": [
+			"node",
+			"browser"
+		],
+		"rules": {
+			"no-inner-declarations": 1,
+			"no-await-in-loop": 1,
+			"promise/prefer-await-to-then": 1
+		}
 	}
 }
