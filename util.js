@@ -45,9 +45,9 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 exports.uint8ArrayUtf8ByteString = uint8ArrayUtf8ByteString;
 
 /**
- * ID3 UINT32 sync-safe tokenizer token
- * 28 bits (representing up to 256MB) integer, the msb is 0 to avoid 'false syncsignals'
- */
+ID3 UINT32 sync-safe tokenizer token.
+28 bits (representing up to 256MB) integer, the msb is 0 to avoid "false syncsignals".
+*/
 exports.uint32SyncSafeToken = {
 	get: (buffer, offset) => {
 		return (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2]) << 7) | ((buffer[offset + 1]) << 14) | ((buffer[offset]) << 21);

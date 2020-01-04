@@ -127,7 +127,7 @@ const names = {
 		'fixture-little-endian'
 	],
 	m4a: [
-		'fixture-babys-songbook.m4b' // Actually it is an .m4b
+		'fixture-babys-songbook.m4b' // Actually it's an `.m4b`
 	]
 };
 
@@ -364,7 +364,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Find extensions/mimes that are defined twice in a file
 	function findDuplicates(input) {
 		return input.reduce((accumulator, element, index, array) => {
-			if (array.indexOf(element) !== index && accumulator.indexOf(element) < 0) {
+			if (array.indexOf(element) !== index && !accumulator.includes(element)) {
 				accumulator.push(element);
 			}
 

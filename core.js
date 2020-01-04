@@ -35,20 +35,20 @@ function fromBuffer(input) {
 	return fromTokenizer(tokenizer);
 }
 
-function _check(buffer, header, options) {
+function _check(buffer, headers, options) {
 	options = {
 		offset: 0,
 		...options
 	};
 
-	for (let i = 0; i < header.length; i++) {
+	for (const [index, header] of headers.entries()) {
 		// If a bitmask is set
 		if (options.mask) {
 			// If header doesn't equal `buf` with bits masked off
-			if (header[i] !== (options.mask[i] & buffer[i + options.offset])) {
+			if (header !== (options.mask[index] & buffer[index + options.offset])) {
 				return false;
 			}
-		} else if (header[i] !== buffer[i + options.offset]) {
+		} else if (header !== buffer[index + options.offset]) {
 			return false;
 		}
 	}
@@ -59,11 +59,7 @@ function _check(buffer, header, options) {
 async function fromTokenizer(tokenizer) {
 	let buffer = Buffer.alloc(minimumBytes);
 	const bytesRead = 12;
-
-	function check(header, options) {
-		return _check(buffer, header, options);
-	}
-
+	const check = (header, options) => _check(buffer, header, options);
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
 	await tokenizer.peekBuffer(buffer, 0, bytesRead);
@@ -1049,7 +1045,7 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
-	// Increase sample size from 12 to 256
+	// Increase sample size from 12 to 256.
 	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileInfo.size));
 
 	// `raf` is here just to keep all the raw image detectors together.

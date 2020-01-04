@@ -4,7 +4,6 @@
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-
 ## Install
 
 ```
@@ -13,45 +12,51 @@ $ npm install file-type
 
 ## Usage
 
-❗️ Please be aware, the API changed, to support smarter and more specialized methods to determine the file type ❗️
+❗️ Please be aware, the API recently changed to support smarter and more specialized methods to determine the file type.
 
-##### Node.js
+#### Node.js
 
 Determine file type from a file:
+
 ```js
 const FileType = require('file-type');
 
 (async () => {
-	const fileType = await FileType.fromFile('/home/borewit/Pictures/background.png');
-	// fileType = {ext: 'png', mime: 'image/png'}
+	console.log(await FileType.fromFile('Unicorn.png'));
+	//=> {ext: 'png', mime: 'image/png'}
 })();
 ```
 
-Determine file type from a Buffer, which may be a portion of the beginning of a file.
+Determine file type from a Buffer, which may be a portion of the beginning of a file:
+
 ```js
 const FileType = require('file-type');
 const readChunk = require('read-chunk');
 
 (async () => {
-	const buffer = readChunk.sync('unicorn.png', 0, fileType.minimumBytes);
-	const fileType = await FileType.fromBuffer(buffer);
-	// fileType = {ext: 'png', mime: 'image/png'}
+	const buffer = readChunk.sync('Unicorn.png', 0, fileType.minimumBytes);
+
+	console.log(await FileType.fromBuffer(buffer));
+	//=> {ext: 'png', mime: 'image/png'}
 })();
 ```
-Determine file type from a stream
+
+Determine file type from a stream:
+
 ```js
-const FileType = require('file-type');
 const fs = require('fs');
+const FileType = require('file-type');
 
 (async () => {
-	const stream = fs.createReadStream('/Users/adam/myFile.mp4');
-	const fileType = await FileType.fromStream(stream);
-	// fileType = {ext: 'mp4', mime: 'image/mp4'}
+	const stream = fs.createReadStream('Unicorn.mp4');
+
+	console.log(await FileType.fromStream(stream));
+	//=> {ext: 'mp4', mime: 'image/mp4'}
 }
 )();
 ```
 
-Which can also be used to read from a remote location:
+The stream method can also be used to read from a remote location:
 
 ```js
 const got = require('got');
@@ -61,14 +66,13 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 (async () => {
 	const stream = got.stream(url);
-	const fileType = await FileType.fromStream(stream);
 
-	console.log(fileType);
+	console.log(await FileType.fromStream(stream));
 	//=> {ext: 'jpg', mime: 'image/jpeg'}
 })();
 ```
 
-Or through a stream:
+Another stream example:
 
 ```js
 const stream = require('stream');
@@ -90,22 +94,7 @@ const FileType = require('file-type');
 })();
 ```
 
-##### Browser
-
-Will be moved to a module with specialized browser methods:
-
-```js
-const FileType = require('file-type/browser');
-
-(async () => {
-	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-		type: 'plain/text',
-		endings: 'native'
-	});
-
-	const fileType = await FileType.parseBlob(blob);
-})();
-```
+#### Browser
 
 ```js
 const FileType = require('file-type/browser');
@@ -121,109 +110,140 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 })();
 ```
 
+```js
+const FileType = require('file-type/browser');
+
+(async () => {
+	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+		type: 'plain/text',
+		endings: 'native'
+	});
+
+	console.log(await FileType.parseBlob(blob));
+	//=> {ext: 'txt', mime: 'plain/text'}
+})();
+```
+
 ## API
 
-
 ### FileType.fromBuffer(buffer)
-Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`.
+
+Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
+
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-If file access is available, it is recommended to use `fromFile()` instead.
+If file access is available, it is recommended to use `FileType.fromFile()` instead.
 
-Arguments:
-* `path`
-   * _type_: [`Buffer`](https://nodejs.org/api/buffer.html) or [`Uint8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)  or [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
-   * _description_: Buffer representing file content
+Returns a `Promise` for an object with the detected file type and MIME type:
 
-Returns a `Promise` resolving the detected file type and MIME type:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
-### FileType.fromFile(path)
+Or `undefined` when there is no match.
+
+#### buffer
+
+Type: `Buffer | Uint8Array | ArrayBuffer`
+
+A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
+
+### FileType.fromFile(filePath)
+
 Detect the file type of a file path.
+
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-Arguments:
-* `path`
-    * _type_: string
-    * _description_: The file path to parse
+Returns a `Promise` for an object with the detected file type and MIME type:
 
-Returns a `Promise` resolving the detected file type and MIME type:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
+
+Or `undefined` when there is no match.
+
+#### filePath
+
+Type: `string`
+
+The file path to parse.
 
 ### FileType.fromStream(stream)
 
-Detect the file type of a [Node.js Readable](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-Arguments:
-* `stream`
-    * _type_: [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-    * _description_: Input stream
+Returns a `Promise` for an object with the detected file type and MIME type:
 
-Returns a `Promise` resolving the detected file type and MIME type:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
 Or `undefined` when there is no match.
+
+#### stream
+
+Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+
+A readable stream representing file data.
 
 ### FileType.fromTokenizer(tokenizer)
 
-Detect the file type from an ITokenizer source.
-This method is used internally, but can also be used for a special 'tokenizer' reader.
+Detect the file type from an `ITokenizer` source.
 
-A [_tokenizer_](https://github.com/Borewit/strtok3#tokenizer) propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
+This method is used internally, but can also be used for a special "tokenizer" reader.
 
-Arguments:
-* `tokenizer`
-    * _type_: [ITokenizer](https://github.com/Borewit/strtok3#tokenizer)
-    * _description_: File source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer)
+A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
-Returns a `Promise` resolving the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type and MIME type:
+
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
 Or `undefined` when there is no match.
 
-An example is [@tokenizer/http](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests).
-A difference with a conventional stream and the [_tokenizer_](https://github.com/Borewit/strtok3#tokenizer), is that it is able to _ignore_ (seek, fast-forward) in the stream. 
-For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
+An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it can *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
 ```js
 const {HttpTokenizer} = require('@tokenizer/http');
 const FileType = require('file-type');
 
-const config = {
-	avoidHeadRequests: true
-};
-
 const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
 
 (async () => {
-	const httpTokenizer = HttpTokenizer.fromUrl(audioTrackUrl, config);
+	const httpTokenizer = HttpTokenizer.fromUrl(audioTrackUrl, {
+		avoidHeadRequests: true
+	});
+
 	await httpTokenizer.init();
 
-	const fileType = await FileType.fromTokenizer(httpTokenizer);
-	console.log(fileType);
-	// { ext: 'mp3', mime: 'audio/mpeg' }
+	console.log(await FileType.fromTokenizer(httpTokenizer));
+	//=> {ext: 'mp3', mime: 'audio/mpeg'}
 })();
 ```
 
+#### tokenizer
+
+Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
+
+File source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
+
 ### FileType.stream(readableStream)
-Detect the file type of a readable stream.
 
-Arguments:
-* `readableStream`
-    * _type_: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-    * _description_: Input stream 
+Detect the file type of a readable stream and return the stream.
 
-Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
+#### readableStream
+
+Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+
+The input stream.
+
+Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
 *Note:* This method is only available using Node.js.
 
 ### FileType.minimumBytes
+
 Type: `number`
+
 The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hardcode it.
 
 ### FileType.extensions
@@ -233,7 +253,6 @@ Returns a set of supported file extensions.
 ### FileType.mimeTypes
 
 Returns a set of supported MIME types.
-
 
 ## Supported file types
 
@@ -362,18 +381,15 @@ Returns a set of supported MIME types.
 
 *Pull requests are welcome for additional commonly used file types, except for `doc`, `xls`, `ppt`.*
 
-
 ## file-type for enterprise
 
 Available as part of the Tidelift Subscription.
 
 The maintainers of file-type and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/npm-file-type?utm_source=npm-file-type&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
-
 ## Related
 
 - [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
-
 
 ## Maintainers
 

@@ -166,13 +166,13 @@
 		"mp1"
 	],
 	"devDependencies": {
-		"@types/node": "^12.7.2",
+		"@types/node": "^13.1.4",
 		"ava": "^2.3.0",
 		"noop-stream": "^0.1.0",
 		"pify": "^4.0.1",
 		"read-chunk": "^3.2.0",
-		"tsd": "^0.7.1",
-		"xo": "^0.24.0"
+		"tsd": "^0.7.0",
+		"xo": "^0.25.3"
 	},
 	"dependencies": {
 		"readable-web-to-node-stream": "^2.0.0",
@@ -186,9 +186,9 @@
 			"browser"
 		],
 		"rules": {
-			"no-inner-declarations": 1,
-			"no-await-in-loop": 1,
-			"promise/prefer-await-to-then": 1
+			"no-inner-declarations": "warn",
+			"no-await-in-loop": "warn",
+			"promise/prefer-await-to-then": "warn"
 		}
 	}
 }

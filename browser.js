@@ -11,15 +11,15 @@ async function fromStream(stream) {
 }
 
 async function fromBlob(blob) {
-	const buf = await convertBlobToBuffer(blob);
-	return core.fromBuffer(buf);
+	const buffer = await convertBlobToBuffer(blob);
+	return core.fromBuffer(buffer);
 }
 
 /**
- * Convert Web API File to Node Buffer
- * @param {Blob} blob Web API Blob
- * @return {Promise<Buffer>}
- */
+Convert Web API File to Node Buffer.
+@param {Blob} blob - Web API Blob.
+@returns {Promise<Buffer>}
+*/
 function convertBlobToBuffer(blob) {
 	return new Promise((resolve, reject) => {
 		const fileReader = new FileReader();

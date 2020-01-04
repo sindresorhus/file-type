@@ -1,9 +1,9 @@
 /// <reference types="node"/>
-import { Readable } from 'stream';
-import { ITokenizer } from 'strtok3/lib/core';
+import {Readable as ReadableStream} from 'stream';
+import {ITokenizer} from 'strtok3/lib/core';
 
 declare namespace core {
-	type FileType =
+	type FileExtension =
 		| 'jpg'
 		| 'png'
 		| 'apng'
@@ -237,88 +237,119 @@ declare namespace core {
 		| 'video/x-m4v'
 		| 'video/3gpp2'
 		| 'application/x-esri-shape'
-		| 'audio/aac'
+		| 'audio/aac';
 
 	interface FileTypeResult {
 		/**
 		One of the supported [file types](https://github.com/sindresorhus/file-type#supported-file-types).
-		 */
-		ext: FileType;
+		*/
+		ext: FileExtension;
 
 		/**
 		The detected [MIME type](https://en.wikipedia.org/wiki/Internet_media_type).
-		 */
+		*/
 		mime: MimeType;
 	}
 
-	type ReadableStreamWithFileType = Readable & {
+	type ReadableStreamWithFileType = ReadableStream & {
 		readonly fileType?: FileTypeResult;
 	};
 
 	/**
-	Detect the file type of a `Buffer`/`Uint8Array`/`ArrayBuffer`. The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+	Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
- 	If file access is available, it is recommended to use `fromFile()` instead
+	The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-	@param buffer - It works best if the buffer contains the entire file, it may work with a smaller portion as well
-	@returns The detected file type and MIME type, or `undefined` when there was no match.
-	 */
+	If file access is available, it is recommended to use `.fromFile()` instead.
+
+	@param buffer - A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
+	@returns The detected file type and MIME type, or `undefined` when there is no match.
+	*/
 	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer): Promise<core.FileTypeResult | undefined>;
 
 	/**
-	Detect the file type of a Node.js Readable.
-  The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+	Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
-	@param stream - Node.js readable stream
-	@returns The detected file type and MIME type, or `undefined` when there was no match.
-	 */
-	function fromStream(stream: Readable): Promise<core.FileTypeResult | undefined>;
+	The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+	@param stream - A readable stream representing file data.
+	@returns The detected file type and MIME type, or `undefined` when there is no match.
+	*/
+	function fromStream(stream: ReadableStream): Promise<core.FileTypeResult | undefined>;
 
 	/**
-	 Detect the file type from an ITokenizer source.
-	 This method is used internally, but can also be used for a special 'tokenizer' reader.
-	 For more information see: https://github.com/Borewit/strtok3#tokenizer
-	 @param tokenizer - File source implementing the tokenizer interface.
-	 @returns The detected file type and MIME type, or `undefined` when there was no match.
-	 */
+	Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
+
+	This method is used internally, but can also be used for a special "tokenizer" reader.
+
+	A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
+
+	An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it is able to *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
+
+	```
+	import {HttpTokenizer} = require('@tokenizer/http');
+	import FileType = require('file-type');
+
+	const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
+
+	(async () => {
+		const httpTokenizer = HttpTokenizer.fromUrl(audioTrackUrl, {
+			avoidHeadRequests: true
+		});
+
+		await httpTokenizer.init();
+
+		console.log(await FileType.fromTokenizer(httpTokenizer));
+		//=> {ext: 'mp3', mime: 'audio/mpeg'}
+	})();
+	```
+
+	@param tokenizer - File source implementing the tokenizer interface.
+	@returns The detected file type and MIME type, or `undefined` when there is no match.
+	*/
 	function fromTokenizer(tokenizer: ITokenizer): Promise<core.FileTypeResult>;
 
 	/**
 	Deprecated: The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
-	 */
+	*/
 	const minimumBytes: number;
 
 	/**
 	Supported file extensions.
-	 */
-	const extensions: readonly core.FileType[];
+	*/
+	const extensions: readonly core.FileExtension[];
 
 	/**
 	Supported MIME types.
-	 */
+	*/
 	const mimeTypes: readonly core.MimeType[];
 
 	/**
 	Detect the file type of a readable stream.
-	@param readableStream - A readable stream containing a file to examine, see: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
-	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileType()`.
+
+	@param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
+	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
+
 	@example
 	```
 	import * as fs from 'fs';
 	import * as crypto from 'crypto';
 	import fileType = require('file-type');
+
 	(async () => {
 		const read = fs.createReadStream('encrypted.enc');
 		const decipher = crypto.createDecipheriv(alg, key, iv);
 		const stream = await fileType.stream(read.pipe(decipher));
+
 		console.log(stream.fileType);
 		//=> {ext: 'mov', mime: 'video/quicktime'}
+
 		const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
 		stream.pipe(write);
 	})();
 	```
-	 */
-	function stream(readableStream: Readable): Promise<core.ReadableStreamWithFileType>
+	*/
+	function stream(readableStream: ReadableStream): Promise<core.ReadableStreamWithFileType>
 }
 
 export = core;
