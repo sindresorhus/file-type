@@ -10,7 +10,7 @@
 		"url": "sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=8"
+		"node": ">=10"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -188,7 +188,8 @@
 		"rules": {
 			"no-inner-declarations": "warn",
 			"no-await-in-loop": "warn",
-			"promise/prefer-await-to-then": "warn"
+			"promise/prefer-await-to-then": "warn",
+			"prefer-named-capture-group": "off"
 		}
 	}
 }
