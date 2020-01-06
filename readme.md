@@ -213,7 +213,7 @@ const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%2020
 	const fileType = await FileType.fromTokenizer(httpTokenizer);
 
 	console.log(fileType);
-	// => {ext: 'mp3', mime: 'audio/mpeg'}
+	//=> {ext: 'mp3', mime: 'audio/mpeg'}
 })();
 ```
 
