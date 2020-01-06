@@ -24,7 +24,8 @@ const names = {
 	aac: [
 		'fixture-adts-mpeg2',
 		'fixture-adts-mpeg4',
-		'fixture-adts-mpeg4-2'
+		'fixture-adts-mpeg4-2',
+		'fixture-id3v2'
 	],
 	arw: [
 		'fixture',
@@ -128,8 +129,18 @@ const names = {
 	],
 	m4a: [
 		'fixture-babys-songbook.m4b' // Actually it's an `.m4b`
+	],
+	flac: [
+		'fixture',
+		'fixture-id3v2' // FLAC prefixed with ID3v2 header
 	]
 };
+
+// Following types cannot be detected within 4k sample size boundary
+const cannotDetectInBuffer = [
+	'fixture-id3v2.aac',
+	'fixture-id3v2.flac'
+];
 
 // Define an entry here only if the file type has potential
 // for false-positives
@@ -159,7 +170,13 @@ async function testFromFile(t, ext, name) {
 }
 
 async function testFromBuffer(t, ext, name) {
-	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const fixtureName = `${(name || 'fixture')}.${ext}`;
+	if (cannotDetectInBuffer.includes(fixtureName)) {
+		t.pass();
+		return;
+	}
+
+	const file = path.join(__dirname, 'fixture', fixtureName);
 	const chunk = readChunk.sync(file, 0, 4 + 4096);
 	await checkBufferLike(t, ext, chunk);
 	await checkBufferLike(t, ext, new Uint8Array(chunk));
@@ -184,7 +201,14 @@ const testFileFromStream = async (t, ext, name) => {
 };
 
 const testStream = async (t, ext, name) => {
-	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const fixtureName = `${(name || 'fixture')}.${ext}`;
+
+	if (cannotDetectInBuffer.includes(fixtureName)) {
+		t.pass();
+		return;
+	}
+
+	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await FileType.stream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
