@@ -224,21 +224,21 @@ const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%2020
 
 Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
-File source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
+A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
 ### FileType.stream(readableStream)
 
-Detect the file type of a readable stream and return the stream.
+Detect the file type of a readable stream.
+
+Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
+
+*Note:* This method is only available using Node.js.
 
 #### readableStream
 
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 The input stream.
-
-Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
-
-*Note:* This method is only available using Node.js.
 
 ### FileType.minimumBytes
 
