@@ -203,19 +203,16 @@ Or `undefined` when there is no match.
 An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it can *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
 ```js
-const {HttpTokenizer} = require('@tokenizer/http');
+const {makeTokenizer} = require('@tokenizer/http');
 const FileType = require('file-type');
 
 const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
 
 (async () => {
-	const httpTokenizer = HttpTokenizer.fromUrl(audioTrackUrl, {
-		avoidHeadRequests: true
-	});
+	const httpTokenizer = await makeTokenizer(audioTrackUrl);
+	const fileType = await FileType.fromTokenizer(httpTokenizer);
 
-	await httpTokenizer.init();
-
-	console.log(await FileType.fromTokenizer(httpTokenizer));
+	console.log(fileType);
 	//=> {ext: 'mp3', mime: 'audio/mpeg'}
 })();
 ```
