@@ -294,10 +294,10 @@ declare namespace core {
 
 	(async () => {
 		const httpTokenizer = await makeTokenizer(audioTrackUrl);
-
 		const fileType = await FileType.fromTokenizer(httpTokenizer);
+
 		console.log(fileType);
-		// => {ext: 'mp3', mime: 'audio/mpeg'}
+		//=> {ext: 'mp3', mime: 'audio/mpeg'}
 	})();
 	```
 
