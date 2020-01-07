@@ -393,3 +393,4 @@ The maintainers of file-type and thousands of other packages are working with Ti
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Mikael Finstad](https://github.com/mifi)
 - [Ben Brook](https://github.com/bencmbrook)
+- [@Borewit](https://github.com/Borewit)
