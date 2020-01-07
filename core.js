@@ -1,6 +1,7 @@
 'use strict';
 const Token = require('token-types');
 const strtok3 = require('strtok3/lib/core');
+const {tee} = require('t-readable');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -1233,31 +1234,11 @@ async function _fromTokenizer(tokenizer) {
 	}
 }
 
-const stream = readableStream => new Promise((resolve, reject) => {
-	// Using `eval` to work around issues when bundling with Webpack
-	const stream = eval('require')('stream'); // eslint-disable-line no-eval
-
-	readableStream.on('error', reject);
-	readableStream.once('readable', async () => {
-		const pass = new stream.PassThrough();
-		const chunk = readableStream.read(minimumBytes) || readableStream.read();
-		try {
-			const fileType = await fromBuffer(chunk);
-			pass.fileType = fileType;
-		} catch (error) {
-			reject(error);
-		}
-
-		readableStream.unshift(chunk);
-
-		if (stream.pipeline) {
-			resolve(stream.pipeline(readableStream, pass, () => {
-			}));
-		} else {
-			resolve(readableStream.pipe(pass));
-		}
-	});
-});
+async function stream(readableStream) {
+	const outputs = tee(readableStream, 2);
+	outputs[0].fileType = await fromStream(outputs[1]);
+	return outputs[0];
+}
 
 const fileType = {
 	fromStream,
