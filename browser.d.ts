@@ -37,3 +37,11 @@ import FileType = require('file-type/browser');
 ```
 */
 export declare function fromeBlob(blob: Blob): Promise<core.FileType>;
+
+export {
+	fromBuffer,
+	minimumBytes,
+	extensions,
+	mimeTypes,
+	stream
+} from './core';
