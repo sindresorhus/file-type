@@ -19,6 +19,7 @@
 		"index.js",
 		"index.d.ts",
 		"browser.js",
+		"browser.d.ts",
 		"core.js",
 		"core.d.ts",
 		"supported.js",
