@@ -13,6 +13,7 @@
 		"node": ">=10"
 	},
 	"scripts": {
+		"ava": "ava --serial --verbose",
 		"test": "xo && ava && tsd"
 	},
 	"files": [
