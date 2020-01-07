@@ -171,10 +171,6 @@ async function testFromFile(t, ext, name) {
 
 async function testFromBuffer(t, ext, name) {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
-	if (cannotDetectInBuffer.includes(fixtureName)) {
-		t.pass();
-		return;
-	}
 
 	const file = path.join(__dirname, 'fixture', fixtureName);
 	const chunk = readChunk.sync(file, 0, 4 + 4096);
@@ -202,12 +198,6 @@ const testFileFromStream = async (t, ext, name) => {
 
 const testStream = async (t, ext, name) => {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
-
-	if (cannotDetectInBuffer.includes(fixtureName)) {
-		t.pass();
-		return;
-	}
-
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await FileType.stream(fs.createReadStream(file));
@@ -238,15 +228,21 @@ let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			test(`${name}.${type} ${i++} .fromFile()`, testFromFile, type, name);
-			test(`${name}.${type} ${i++} .fromBuffer()`, testFromBuffer, type, name);
-			test(`${name}.${type} ${i++} .stream() - same fileType`, testFileFromStream, type, name);
+			const fixtureName = `${name}.${type}`;
+			const test4k = cannotDetectInBuffer.includes(fixtureName) ? test.failing : test;
+
+			test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
+			test4k(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
+			test(`${name}.${type} ${i++} .fromStream() method - same fileType`, testFileFromStream, type, name);
 			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
 		}
 	} else {
+		const fixtureName = `fixture.${type}`;
+		const test4k = cannotDetectInBuffer.includes(fixtureName) ? test.failing : test;
+
 		test(`${type} ${i++} .fromFile()`, testFromFile, type);
-		test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
-		test(`${type} ${i++} .stream() method - same fileType`, testFileFromStream, type);
+		test4k(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
+		test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
 		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
 	}
 
