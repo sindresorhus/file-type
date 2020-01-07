@@ -40,7 +40,6 @@ export declare function fromeBlob(blob: Blob): Promise<core.FileType>;
 
 export {
 	fromBuffer,
-	fromStream,
 	minimumBytes,
 	extensions,
 	mimeTypes,
