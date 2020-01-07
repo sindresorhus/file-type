@@ -245,12 +245,12 @@ declare namespace core {
 		/**
 		One of the supported [file types](https://github.com/sindresorhus/file-type#supported-file-types).
 		*/
-		ext: FileExtension;
+		readonly ext: FileExtension;
 
 		/**
 		The detected [MIME type](https://en.wikipedia.org/wiki/Internet_media_type).
 		*/
-		mime: MimeType;
+		readonly mime: MimeType;
 	}
 
 	type ReadableStreamWithFileType = ReadableStream & {
@@ -306,7 +306,7 @@ declare namespace core {
 	@param tokenizer - File source implementing the tokenizer interface.
 	@returns The detected file type and MIME type, or `undefined` when there is no match.
 	*/
-	function fromTokenizer(tokenizer: ITokenizer): Promise<core.FileTypeResult>;
+	function fromTokenizer(tokenizer: ITokenizer): Promise<core.FileTypeResult | undefined>;
 
 	/**
 	Deprecated: The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.

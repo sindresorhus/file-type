@@ -22,7 +22,7 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 })();
 ```
 */
-export declare function fromStream(stream: ReadableStream): Promise<core.FileTypeResult>;
+export declare function fromStream(stream: ReadableStream): Promise<core.FileTypeResult | undefined>;
 
 /**
 Determine file type from a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
@@ -41,7 +41,7 @@ import FileType = require('file-type/browser');
 })();
 ```
 */
-export declare function fromBlob(blob: Blob): Promise<core.FileTypeResult>;
+export declare function fromBlob(blob: Blob): Promise<core.FileTypeResult | undefined>;
 
 export {
 	fromBuffer,

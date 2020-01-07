@@ -1,7 +1,9 @@
 import * as fs from 'fs';
 import {expectType} from 'tsd';
 import FileType = require('.');
-import {FileTypeResult, ReadableStreamWithFileType, FileExtension} from '.';
+import {FileTypeResult, ReadableStreamWithFileType, FileExtension, MimeType} from '.';
+import FileTypeBrowser = require('./browser');
+import {FileTypeResult as FileTypeResultBrowser} from './browser';
 
 expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Buffer([0xff, 0xd8, 0xff])));
 expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Uint8Array([0xff, 0xd8, 0xff])));
@@ -11,17 +13,17 @@ expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuf
 	const result = await FileType.fromBuffer(new Buffer([0xff, 0xd8, 0xff]));
 	if (result !== undefined) {
 		expectType<FileExtension>(result.ext);
-		expectType<string>(result.mime);
+		expectType<MimeType>(result.mime);
 	}
 })();
 
 (async () => {
 	expectType<FileTypeResult | undefined>(await FileType.fromFile('myFile'));
 
-	const fileRes = await FileType.fromFile('myFile');
-	if (fileRes !== undefined) {
-		expectType<FileExtension>(fileRes.ext);
-		expectType<string>(fileRes.mime);
+	const result = await FileType.fromFile('myFile');
+	if (result !== undefined) {
+		expectType<FileExtension>(result.ext);
+		expectType<MimeType>(result.mime);
 	}
 })();
 
@@ -30,10 +32,10 @@ expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuf
 
 	expectType<FileTypeResult | undefined>(await FileType.fromStream(stream));
 
-	const fileRes = await FileType.fromStream(stream);
-	if (fileRes !== undefined) {
-		expectType<FileExtension>(fileRes.ext);
-		expectType<string>(fileRes.mime);
+	const result = await FileType.fromStream(stream);
+	if (result !== undefined) {
+		expectType<FileExtension>(result.ext);
+		expectType<MimeType>(result.mime);
 	}
 })();
 
@@ -50,3 +52,6 @@ expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 (async () => {
 	expectType<FileTypeResult | undefined>((await streamWithFileType).fileType);
 })();
+
+// Browser
+expectType<Promise<FileTypeResult | undefined>>(FileTypeBrowser.fromBlob(new Blob()));
