@@ -36,12 +36,11 @@ import FileType = require('file-type/browser');
 })();
 ```
 */
-export declare function fromeBlob(blob: Blob): Promise<core.FileTypeResult>;
+export declare function fromBlob(blob: Blob): Promise<core.FileTypeResult>;
 
 export {
 	fromBuffer,
 	minimumBytes,
 	extensions,
-	mimeTypes,
-	stream
+	mimeTypes
 } from './core';
