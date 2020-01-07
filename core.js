@@ -435,6 +435,8 @@ async function fromTokenizer(tokenizer) {
 				return {ext: 'f4a', mime: 'audio/mp4'};
 			case 'F4B':
 				return {ext: 'f4b', mime: 'audio/mp4'};
+			case 'crx':
+				return {ext: 'cr3',	mime: 'image/x-canon-cr3'};
 			default:
 				if (brandMajor.startsWith('3g')) {
 					if (brandMajor.startsWith('3g2')) {
@@ -538,23 +540,15 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
-	// `cr2`, `orf`, and `arw` need to be before `tif` check
-	if (
-		(check([0x49, 0x49, 0x2A, 0x0]) || check([0x4D, 0x4D, 0x0, 0x2A])) &&
-		check([0x43, 0x52], {offset: 8})
-	) {
-		return {
-			ext: 'cr2',
-			mime: 'image/x-canon-cr2'
-		};
-	}
+	if (check([0x49, 0x49, 0x2A, 0x0] || [0x4D, 0x4D, 0x0, 0x2A])) {
+		if (checkString('CR', {offset: 8})) {
+			return {
+				ext: 'cr2',
+				mime: 'image/x-canon-cr2'
+			};
+		}
 
-	if (
-		check([0x49, 0x49, 0x2A, 0x0])
-	) {
-		if (
-			check([0x1C, 0x00, 0xFE, 0x00], {offset: 8})
-		) {
+		if (check([0x1C, 0x00, 0xFE, 0x00], {offset: 8})) {
 			return {
 				ext: 'nef',
 				mime: 'image/x-nikon-nef'
