@@ -1,4 +1,9 @@
+/// <reference lib="dom"/>
 import * as core from './core';
+
+export type FileTypeResult = core.FileTypeResult;
+export type FileExtension = core.FileExtension;
+export type MimeType = core.MimeType;
 
 /**
 Determine file type from a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
