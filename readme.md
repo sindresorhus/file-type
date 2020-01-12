@@ -375,9 +375,16 @@ Returns a set of supported MIME types.
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
 - [`aac`](https://en.wikipedia.org/wiki/Advanced_Audio_Coding) - Advanced Audio Coding
 
-*SVG isn't included as it requires the whole file to be read, but you can get it [here](https://github.com/sindresorhus/is-svg).*
 
-*Pull requests are welcome for additional commonly used file types, except for `doc`, `xls`, `ppt`.*
+
+*Pull requests are welcome for additional commonly used file types.*
+
+The following file types will not be accepted:
+- `.doc` - Too old and difficult to parse.
+- `.xls` - Too old and difficult to parse.
+- `.ppt` - Too old and difficult to parse.
+- `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
+- `.svg` - Detecting it requires a full=blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
 
 ## file-type for enterprise
 
