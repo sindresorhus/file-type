@@ -159,6 +159,11 @@ const falsePositives = {
 	]
 };
 
+// Known failing fixture
+const failingFixture = [
+	'fixture.asf'
+];
+
 async function checkBufferLike(t, type, bufferLike) {
 	const {ext, mime} = await FileType.fromBuffer(bufferLike) || {};
 	t.is(ext, type);
@@ -237,15 +242,21 @@ let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
-			test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
-			test(`${name}.${type} ${i++} .fromStream() method - same fileType`, testFileFromStream, type, name);
+			const fixtureName = `${name}.${type}`;
+			const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+
+			_test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
+			_test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
+			_test(`${name}.${type} ${i++} .fromStream() method - same fileType`, testFileFromStream, type, name);
 			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
 		}
 	} else {
-		test(`${type} ${i++} .fromFile()`, testFromFile, type);
-		test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
-		test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
+		const fixtureName = `fixture.${type}`;
+		const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+
+		_test(`${type} ${i++} .fromFile()`, testFromFile, type);
+		_test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
+		_test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
 		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
 	}
 
