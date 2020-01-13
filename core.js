@@ -755,6 +755,13 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('IMPM')) {
+		return {
+			ext: 'it',
+			mime: 'audio/x-it'
+		};
+	}
+
 	// -- 6-byte signatures --
 
 	if (check([0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])) {
@@ -1050,6 +1057,13 @@ async function fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('Extended Module:')) {
+		return {
+			ext: 'xm',
+			mime: 'audio/x-xm'
+		};
+	}
+
 	if (checkString('Creative Voice File')) {
 		return {
 			ext: 'voc',
@@ -1078,6 +1092,13 @@ async function fromTokenizer(tokenizer) {
 		return {
 			ext: 'mxf',
 			mime: 'application/mxf'
+		};
+	}
+
+	if (checkString('SCRM', {offset: 44})) {
+		return {
+			ext: 's3m',
+			mime: 'audio/x-s3m'
 		};
 	}
 
