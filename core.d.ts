@@ -124,7 +124,10 @@ declare namespace core {
 		| 'arrow'
 		| 'shp'
 		| 'aac'
-		| 'mp1';
+		| 'mp1'
+		| 'it'
+		| 's3m'
+		| 'xm';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -239,7 +242,10 @@ declare namespace core {
 		| 'video/x-m4v'
 		| 'video/3gpp2'
 		| 'application/x-esri-shape'
-		| 'audio/aac';
+		| 'audio/aac'
+		| 'audio/x-it'
+		| 'audio/x-s3m'
+		| 'audio/x-xm';
 
 	interface FileTypeResult {
 		/**

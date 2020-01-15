@@ -122,7 +122,10 @@ module.exports = {
 		'arrow',
 		'shp',
 		'aac',
-		'mp1'
+		'mp1',
+		'it',
+		's3m',
+		'xm'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -237,6 +240,9 @@ module.exports = {
 		'video/x-m4v',
 		'video/3gpp2',
 		'application/x-esri-shape',
-		'audio/aac'
+		'audio/aac',
+		'audio/x-it',
+		'audio/x-s3m',
+		'audio/x-xm'
 	]
 };

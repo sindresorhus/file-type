@@ -165,7 +165,10 @@
 		"arrow",
 		"shp",
 		"aac",
-		"mp1"
+		"mp1",
+		"it",
+		"s3m",
+		"xm"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",
