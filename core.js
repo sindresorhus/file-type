@@ -62,7 +62,7 @@ async function fromTokenizer(tokenizer) {
 	const check = (header, options) => _check(buffer, header, options);
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
-	await tokenizer.peekBuffer(buffer, 0, bytesRead);
+	await tokenizer.peekBuffer(buffer, 0, bytesRead, tokenizer.position, true);
 
 	// -- 2-byte signatures --
 
