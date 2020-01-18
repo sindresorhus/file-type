@@ -452,9 +452,7 @@ test('odd file sizes', async t => {
 	const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
 	for (const size of oddFileSizes) {
-		const buf = Buffer.alloc(size);
-		await t.notThrowsAsync(async () => {
-			await FileType.fromBuffer(buf);
-		}, `file size = ${size} bytes`);
+		const buffer = Buffer.alloc(size);
+		await t.notThrowsAsync(FileType.fromBuffer(buffer), `File size: ${size} bytes`);
 	}
 });
