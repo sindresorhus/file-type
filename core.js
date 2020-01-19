@@ -63,7 +63,7 @@ async function fromTokenizer(tokenizer) {
 	const checkString = (header, options) => check(stringToBytes(header), options);
 
 	if (!tokenizer.fileInfo.size) {
-		tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER;
+		tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER; // if file-size is unknown, keep reading until EOF
 	}
 
 	await tokenizer.peekBuffer(buffer, 0, bytesRead, tokenizer.position, true);
