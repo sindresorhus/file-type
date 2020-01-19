@@ -292,21 +292,14 @@ test('FileType.mimeTypes.has', t => {
 });
 
 test('validate the input argument type', async t => {
-	await t.throwsAsync(async () => {
-		await FileType.fromBuffer('x');
-	}, /Expected the `input` argument to be of type `Uint8Array`/);
+	await t.throwsAsync(FileType.fromBuffer('x'),
+		/Expected the `input` argument to be of type `Uint8Array`/);
 
-	await t.notThrowsAsync(async () => {
-		await FileType.fromBuffer(Buffer.from('x'));
-	});
+	await t.notThrowsAsync(FileType.fromBuffer(Buffer.from('x')));
 
-	await t.notThrowsAsync(async () => {
-		await FileType.fromBuffer(new Uint8Array());
-	});
+	await t.notThrowsAsync(FileType.fromBuffer(new Uint8Array()));
 
-	await t.notThrowsAsync(async () => {
-		await FileType.fromBuffer(new ArrayBuffer());
-	});
+	await t.notThrowsAsync(FileType.fromBuffer(new ArrayBuffer()));
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
