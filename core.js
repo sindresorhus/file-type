@@ -227,95 +227,101 @@ async function fromTokenizer(tokenizer) {
 	// Zip-based file formats
 	// Need to be before the `zip` check
 	if (check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
-		while (tokenizer.position < tokenizer.fileInfo.size) {
-			await tokenizer.readBuffer(buffer, 0, 30);
+		try {
+			while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
+				await tokenizer.readBuffer(buffer, 0, 30);
 
-			// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
-			const zipHeader = {
-				compressedSize: buffer.readUInt32LE(18),
-				uncompressedSize: buffer.readUInt32LE(22),
-				filenameLength: buffer.readUInt16LE(26),
-				extraFieldLength: buffer.readUInt16LE(28)
-			};
-
-			zipHeader.filename = await tokenizer.readToken(new Token.StringType(zipHeader.filenameLength, 'utf-8'));
-			await tokenizer.ignore(zipHeader.extraFieldLength);
-
-			// Assumes signed `.xpi` from addons.mozilla.org
-			if (zipHeader.filename === 'META-INF/mozilla.rsa') {
-				return {
-					ext: 'xpi',
-					mime: 'application/x-xpinstall'
+				// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
+				const zipHeader = {
+					compressedSize: buffer.readUInt32LE(18),
+					uncompressedSize: buffer.readUInt32LE(22),
+					filenameLength: buffer.readUInt16LE(26),
+					extraFieldLength: buffer.readUInt16LE(28)
 				};
-			}
 
-			if (zipHeader.filename.endsWith('.rels')) {
-				const type = zipHeader.filename.split('/')[0];
-				switch (type) {
-					case '_rels':
-						break;
-					case 'word':
-						return {
-							ext: 'docx',
-							mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-						};
-					case 'ppt':
-						return {
-							ext: 'pptx',
-							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-						};
-					case 'xl':
-						return {
-							ext: 'xlsx',
-							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-						};
-					default:
-						return;
+				zipHeader.filename = await tokenizer.readToken(new Token.StringType(zipHeader.filenameLength, 'utf-8'));
+				await tokenizer.ignore(zipHeader.extraFieldLength);
+
+				// Assumes signed `.xpi` from addons.mozilla.org
+				if (zipHeader.filename === 'META-INF/mozilla.rsa') {
+					return {
+						ext: 'xpi',
+						mime: 'application/x-xpinstall'
+					};
 				}
-			}
 
-			if (zipHeader.filename.startsWith('xl/')) {
-				return {
-					ext: 'xlsx',
-					mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-				};
-			}
-
-			// The docx, xlsx and pptx file types extend the Office Open XML file format:
-			// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
-			// We look for:
-			// - one entry named '[Content_Types].xml' or '_rels/.rels',
-			// - one entry indicating specific type of file.
-			// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
-			if (zipHeader.filename === 'mimetype' && zipHeader.compressedSize === zipHeader.uncompressedSize) {
-				const mimeType = await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'));
-
-				switch (mimeType) {
-					case 'application/epub+zip':
-						return {
-							ext: 'epub',
-							mime: 'application/epub+zip'
-						};
-					case 'application/vnd.oasis.opendocument.text':
-						return {
-							ext: 'odt',
-							mime: 'application/vnd.oasis.opendocument.text'
-						};
-					case 'application/vnd.oasis.opendocument.spreadsheet':
-						return {
-							ext: 'ods',
-							mime: 'application/vnd.oasis.opendocument.spreadsheet'
-						};
-					case 'application/vnd.oasis.opendocument.presentation':
-						return {
-							ext: 'odp',
-							mime: 'application/vnd.oasis.opendocument.presentation'
-						};
-					default:
+				if (zipHeader.filename.endsWith('.rels')) {
+					const type = zipHeader.filename.split('/')[0];
+					switch (type) {
+						case '_rels':
+							break;
+						case 'word':
+							return {
+								ext: 'docx',
+								mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+							};
+						case 'ppt':
+							return {
+								ext: 'pptx',
+								mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+							};
+						case 'xl':
+							return {
+								ext: 'xlsx',
+								mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+							};
+						default:
+							return;
+					}
 				}
-			}
 
-			await tokenizer.ignore(zipHeader.compressedSize);
+				if (zipHeader.filename.startsWith('xl/')) {
+					return {
+						ext: 'xlsx',
+						mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+					};
+				}
+
+				// The docx, xlsx and pptx file types extend the Office Open XML file format:
+				// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
+				// We look for:
+				// - one entry named '[Content_Types].xml' or '_rels/.rels',
+				// - one entry indicating specific type of file.
+				// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
+				if (zipHeader.filename === 'mimetype' && zipHeader.compressedSize === zipHeader.uncompressedSize) {
+					const mimeType = await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'));
+
+					switch (mimeType) {
+						case 'application/epub+zip':
+							return {
+								ext: 'epub',
+								mime: 'application/epub+zip'
+							};
+						case 'application/vnd.oasis.opendocument.text':
+							return {
+								ext: 'odt',
+								mime: 'application/vnd.oasis.opendocument.text'
+							};
+						case 'application/vnd.oasis.opendocument.spreadsheet':
+							return {
+								ext: 'ods',
+								mime: 'application/vnd.oasis.opendocument.spreadsheet'
+							};
+						case 'application/vnd.oasis.opendocument.presentation':
+							return {
+								ext: 'odp',
+								mime: 'application/vnd.oasis.opendocument.presentation'
+							};
+						default:
+					}
+				}
+
+				await tokenizer.ignore(zipHeader.compressedSize);
+			}
+		} catch (error) {
+			if (!(error instanceof strtok3.EndOfStreamError)) {
+				throw error;
+			}
 		}
 
 		return {
@@ -441,7 +447,7 @@ async function fromTokenizer(tokenizer) {
 			case 'F4B':
 				return {ext: 'f4b', mime: 'audio/mp4'};
 			case 'crx':
-				return {ext: 'cr3',	mime: 'image/x-canon-cr3'};
+				return {ext: 'cr3', mime: 'image/x-canon-cr3'};
 			default:
 				if (brandMajor.startsWith('3g')) {
 					if (brandMajor.startsWith('3g2')) {
@@ -1052,7 +1058,7 @@ async function fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 12 to 256.
-	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileInfo.size));
+	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileInfo.size), tokenizer.position, true);
 
 	// `raf` is here just to keep all the raw image detectors together.
 	if (checkString('FUJIFILMCCD-RAW')) {
@@ -1157,7 +1163,7 @@ async function fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 256 to 512
-	await tokenizer.peekBuffer(buffer, 0, Math.min(512, tokenizer.fileInfo.size));
+	await tokenizer.peekBuffer(buffer, 0, Math.min(512, tokenizer.fileInfo.size), tokenizer.position, true);
 
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
