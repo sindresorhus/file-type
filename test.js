@@ -182,24 +182,26 @@ async function testFromBuffer(t, ext, name) {
 	await checkBufferLike(t, ext, chunk.buffer);
 }
 
-const testFalsePositive = async (t, ext, name) => {
+async function testFalsePositive(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
 	const chunk = readChunk.sync(file, 0, 4 + 4096);
 
 	t.is(await FileType.fromBuffer(chunk), undefined);
 	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
 	t.is(await FileType.fromBuffer(chunk.buffer), undefined);
-};
+}
 
-const testFileFromStream = async (t, ext, name) => {
-	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
-	const readableStream = await FileType.stream(fs.createReadStream(file));
+async function testFileFromStream(t, ext, name) {
+	const filename = `${(name || 'fixture')}.${ext}`;
+	const file = path.join(__dirname, 'fixture', filename);
+	const fileType = await FileType.fromStream(fs.createReadStream(file));
 
-	const _fileType = await FileType.fromBuffer(readChunk.sync(file, 0, FileType.minimumBytes));
-	t.deepEqual(readableStream.fileType, _fileType);
-};
+	t.truthy(fileType, `identify ${filename}`);
+	t.is(fileType.ext, ext, 'fileType.ext');
+	t.is(typeof fileType.mime, 'string', 'fileType.mime');
+}
 
-const testStream = async (t, ext, name) => {
+async function testStream(t, ext, name) {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
@@ -225,7 +227,7 @@ const testStream = async (t, ext, name) => {
 	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
 
 	t.true(bufferA.equals(bufferB));
-};
+}
 
 let i = 0;
 for (const type of types) {
