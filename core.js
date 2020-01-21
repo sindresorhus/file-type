@@ -57,6 +57,16 @@ function _check(buffer, headers, options) {
 }
 
 async function fromTokenizer(tokenizer) {
+	try {
+		return _fromTokenizer(tokenizer);
+	} catch (error) {
+		if (!(error instanceof strtok3.EndOfStreamError)) {
+			throw error;
+		}
+	}
+}
+
+async function _fromTokenizer(tokenizer) {
 	let buffer = Buffer.alloc(minimumBytes);
 	const bytesRead = 12;
 	const check = (header, options) => _check(buffer, header, options);
