@@ -250,7 +250,7 @@ async function fromTokenizer(tokenizer) {
 					};
 				}
 
-				if (zipHeader.filename.endsWith('.rels')) {
+				if (zipHeader.filename.endsWith('.rels') || zipHeader.filename.endsWith('.xml')) {
 					const type = zipHeader.filename.split('/')[0];
 					switch (type) {
 						case '_rels':
@@ -271,7 +271,7 @@ async function fromTokenizer(tokenizer) {
 								mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 							};
 						default:
-							return;
+							break;
 					}
 				}
 

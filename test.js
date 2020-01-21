@@ -136,6 +136,18 @@ const names = {
 	flac: [
 		'fixture',
 		'fixture-id3v2' // FLAC prefixed with ID3v2 header
+	],
+	docx: [
+		'fixture',
+		'fixture-office365'
+	],
+	pptx: [
+		'fixture',
+		'fixture-office365'
+	],
+	xlsx: [
+		'fixture',
+		'fixture-office365'
 	]
 };
 
