@@ -315,11 +315,6 @@ declare namespace core {
 	function fromTokenizer(tokenizer: ITokenizer): Promise<core.FileTypeResult | undefined>;
 
 	/**
-	Deprecated: The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hard-code it.
-	*/
-	const minimumBytes: number;
-
-	/**
 	Supported file extensions.
 	*/
 	const extensions: readonly core.FileExtension[];

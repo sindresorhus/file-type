@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import stream from 'stream';
 import test from 'ava';
-import readChunk from 'read-chunk';
 import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
 import FileType from '.';
@@ -151,12 +150,6 @@ const names = {
 	]
 };
 
-// Following types cannot be detected within 4k sample size boundary
-const cannotDetectInBuffer = [
-	'fixture-id3v2.aac',
-	'fixture-id3v2.flac'
-];
-
 // Define an entry here only if the file type has potential
 // for false-positives
 const falsePositives = {
@@ -188,15 +181,15 @@ async function testFromBuffer(t, ext, name) {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
 
 	const file = path.join(__dirname, 'fixture', fixtureName);
-	const chunk = readChunk.sync(file, 0, 4 + 4096);
+	const chunk = fs.readFileSync(file);
 	await checkBufferLike(t, ext, chunk);
 	await checkBufferLike(t, ext, new Uint8Array(chunk));
-	await checkBufferLike(t, ext, chunk.buffer);
+	await checkBufferLike(t, ext, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
 }
 
 async function testFalsePositive(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
-	const chunk = readChunk.sync(file, 0, 4 + 4096);
+	const chunk = fs.readFileSync(file);
 
 	t.is(await FileType.fromBuffer(chunk), undefined);
 	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
@@ -245,20 +238,14 @@ let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
-			const fixtureName = `${name}.${type}`;
-			const test4k = cannotDetectInBuffer.includes(fixtureName) ? test.failing : test;
-
 			test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
-			test4k(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
+			test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
 			test(`${name}.${type} ${i++} .fromStream() method - same fileType`, testFileFromStream, type, name);
 			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
 		}
 	} else {
-		const fixtureName = `fixture.${type}`;
-		const test4k = cannotDetectInBuffer.includes(fixtureName) ? test.failing : test;
-
 		test(`${type} ${i++} .fromFile()`, testFromFile, type);
-		test4k(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
+		test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
 		test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
 		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
 	}
@@ -289,10 +276,6 @@ test('.stream() method - error event', async t => {
 	});
 
 	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
-});
-
-test('FileType.minimumBytes', t => {
-	t.true(FileType.minimumBytes > 4000);
 });
 
 test('FileType.extensions.has', t => {
