@@ -77,7 +77,7 @@ async function _fromTokenizer(tokenizer) {
 		tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER;
 	}
 
-	await tokenizer.peekBuffer(buffer, 0, bytesRead, tokenizer.position, true);
+	await tokenizer.peekBuffer(buffer, {length: bytesRead, mayBeLess: true});
 
 	// -- 2-byte signatures --
 
@@ -239,7 +239,7 @@ async function _fromTokenizer(tokenizer) {
 	if (check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
 		try {
 			while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
-				await tokenizer.readBuffer(buffer, 0, 30);
+				await tokenizer.readBuffer(buffer, {length: 30});
 
 				// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
 				const zipHeader = {
@@ -1068,7 +1068,7 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 12 to 256.
-	await tokenizer.peekBuffer(buffer, 0, Math.min(256, tokenizer.fileInfo.size), tokenizer.position, true);
+	await tokenizer.peekBuffer(buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
 
 	// `raf` is here just to keep all the raw image detectors together.
 	if (checkString('FUJIFILMCCD-RAW')) {
@@ -1173,7 +1173,7 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	// Increase sample size from 256 to 512
-	await tokenizer.peekBuffer(buffer, 0, Math.min(512, tokenizer.fileInfo.size), tokenizer.position, true);
+	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
