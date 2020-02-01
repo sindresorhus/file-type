@@ -1240,7 +1240,7 @@ const stream = readableStream => new Promise((resolve, reject) => {
 	readableStream.on('error', reject);
 	readableStream.once('readable', async () => {
 		const pass = new stream.PassThrough();
-		const chunk = readableStream.read(fileType.minimumBytes) || readableStream.read();
+		const chunk = readableStream.read(minimumBytes) || readableStream.read();
 		try {
 			const fileType = await fromBuffer(chunk);
 			pass.fileType = fileType;
@@ -1263,8 +1263,7 @@ const fileType = {
 	fromStream,
 	fromTokenizer,
 	fromBuffer,
-	stream,
-	minimumBytes: 4100
+	stream
 };
 
 Object.defineProperty(fileType, 'extensions', {

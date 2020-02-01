@@ -34,7 +34,7 @@ const FileType = require('file-type');
 const readChunk = require('read-chunk');
 
 (async () => {
-	const buffer = readChunk.sync('Unicorn.png', 0, fileType.minimumBytes);
+	const buffer = readChunk.sync('Unicorn.png', 0, 4100);
 
 	console.log(await FileType.fromBuffer(buffer));
 	//=> {ext: 'png', mime: 'image/png'}
@@ -236,12 +236,6 @@ Returns a `Promise` which resolves to the original readable stream argument, but
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 The input stream.
-
-### FileType.minimumBytes
-
-Type: `number`
-
-The minimum amount of bytes needed to detect a file type. Currently, it's 4100 bytes, but it can change, so don't hardcode it.
 
 ### FileType.extensions
 

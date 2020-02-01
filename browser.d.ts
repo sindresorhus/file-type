@@ -45,7 +45,6 @@ export declare function fromBlob(blob: Blob): Promise<core.FileTypeResult | unde
 
 export {
 	fromBuffer,
-	minimumBytes,
 	extensions,
 	mimeTypes
 } from './core';
