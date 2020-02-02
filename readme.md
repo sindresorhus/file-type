@@ -12,8 +12,6 @@ $ npm install file-type
 
 ## Usage
 
-❗️ Please be aware, the API recently changed to support smarter and more specialized methods to determine the file type.
-
 #### Node.js
 
 Determine file type from a file:
@@ -371,8 +369,6 @@ Returns a set of supported MIME types.
 - [`it`](https://wiki.openmpt.org/Manual:_Module_formats#The_Impulse_Tracker_format_.28.it.29) - Audio module format: Impulse Tracker
 - [`s3m`](https://wiki.openmpt.org/Manual:_Module_formats#The_ScreamTracker_3_format_.28.s3m.29) - Audio module format: ScreamTracker 3
 - [`xm`](https://wiki.openmpt.org/Manual:_Module_formats#The_FastTracker_2_format_.28.xm.29) - Audio module format: FastTracker 2
-
-
 
 *Pull requests are welcome for additional commonly used file types.*
 
