@@ -1,6 +1,4 @@
 'use strict';
-const Token = require('token-types');
-const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -8,6 +6,8 @@ const {
 	uint8ArrayUtf8ByteString
 } = require('./util');
 const supported = require('./supported');
+const Token = require('token-types');
+const strtok3 = require('strtok3/lib/core');
 
 const minimumBytes = 4100;
 
@@ -56,6 +56,19 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
+async function _checkSequence(sequence, tokenizer, options) {
+	options = {
+		position: 0,
+		...options
+	};
+
+	const buffer = Buffer.alloc(minimumBytes);
+
+	await tokenizer.peekBuffer(buffer, {position: options.position, length: 128, mayBeLess: true});
+
+	return buffer.includes(Buffer.from(sequence));
+}
+
 async function fromTokenizer(tokenizer) {
 	try {
 		return _fromTokenizer(tokenizer);
@@ -71,6 +84,7 @@ async function _fromTokenizer(tokenizer) {
 	const bytesRead = 12;
 	const check = (header, options) => _check(buffer, header, options);
 	const checkString = (header, options) => check(stringToBytes(header), options);
+	const checkSequence = (sequence, options) => _checkSequence(sequence, tokenizer, options);
 
 	// Keep reading until EOF if the file size is unknown.
 	if (!tokenizer.fileInfo.size) {
@@ -544,6 +558,14 @@ async function _fromTokenizer(tokenizer) {
 		return {
 			ext: 'wv',
 			mime: 'audio/wavpack'
+		};
+	}
+
+	const isAiFile = await checkSequence('Adobe Illustrator', {position: 1350});
+	if (isAiFile) {
+		return {
+			ext: 'ai',
+			mime: 'application/postscript'
 		};
 	}
 

@@ -1,7 +1,7 @@
 'use strict';
+const core = require('./core');
 const {ReadableWebToNodeStream} = require('readable-web-to-node-stream');
 const toBuffer = require('typedarray-to-buffer');
-const core = require('./core');
 
 async function fromStream(stream) {
 	const readableWebToNodeStream = new ReadableWebToNodeStream(stream);

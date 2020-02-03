@@ -127,7 +127,8 @@ declare namespace core {
 		| 'mp1'
 		| 'it'
 		| 's3m'
-		| 'xm';
+		| 'xm'
+		| 'ai';
 
 	type MimeType =
 		| 'image/jpeg'

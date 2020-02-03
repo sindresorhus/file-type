@@ -1,6 +1,6 @@
 'use strict';
-const strtok3 = require('strtok3');
 const core = require('./core');
+const strtok3 = require('strtok3');
 
 async function fromFile(path) {
 	const tokenizer = await strtok3.fromFile(path);
