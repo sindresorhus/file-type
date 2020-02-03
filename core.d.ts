@@ -245,7 +245,9 @@ declare namespace core {
 		| 'audio/aac'
 		| 'audio/x-it'
 		| 'audio/x-s3m'
-		| 'audio/x-xm';
+		| 'audio/x-xm'
+		| 'video/MP1S'
+		| 'video/MP2P';
 
 	interface FileTypeResult {
 		/**
