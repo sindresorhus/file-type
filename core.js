@@ -64,7 +64,7 @@ async function _checkSequence(sequence, tokenizer, options) {
 
 	const buffer = Buffer.alloc(minimumBytes);
 
-	await tokenizer.peekBuffer(buffer, {position: options.position, length: 128, mayBeLess: true});
+	await tokenizer.peekBuffer(buffer, {position: options.position, length: 512, mayBeLess: true});
 
 	return buffer.includes(Buffer.from(sequence));
 }
