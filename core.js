@@ -56,15 +56,11 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
-async function _checkSequence(sequence, tokenizer, options) {
-	options = {
-		position: 0,
-		...options
-	};
-
+async function _checkSequence(sequence, tokenizer, ignoreBytes) {
 	const buffer = Buffer.alloc(minimumBytes);
+	await tokenizer.ignore(ignoreBytes);
 
-	await tokenizer.peekBuffer(buffer, {position: options.position, length: 512, mayBeLess: true});
+	await tokenizer.peekBuffer(buffer, {length: 512, mayBeLess: true});
 
 	return buffer.includes(Buffer.from(sequence));
 }
@@ -84,7 +80,7 @@ async function _fromTokenizer(tokenizer) {
 	const bytesRead = 12;
 	const check = (header, options) => _check(buffer, header, options);
 	const checkString = (header, options) => check(stringToBytes(header), options);
-	const checkSequence = (sequence, options) => _checkSequence(sequence, tokenizer, options);
+	const checkSequence = (sequence, ignoreBytes) => _checkSequence(sequence, tokenizer, ignoreBytes);
 
 	// Keep reading until EOF if the file size is unknown.
 	if (!tokenizer.fileInfo.size) {
@@ -563,7 +559,7 @@ async function _fromTokenizer(tokenizer) {
 
 	if (checkString('%PDF')) {
 		// Check if this is an Adobe Illustrator file
-		const isAiFile = await checkSequence('Adobe Illustrator', {position: 1350});
+		const isAiFile = await checkSequence('Adobe Illustrator', 1350);
 		if (isAiFile) {
 			return {
 				ext: 'ai',
