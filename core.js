@@ -561,12 +561,16 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	const isAiFile = await checkSequence('Adobe Illustrator', {position: 1350});
-	if (isAiFile) {
-		return {
-			ext: 'ai',
-			mime: 'application/postscript'
-		};
+	try {
+		const isAiFile = await checkSequence('Adobe Illustrator', {position: 1350});
+		if (isAiFile) {
+			return {
+				ext: 'ai',
+				mime: 'application/postscript'
+			};
+		}
+	} catch (_) {
+		// Ignore
 	}
 
 	if (checkString('%PDF')) {
