@@ -105,7 +105,6 @@ const names = {
 		'fixture2',
 		'fixture.ps',
 		'fixture.sub'
-
 	],
 	heic: [
 		'fixture-mif1',
