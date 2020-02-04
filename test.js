@@ -1,10 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 import stream from 'stream';
-import FileType from '.';
 import test from 'ava';
 import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
+import FileType from '.';
 
 const supported = require('./supported');
 

@@ -1,4 +1,6 @@
 'use strict';
+const Token = require('token-types');
+const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -6,8 +8,6 @@ const {
 	uint8ArrayUtf8ByteString
 } = require('./util');
 const supported = require('./supported');
-const Token = require('token-types');
-const strtok3 = require('strtok3/lib/core');
 
 const minimumBytes = 4100;
 
