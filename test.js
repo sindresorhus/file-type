@@ -102,7 +102,9 @@ const names = {
 	],
 	mpg: [
 		'fixture',
-		'fixture2'
+		'fixture2',
+		'fixture.ps',
+		'fixture.sub'
 	],
 	heic: [
 		'fixture-mif1',
