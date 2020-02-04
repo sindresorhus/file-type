@@ -561,7 +561,8 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	try {
+	if (checkString('%PDF')) {
+		// Check if this is an Adobe Illustrator file
 		const isAiFile = await checkSequence('Adobe Illustrator', {position: 1350});
 		if (isAiFile) {
 			return {
@@ -569,11 +570,8 @@ async function _fromTokenizer(tokenizer) {
 				mime: 'application/postscript'
 			};
 		}
-	} catch (_) {
-		// Ignore
-	}
 
-	if (checkString('%PDF')) {
+		// Assume this is just a normal PDF
 		return {
 			ext: 'pdf',
 			mime: 'application/pdf'
