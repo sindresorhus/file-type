@@ -170,7 +170,8 @@
 		"mp1",
 		"it",
 		"s3m",
-		"xm"
+		"xm",
+		"ai"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

@@ -125,7 +125,8 @@ module.exports = {
 		'mp1',
 		'it',
 		's3m',
-		'xm'
+		'xm',
+		'ai'
 	],
 	mimeTypes: [
 		'image/jpeg',
