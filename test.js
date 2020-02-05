@@ -275,7 +275,7 @@ for (const type of types) {
 
 test('.stream() method - empty stream', async t => {
 	const fileType = await FileType.stream(readableNoopStream());
-	t.true(fileType.fileType === undefined);
+	t.is(fileType.fileType, undefined);
 });
 
 test('.stream() method - error event', async t => {
