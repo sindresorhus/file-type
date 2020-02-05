@@ -274,10 +274,8 @@ for (const type of types) {
 }
 
 test('.stream() method - empty stream', async t => {
-	await t.throwsAsync(
-		FileType.stream(readableNoopStream()),
-		/Expected the `input` argument to be of type `Uint8Array` /
-	);
+	const fileType = await FileType.stream(readableNoopStream());
+	t.true(fileType.fileType === undefined);
 });
 
 test('.stream() method - error event', async t => {
