@@ -1284,7 +1284,7 @@ const stream = readableStream => new Promise((resolve, reject) => {
 	readableStream.on('error', reject);
 	readableStream.once('readable', async () => {
 		const pass = new stream.PassThrough();
-		const chunk = readableStream.read(minimumBytes) || readableStream.read();
+		const chunk = readableStream.read(minimumBytes) || readableStream.read() || Buffer.alloc(0);
 		try {
 			const fileType = await fromBuffer(chunk);
 			pass.fileType = fileType;
