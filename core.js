@@ -581,8 +581,8 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	// TIFF-compatible formats can be encoded two ways but little-endian (0x49) is most common.
-	// Big-endian TIFFs are handled below this block.
+	// TIFF-compatible formats can be encoded two ways.
+	// Little-endian here (0x49) is most common, and big-endian TIFFs are handled further below.
 	if (check([0x49, 0x49, 0x2A, 0x0])) {
 		if (checkString('CR', {offset: 8})) {
 			return {
@@ -628,6 +628,8 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	// TIFF-compatible formats can be encoded two ways.
+	// Big-endian here (0x4D) is less common, and little-endian TIFFs are handled above.
 	if (
 		check([0x4D, 0x4D, 0x0, 0x2A])
 	) {
