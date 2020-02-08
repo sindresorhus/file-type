@@ -9,7 +9,6 @@ import FileType from '.';
 const supported = require('./supported');
 
 const missingTests = [
-	'ogm',
 	'ogx',
 	'mpc'
 ];
