@@ -9,7 +9,6 @@ import FileType from '.';
 const supported = require('./supported');
 
 const missingTests = [
-	'ogx',
 	'mpc'
 ];
 
@@ -151,6 +150,9 @@ const names = {
 	xlsx: [
 		'fixture',
 		'fixture-office365'
+	],
+	ogx: [
+		'fixture-unknown-ogg' // Manipulated fixture to unrecognized Ogg based file
 	]
 };
 
