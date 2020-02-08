@@ -581,7 +581,8 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (check([0x49, 0x49, 0x2A, 0x0] || [0x4D, 0x4D, 0x0, 0x2A])) {
+	// TIFF, little-endian type
+	if (check([0x49, 0x49, 0x2A, 0x0])) {
 		if (checkString('CR', {offset: 8})) {
 			return {
 				ext: 'cr2',
@@ -626,9 +627,8 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (
-		check([0x4D, 0x4D, 0x0, 0x2A])
-	) {
+	// TIFF, big-endian type
+	if (check([0x4D, 0x4D, 0x0, 0x2A])) {
 		return {
 			ext: 'tif',
 			mime: 'image/tiff'
