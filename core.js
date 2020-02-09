@@ -9,7 +9,7 @@ const {
 } = require('./util');
 const supported = require('./supported');
 
-const minimumBytes = 4100;
+const minimumBytes = 4100; // A fair amount of file-types are detectable within this range
 
 async function fromStream(stream) {
 	const tokenizer = await strtok3.fromStream(stream);
@@ -60,7 +60,7 @@ async function _checkSequence(sequence, tokenizer, ignoreBytes) {
 	const buffer = Buffer.alloc(minimumBytes);
 	await tokenizer.ignore(ignoreBytes);
 
-	await tokenizer.peekBuffer(buffer, {length: 512, mayBeLess: true});
+	await tokenizer.peekBuffer(buffer, {mayBeLess: true});
 
 	return buffer.includes(Buffer.from(sequence));
 }
