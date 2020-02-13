@@ -215,7 +215,7 @@ const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%2020
 })();
 ```
 
-Or use [`@tokenizer/s3`](https://github.com/Borewit/tokenizer-s3) to determine the file type of a file stored on the [Amazon S3 cloud](https://aws.amazon.com/s3):
+Or use [`@tokenizer/s3`](https://github.com/Borewit/tokenizer-s3) to determine the file type of a file stored on [Amazon S3](https://aws.amazon.com/s3):
 
 ```js
 const FileType = require('file-type');
