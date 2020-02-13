@@ -215,6 +215,30 @@ const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%2020
 })();
 ```
 
+Or use [@tokenizer/s3](https://github.com/Borewit/tokenizer-s3) to determine the file type of file stored on the [Amazon S3 cloud](https://aws.amazon.com/s3):
+```js
+const FileType = require('file-type');
+const S3 = require('aws-sdk/clients/s3');
+const { makeTokenizer } = require('@tokenizer/s3');
+
+(async () => {
+
+  // Initialize S3 client
+  const s3 = new S3();
+
+  // Initialize  S3 tokenizer
+  const s3Tokenizer = await makeTokenizer(s3, {
+    Bucket: 'affectlab',
+    Key: '1min_35sec.mp4'
+  });
+
+  // Figure out what kind of file it is
+  const fileType = await FileType.fromTokenizer(s3Tokenizer);
+  console.log(fileType);
+})();
+```
+Note that only that data is read which is required to determine the file type (okay, just a bit extra to prevent to many fragmented reads). 
+
 #### tokenizer
 
 Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
