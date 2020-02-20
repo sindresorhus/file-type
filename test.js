@@ -275,8 +275,22 @@ for (const type of types) {
 }
 
 test('.stream() method - empty stream', async t => {
-	const fileType = await FileType.stream(readableNoopStream());
-	t.is(fileType.fileType, undefined);
+	const newStream = await FileType.stream(readableNoopStream());
+	t.is(newStream.fileType, undefined);
+});
+
+test('.stream() method - short stream', async t => {
+	const buffer = Buffer.from([0, 1, 0, 1]);
+	class MyStream extends stream.Readable {
+		_read() {
+			this.push(buffer);
+			this.push(null);
+		}
+	}
+
+	const shortStream = new MyStream();
+	const newStream = await FileType.stream(shortStream);
+	t.is(newStream.fileType, undefined);
 });
 
 test('.stream() method - error event', async t => {

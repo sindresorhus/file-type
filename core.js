@@ -1292,7 +1292,11 @@ const stream = readableStream => new Promise((resolve, reject) => {
 			reject(error);
 		}
 
-		readableStream.unshift(chunk);
+		if (readableStream.readableEnded || readableStream._readableState.ended) {
+			readableStream.unshift();
+		} else {
+			readableStream.unshift(chunk);
+		}
 
 		if (stream.pipeline) {
 			resolve(stream.pipeline(readableStream, pass, () => {
