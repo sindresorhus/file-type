@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import stream from 'stream';
 import test from 'ava';
-import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
 import FileType from '.';
 
@@ -223,13 +222,7 @@ async function loadEntireFile(readable) {
 		buffer.push(Buffer.from(chunk));
 	});
 
-	if (stream.finished) {
-		const finished = pify(stream.finished);
-		await finished(readable);
-	} else {
-		await new Promise(resolve => readable.on('end', resolve));
-	}
-
+	await new Promise(resolve => readable.on('end', resolve));
 	return Buffer.concat(buffer);
 }
 
