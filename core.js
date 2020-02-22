@@ -1283,7 +1283,16 @@ const stream = readableStream => new Promise((resolve, reject) => {
 
 	readableStream.on('error', reject);
 	readableStream.once('readable', async () => {
+		// Set up output stream
 		const pass = new stream.PassThrough();
+		let outputStream;
+		if (stream.pipeline) {
+			outputStream = stream.pipeline(readableStream, pass, () => {});
+		} else {
+			outputStream = readableStream.pipe(pass);
+		}
+
+		// Read the input stream and detect the filetype
 		const chunk = readableStream.read(minimumBytes) || readableStream.read() || Buffer.alloc(0);
 		try {
 			const fileType = await fromBuffer(chunk);
@@ -1292,18 +1301,7 @@ const stream = readableStream => new Promise((resolve, reject) => {
 			reject(error);
 		}
 
-		if (readableStream.readableEnded || readableStream._readableState.ended) {
-			readableStream.unshift();
-		} else {
-			readableStream.unshift(chunk);
-		}
-
-		if (stream.pipeline) {
-			resolve(stream.pipeline(readableStream, pass, () => {
-			}));
-		} else {
-			resolve(readableStream.pipe(pass));
-		}
+		resolve(outputStream);
 	});
 });
 
