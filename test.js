@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import stream from 'stream';
 import test from 'ava';
-import pify from 'pify';
 import {readableNoopStream} from 'noop-stream';
 import FileType from '.';
 
@@ -217,28 +216,22 @@ async function testFileFromStream(t, ext, name) {
 	t.is(typeof fileType.mime, 'string', 'fileType.mime');
 }
 
+async function loadEntireFile(readable) {
+	const buffer = [];
+	readable.on('data', chunk => {
+		buffer.push(Buffer.from(chunk));
+	});
+
+	await new Promise(resolve => readable.on('end', resolve));
+	return Buffer.concat(buffer);
+}
+
 async function testStream(t, ext, name) {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await FileType.stream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
-
-	const loadEntireFile = async readable => {
-		const buffer = [];
-		readable.on('data', chunk => {
-			buffer.push(Buffer.from(chunk));
-		});
-
-		if (stream.finished) {
-			const finished = pify(stream.finished);
-			await finished(readable);
-		} else {
-			await new Promise(resolve => readable.on('end', resolve));
-		}
-
-		return Buffer.concat(buffer);
-	};
 
 	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
 
@@ -275,8 +268,27 @@ for (const type of types) {
 }
 
 test('.stream() method - empty stream', async t => {
-	const fileType = await FileType.stream(readableNoopStream());
-	t.is(fileType.fileType, undefined);
+	const newStream = await FileType.stream(readableNoopStream());
+	t.is(newStream.fileType, undefined);
+});
+
+test('.stream() method - short stream', async t => {
+	const bufferA = Buffer.from([0, 1, 0, 1]);
+	class MyStream extends stream.Readable {
+		_read() {
+			this.push(bufferA);
+			this.push(null);
+		}
+	}
+
+	// Test filetype detection
+	const shortStream = new MyStream();
+	const newStream = await FileType.stream(shortStream);
+	t.is(newStream.fileType, undefined);
+
+	// Test usability of returned stream
+	const bufferB = await loadEntireFile(newStream);
+	t.deepEqual(bufferA, bufferB);
 });
 
 test('.stream() method - error event', async t => {
