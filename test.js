@@ -38,7 +38,9 @@ const names = {
 	],
 	nef: [
 		'fixture',
-		'fixture2'
+		'fixture2',
+		'fixture3',
+		'fixture4'
 	],
 	'3gp': [
 		'fixture',

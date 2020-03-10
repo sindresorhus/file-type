@@ -590,7 +590,7 @@ async function _fromTokenizer(tokenizer) {
 			};
 		}
 
-		if (check([0x1C, 0x00, 0xFE, 0x00], {offset: 8})) {
+		if (check([0x1C, 0x00, 0xFE, 0x00], {offset: 8}) || check([0x1F, 0x00, 0x0B, 0x00], {offset: 8})) {
 			return {
 				ext: 'nef',
 				mime: 'image/x-nikon-nef'
