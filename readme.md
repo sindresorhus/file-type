@@ -117,7 +117,7 @@ const FileType = require('file-type/browser');
 		endings: 'native'
 	});
 
-	console.log(await FileType.parseBlob(blob));
+	console.log(await FileType.fromBlob(blob));
 	//=> {ext: 'txt', mime: 'plain/text'}
 })();
 ```
