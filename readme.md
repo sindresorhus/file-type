@@ -49,7 +49,7 @@ const FileType = require('file-type');
 	const stream = fs.createReadStream('Unicorn.mp4');
 
 	console.log(await FileType.fromStream(stream));
-	//=> {ext: 'mp4', mime: 'image/mp4'}
+	//=> {ext: 'mp4', mime: 'video/mp4'}
 }
 )();
 ```
