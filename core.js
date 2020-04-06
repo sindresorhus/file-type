@@ -436,6 +436,8 @@ async function _fromTokenizer(tokenizer) {
 		// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
 		const brandMajor = uint8ArrayUtf8ByteString(buffer, 8, 12).replace('\0', ' ').trim();
 		switch (brandMajor) {
+			case 'avif':
+				return {ext: 'avif', mime: 'image/avif'};
 			case 'mif1':
 				return {ext: 'heic', mime: 'image/heif'};
 			case 'msf1':

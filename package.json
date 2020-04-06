@@ -171,7 +171,8 @@
 		"it",
 		"s3m",
 		"xm",
-		"ai"
+		"ai",
+		"avif"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",
