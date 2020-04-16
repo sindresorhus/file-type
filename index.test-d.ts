@@ -5,12 +5,12 @@ import {FileTypeResult, ReadableStreamWithFileType, FileExtension, MimeType} fro
 import FileTypeBrowser = require('./browser');
 import {FileTypeResult as FileTypeResultBrowser} from './browser';
 
-expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Buffer([0xff, 0xd8, 0xff])));
+expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(Buffer.from([0xff, 0xd8, 0xff])));
 expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Uint8Array([0xff, 0xd8, 0xff])));
 expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuffer(42)));
 
 (async () => {
-	const result = await FileType.fromBuffer(new Buffer([0xff, 0xd8, 0xff]));
+	const result = await FileType.fromBuffer(Buffer.from([0xff, 0xd8, 0xff]));
 	if (result !== undefined) {
 		expectType<FileExtension>(result.ext);
 		expectType<MimeType>(result.mime);
