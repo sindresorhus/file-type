@@ -128,7 +128,8 @@ declare namespace core {
 		| 'it'
 		| 's3m'
 		| 'xm'
-		| 'ai';
+		| 'ai'
+		| 'skp';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -248,7 +249,8 @@ declare namespace core {
 		| 'audio/x-s3m'
 		| 'audio/x-xm'
 		| 'video/MP1S'
-		| 'video/MP2P';
+		| 'video/MP2P'
+		| 'application/vnd.sketchup.skp';
 
 	interface FileTypeResult {
 		/**
