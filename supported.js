@@ -126,7 +126,8 @@ module.exports = {
 		'it',
 		's3m',
 		'xm',
-		'ai'
+		'ai',
+		'avif'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -246,6 +247,7 @@ module.exports = {
 		'audio/x-s3m',
 		'audio/x-xm',
 		'video/MP1S',
-		'video/MP2P'
+		'video/MP2P',
+		'image/avif'
 	]
 };
