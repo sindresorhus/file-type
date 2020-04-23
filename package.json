@@ -172,7 +172,7 @@
 		"s3m",
 		"xm",
 		"ai",
-	  "skp",
+		"skp",
 		"avif"
 	],
 	"devDependencies": {
