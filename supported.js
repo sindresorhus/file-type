@@ -127,7 +127,8 @@ module.exports = {
 		's3m',
 		'xm',
 		'ai',
-		'skp'
+		'skp',
+		'avif'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -248,6 +249,7 @@ module.exports = {
 		'audio/x-xm',
 		'video/MP1S',
 		'video/MP2P',
-		'application/vnd.sketchup.skp'
+		'application/vnd.sketchup.skp',
+		'image/avif'
 	]
 };

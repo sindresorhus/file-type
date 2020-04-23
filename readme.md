@@ -396,6 +396,7 @@ Returns a set of supported MIME types.
 - [`xm`](https://wiki.openmpt.org/Manual:_Module_formats#The_FastTracker_2_format_.28.xm.29) - Audio module format: FastTracker 2
 - [`ai`](https://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork) - Adobe Illustrator Artwork
 - [`skp`](https://en.wikipedia.org/wiki/SketchUp) - SketchUp
+- [`avif`](https://en.wikipedia.org/wiki/AV1#AV1_Image_File_Format_(AVIF)) - AV1 Image File Format
 
 *Pull requests are welcome for additional commonly used file types.*
 

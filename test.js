@@ -154,6 +154,9 @@ const names = {
 	],
 	ogx: [
 		'fixture-unknown-ogg' // Manipulated fixture to unrecognized Ogg based file
+	],
+	avif: [
+		'fixture-yuv420-8bit' // Multiple bit-depths and/or subsamplings
 	]
 };
 
