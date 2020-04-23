@@ -129,6 +129,7 @@ declare namespace core {
 		| 's3m'
 		| 'xm'
 		| 'ai'
+		| 'skp'
 		| 'avif';
 
 	type MimeType =
@@ -250,6 +251,7 @@ declare namespace core {
 		| 'audio/x-xm'
 		| 'video/MP1S'
 		| 'video/MP2P'
+		| 'application/vnd.sketchup.skp'
 		| 'image/avif';
 
 	interface FileTypeResult {
