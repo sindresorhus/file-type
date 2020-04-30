@@ -128,7 +128,8 @@ module.exports = {
 		'xm',
 		'ai',
 		'skp',
-		'avif'
+		'avif',
+		'eps'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -194,6 +195,7 @@ module.exports = {
 		'image/x-icon',
 		'video/x-flv',
 		'application/postscript',
+		'application/eps',
 		'application/x-xz',
 		'application/x-sqlite3',
 		'application/x-nintendo-nes-rom',

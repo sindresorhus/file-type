@@ -157,6 +157,10 @@ const names = {
 	],
 	avif: [
 		'fixture-yuv420-8bit' // Multiple bit-depths and/or subsamplings
+	],
+	eps: [
+		'fixture',
+		'fixture2'
 	]
 };
 
