@@ -397,6 +397,7 @@ Returns a set of supported MIME types.
 - [`ai`](https://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork) - Adobe Illustrator Artwork
 - [`skp`](https://en.wikipedia.org/wiki/SketchUp) - SketchUp
 - [`avif`](https://en.wikipedia.org/wiki/AV1#AV1_Image_File_Format_(AVIF)) - AV1 Image File Format
+- [`eps`](https://en.wikipedia.org/wiki/Encapsulated_PostScript) - Encapsulated PostScript
 
 *Pull requests are welcome for additional commonly used file types.*
 

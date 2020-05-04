@@ -130,7 +130,8 @@ declare namespace core {
 		| 'xm'
 		| 'ai'
 		| 'skp'
-		| 'avif';
+		| 'avif'
+		| 'eps';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -195,6 +196,7 @@ declare namespace core {
 		| 'image/x-icon'
 		| 'video/x-flv'
 		| 'application/postscript'
+		| 'application/eps'
 		| 'application/x-xz'
 		| 'application/x-sqlite3'
 		| 'application/x-nintendo-nes-rom'

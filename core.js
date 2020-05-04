@@ -120,6 +120,16 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	if (check([0x25, 0x21])) {
+		await tokenizer.peekBuffer(buffer, {length: 24, mayBeLess: true});
+
+		if (checkString('PS-Adobe-', {offset: 2}) &&
+			checkString(' EPSF-', {offset: 14})) {
+			return {
+				ext: 'eps',
+				mime: 'application/eps'
+			};
+		}
+
 		return {
 			ext: 'ps',
 			mime: 'application/postscript'
@@ -765,6 +775,13 @@ async function _fromTokenizer(tokenizer) {
 		return {
 			ext: 'rpm',
 			mime: 'application/x-rpm'
+		};
+	}
+
+	if (check([0xC5, 0xD0, 0xD3, 0xC6])) {
+		return {
+			ext: 'eps',
+			mime: 'application/eps'
 		};
 	}
 

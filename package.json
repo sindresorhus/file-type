@@ -173,7 +173,8 @@
 		"xm",
 		"ai",
 		"skp",
-		"avif"
+		"avif",
+		"eps"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",
