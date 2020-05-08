@@ -444,10 +444,6 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		const duplicates = findDuplicates(found);
 		const extras = findExtras(found, baseTruth);
 		const missing = findMissing(found, baseTruth);
-		if (missing.length > 0) {
-			console.log({found, baseTruth});
-		}
-
 		t.is(duplicates.length, 0, `Found duplicate ${extOrMime}: ${duplicates} in ${fileName}.`);
 		t.is(extras.length, 0, `Extra ${extOrMime}: ${extras} in ${fileName}.`);
 		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
