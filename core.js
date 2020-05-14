@@ -833,7 +833,8 @@ async function _fromTokenizer(tokenizer) {
 		checkString('-lh7-', {offset: 2}) ||
 		checkString('-lzs-', {offset: 2}) ||
 		checkString('-lz4-', {offset: 2}) ||
-		checkString('-lz5-', {offset: 2})
+		checkString('-lz5-', {offset: 2}) ||
+		checkString('-lhd-', {offset: 2})
 	) {
 		return {
 			ext: 'lzh',
@@ -1332,7 +1333,8 @@ const stream = readableStream => new Promise((resolve, reject) => {
 		const pass = new stream.PassThrough();
 		let outputStream;
 		if (stream.pipeline) {
-			outputStream = stream.pipeline(readableStream, pass, () => {});
+			outputStream = stream.pipeline(readableStream, pass, () => {
+			});
 		} else {
 			outputStream = readableStream.pipe(pass);
 		}
