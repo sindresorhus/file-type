@@ -822,6 +822,25 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (
+		checkString('-lh0-', {offset: 2}) ||
+		checkString('-lh1-', {offset: 2}) ||
+		checkString('-lh2-', {offset: 2}) ||
+		checkString('-lh3-', {offset: 2}) ||
+		checkString('-lh4-', {offset: 2}) ||
+		checkString('-lh5-', {offset: 2}) ||
+		checkString('-lh6-', {offset: 2}) ||
+		checkString('-lh7-', {offset: 2}) ||
+		checkString('-lzs-', {offset: 2}) ||
+		checkString('-lz4-', {offset: 2}) ||
+		checkString('-lz5-', {offset: 2})
+	) {
+		return {
+			ext: 'lzh',
+			mime: 'application/x-lzh-compressed'
+		};
+	}
+
 	// MPEG program stream (PS or MPEG-PS)
 	if (check([0x00, 0x00, 0x01, 0xBA])) {
 		//  MPEG-PS, MPEG-1 Part 1

@@ -131,7 +131,8 @@ declare namespace core {
 		| 'ai'
 		| 'skp'
 		| 'avif'
-		| 'eps';
+		| 'eps'
+		| 'lzh';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -254,7 +255,8 @@ declare namespace core {
 		| 'video/MP1S'
 		| 'video/MP2P'
 		| 'application/vnd.sketchup.skp'
-		| 'image/avif';
+		| 'image/avif'
+		| 'application/x-lzh-compressed';
 
 	interface FileTypeResult {
 		/**
