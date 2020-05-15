@@ -286,6 +286,7 @@ Returns a set of supported MIME types.
 - [`raf`](https://en.wikipedia.org/wiki/Raw_image_format) - Fujifilm RAW image file
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
+- [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format)
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format))

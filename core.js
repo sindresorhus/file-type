@@ -254,6 +254,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('icns', {offset: 0})) {
+		return {
+			ext: 'icns',
+			mime: 'image/icns'
+		};
+	}
+
 	// Zip-based file formats
 	// Need to be before the `zip` check
 	if (check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
