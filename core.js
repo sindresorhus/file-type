@@ -833,7 +833,8 @@ async function _fromTokenizer(tokenizer) {
 		checkString('-lh7-', {offset: 2}) ||
 		checkString('-lzs-', {offset: 2}) ||
 		checkString('-lz4-', {offset: 2}) ||
-		checkString('-lz5-', {offset: 2})
+		checkString('-lz5-', {offset: 2}) ||
+		checkString('-lhd-', {offset: 2})
 	) {
 		return {
 			ext: 'lzh',
