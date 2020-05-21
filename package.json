@@ -175,7 +175,8 @@
 		"ai",
 		"skp",
 		"avif",
-		"eps"
+		"eps",
+		"lzh"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

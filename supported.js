@@ -130,7 +130,8 @@ module.exports = {
 		'ai',
 		'skp',
 		'avif',
-		'eps'
+		'eps',
+		'lzh'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -254,6 +255,7 @@ module.exports = {
 		'video/MP1S',
 		'video/MP2P',
 		'application/vnd.sketchup.skp',
-		'image/avif'
+		'image/avif',
+		'application/x-lzh-compressed'
 	]
 };
