@@ -1,6 +1,6 @@
 /// <reference types="node"/>
-import {Readable as ReadableStream} from 'stream';
-import {ITokenizer} from 'strtok3/lib/core';
+import { Readable as ReadableStream } from 'stream';
+import { ITokenizer } from 'strtok3/lib/core';
 
 declare namespace core {
 	type FileExtension =
@@ -133,7 +133,8 @@ declare namespace core {
 		| 'skp'
 		| 'avif'
 		| 'eps'
-		| 'lzh';
+		| 'lzh'
+		| 'pgp';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -258,7 +259,8 @@ declare namespace core {
 		| 'video/MP2P'
 		| 'application/vnd.sketchup.skp'
 		| 'image/avif'
-		| 'application/x-lzh-compressed';
+		| 'application/x-lzh-compressed'
+		| 'application/pgp-encrypted';
 
 	interface FileTypeResult {
 		/**

@@ -131,7 +131,8 @@ module.exports = {
 		'skp',
 		'avif',
 		'eps',
-		'lzh'
+		'lzh',
+		'pgp'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -256,6 +257,7 @@ module.exports = {
 		'video/MP2P',
 		'application/vnd.sketchup.skp',
 		'image/avif',
-		'application/x-lzh-compressed'
+		'application/x-lzh-compressed',
+		'application/pgp-encrypted'
 	]
 };
