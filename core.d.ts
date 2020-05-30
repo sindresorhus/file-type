@@ -1,6 +1,6 @@
 /// <reference types="node"/>
-import { Readable as ReadableStream } from 'stream';
-import { ITokenizer } from 'strtok3/lib/core';
+import {Readable as ReadableStream} from 'stream';
+import {ITokenizer} from 'strtok3/lib/core';
 
 declare namespace core {
 	type FileExtension =
