@@ -161,9 +161,6 @@ const names = {
 	eps: [
 		'fixture',
 		'fixture2'
-	],
-	pgp: [
-		'fixture'
 	]
 };
 
