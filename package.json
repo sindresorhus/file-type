@@ -176,7 +176,8 @@
 		"skp",
 		"avif",
 		"eps",
-		"lzh"
+		"lzh",
+		"pgp"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

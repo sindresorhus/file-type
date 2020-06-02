@@ -400,6 +400,7 @@ Returns a set of supported MIME types.
 - [`avif`](https://en.wikipedia.org/wiki/AV1#AV1_Image_File_Format_(AVIF)) - AV1 Image File Format
 - [`eps`](https://en.wikipedia.org/wiki/Encapsulated_PostScript) - Encapsulated PostScript
 - [`lzh`](https://en.wikipedia.org/wiki/LHA_(file_format)) - LZH archive
+- [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
 
 *Pull requests are welcome for additional commonly used file types.*
 
