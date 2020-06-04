@@ -353,7 +353,14 @@ async function _fromTokenizer(tokenizer) {
 					}
 				}
 
-				await tokenizer.ignore(zipHeader.compressedSize);
+				// Try to find next header manually when current one is corrupted
+				if (zipHeader.compressedSize === 0) {
+					await tokenizer.peekBuffer(buffer, {mayBeLess: true});
+					// Move position to the next header
+					await tokenizer.ignore(buffer.indexOf('504B0304', 0, 'hex'));
+				} else {
+					await tokenizer.ignore(zipHeader.compressedSize);
+				}
 			}
 		} catch (error) {
 			if (!(error instanceof strtok3.EndOfStreamError)) {
