@@ -355,9 +355,15 @@ async function _fromTokenizer(tokenizer) {
 
 				// Try to find next header manually when current one is corrupted
 				if (zipHeader.compressedSize === 0) {
-					await tokenizer.peekBuffer(buffer, {mayBeLess: true});
-					// Move position to the next header
-					await tokenizer.ignore(buffer.indexOf('504B0304', 0, 'hex'));
+					let nextHeaderIndex = -1;
+
+					while (nextHeaderIndex < 0 && (tokenizer.position < tokenizer.fileInfo.size)) {
+						await tokenizer.peekBuffer(buffer, {mayBeLess: true});
+
+						nextHeaderIndex = buffer.indexOf('504B0304', 0, 'hex');
+						// Move position to the next header if found, skip the whole buffer otherwise
+						await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : buffer.length);
+					}
 				} else {
 					await tokenizer.ignore(zipHeader.compressedSize);
 				}
