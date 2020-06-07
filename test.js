@@ -142,14 +142,17 @@ const names = {
 	],
 	docx: [
 		'fixture',
+		'fixture2',
 		'fixture-office365'
 	],
 	pptx: [
 		'fixture',
+		'fixture2',
 		'fixture-office365'
 	],
 	xlsx: [
 		'fixture',
+		'fixture2',
 		'fixture-office365'
 	],
 	ogx: [

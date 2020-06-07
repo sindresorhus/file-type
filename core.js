@@ -353,7 +353,20 @@ async function _fromTokenizer(tokenizer) {
 					}
 				}
 
-				await tokenizer.ignore(zipHeader.compressedSize);
+				// Try to find next header manually when current one is corrupted
+				if (zipHeader.compressedSize === 0) {
+					let nextHeaderIndex = -1;
+
+					while (nextHeaderIndex < 0 && (tokenizer.position < tokenizer.fileInfo.size)) {
+						await tokenizer.peekBuffer(buffer, {mayBeLess: true});
+
+						nextHeaderIndex = buffer.indexOf('504B0304', 0, 'hex');
+						// Move position to the next header if found, skip the whole buffer otherwise
+						await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : buffer.length);
+					}
+				} else {
+					await tokenizer.ignore(zipHeader.compressedSize);
+				}
 			}
 		} catch (error) {
 			if (!(error instanceof strtok3.EndOfStreamError)) {
