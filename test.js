@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import stream from 'stream';
+import {Readable} from 'stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import FileType from '.';
@@ -286,7 +286,7 @@ test('.stream() method - empty stream', async t => {
 
 test('.stream() method - short stream', async t => {
 	const bufferA = Buffer.from([0, 1, 0, 1]);
-	class MyStream extends stream.Readable {
+	class MyStream extends Readable {
 		_read() {
 			this.push(bufferA);
 			this.push(null);
@@ -306,7 +306,7 @@ test('.stream() method - short stream', async t => {
 test('.stream() method - error event', async t => {
 	const errorMessage = 'Fixture';
 
-	const readableStream = new stream.Readable({
+	const readableStream = new Readable({
 		read() {
 			process.nextTick(() => {
 				this.emit('error', new Error(errorMessage));
@@ -484,11 +484,28 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 });
 
+class BufferedStream extends Readable {
+	constructor(buffer) {
+		super();
+		this.push(buffer);
+		this.push(null);
+	}
+
+	_read() {
+	}
+}
+
 test('odd file sizes', async t => {
 	const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
-		await t.notThrowsAsync(FileType.fromBuffer(buffer), `File size: ${size} bytes`);
+		await t.notThrowsAsync(FileType.fromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
+	}
+
+	for (const size of oddFileSizes) {
+		const buffer = Buffer.alloc(size);
+		const stream = new BufferedStream(buffer);
+		await t.notThrowsAsync(FileType.fromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });
