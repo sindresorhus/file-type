@@ -491,8 +491,7 @@ class BufferedStream extends stream.Readable {
 		this.push(null);
 	}
 
-	_read() {
-	}
+	_read() {}
 }
 
 test('odd file sizes', async t => {
