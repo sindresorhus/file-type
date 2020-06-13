@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import {Readable} from 'stream';
+import stream from 'stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import FileType from '.';
@@ -286,7 +286,7 @@ test('.stream() method - empty stream', async t => {
 
 test('.stream() method - short stream', async t => {
 	const bufferA = Buffer.from([0, 1, 0, 1]);
-	class MyStream extends Readable {
+	class MyStream extends stream.Readable {
 		_read() {
 			this.push(bufferA);
 			this.push(null);
@@ -306,7 +306,7 @@ test('.stream() method - short stream', async t => {
 test('.stream() method - error event', async t => {
 	const errorMessage = 'Fixture';
 
-	const readableStream = new Readable({
+	const readableStream = new stream.Readable({
 		read() {
 			process.nextTick(() => {
 				this.emit('error', new Error(errorMessage));
@@ -484,7 +484,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 });
 
-class BufferedStream extends Readable {
+class BufferedStream extends stream.Readable {
 	constructor(buffer) {
 		super();
 		this.push(buffer);
