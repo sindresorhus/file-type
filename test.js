@@ -484,11 +484,27 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 });
 
+class BufferedStream extends stream.Readable {
+	constructor(buffer) {
+		super();
+		this.push(buffer);
+		this.push(null);
+	}
+
+	_read() {}
+}
+
 test('odd file sizes', async t => {
 	const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
-		await t.notThrowsAsync(FileType.fromBuffer(buffer), `File size: ${size} bytes`);
+		await t.notThrowsAsync(FileType.fromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
+	}
+
+	for (const size of oddFileSizes) {
+		const buffer = Buffer.alloc(size);
+		const stream = new BufferedStream(buffer);
+		await t.notThrowsAsync(FileType.fromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });
