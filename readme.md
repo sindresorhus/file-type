@@ -289,6 +289,7 @@ Returns a set of supported MIME types.
 - [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format)
+- [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format)
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format))
 - [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format)
 - [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format))
