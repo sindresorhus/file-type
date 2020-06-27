@@ -1275,6 +1275,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0x06, 0x06, 0xED, 0xF5, 0xD8, 0x1D, 0x46, 0xE5, 0xBD, 0x31, 0xEF, 0xE7, 0xFE, 0x74, 0xB7, 0x1D])) {
+		return {
+			ext: 'indd',
+			mime: 'application/x-indesign'
+		};
+	}
+
 	// Increase sample size from 256 to 512
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
