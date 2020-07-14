@@ -1355,6 +1355,23 @@ async function _fromTokenizer(tokenizer) {
 			}
 		}
 	}
+
+	// Check for Asar
+	if ((() => {
+		try {
+			const headerSize = buffer.readUInt32LE(12);
+			const header = buffer.slice(16, headerSize + 16).toString();
+			JSON.parse(header);
+			return true;
+		} catch (_) {
+			return false;
+		}
+	})()) {
+		return {
+			ext: 'asar',
+			mime: 'application/asar'
+		};
+	}
 }
 
 const stream = readableStream => new Promise((resolve, reject) => {

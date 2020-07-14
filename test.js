@@ -22,6 +22,9 @@ const names = {
 		'fixture-adts-mpeg4-2',
 		'fixture-id3v2'
 	],
+	asar: [
+		'fixture'
+	],
 	arw: [
 		'fixture',
 		'fixture2',

@@ -178,7 +178,8 @@
 		"avif",
 		"eps",
 		"lzh",
-		"pgp"
+		"pgp",
+	    "asar"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",
