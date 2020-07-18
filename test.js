@@ -23,7 +23,8 @@ const names = {
 		'fixture-id3v2'
 	],
 	asar: [
-		'fixture'
+		'fixture',
+		'fixture2'
 	],
 	arw: [
 		'fixture',
