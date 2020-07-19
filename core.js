@@ -1363,7 +1363,7 @@ async function _fromTokenizer(tokenizer) {
 
 		// Check header
 		// Header's first char should be "{" because expect JSON
-		if (checkString("{", {offset: 16})) {
+		if (checkString('{', {offset: 16})) {
 			const jsonSize = buffer.readUInt32LE(12);
 			const header = buffer.slice(16, jsonSize + 16).toString();
 			JSON.parse(header);
