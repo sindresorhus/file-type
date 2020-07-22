@@ -334,7 +334,7 @@ declare namespace core {
 	/**
 	Supported file extensions.
 	*/
-	const extensions: readonly core.FileExtension[];
+	const extensions: Set<core.FileExtension>;
 
 	/**
 	Supported MIME types.
