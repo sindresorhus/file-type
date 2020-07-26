@@ -1357,22 +1357,22 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	// Check for Asar
-	try {
-		// Check header_size
-		buffer.readUInt32LE(4);
+	if (buffer.length > 16 && checkString('{"files":{', {offset: 16})) {
+		try {
+			// Check header_size
+			buffer.readUInt32LE(4);
 
-		// Check header
-		// Header's first char should be "{" because expect JSON
-		if (checkString('{', {offset: 16})) {
+			// Check header
 			const jsonSize = buffer.readUInt32LE(12);
 			const header = buffer.slice(16, jsonSize + 16).toString();
 			JSON.parse(header);
+
 			return {
 				ext: 'asar',
-				mime: 'application/asar'
+				mime: 'application/x-asar'
 			};
-		}
-	} catch (_) {}
+		} catch (_) {}
+	}
 }
 
 const stream = readableStream => new Promise((resolve, reject) => {

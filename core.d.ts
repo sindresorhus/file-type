@@ -264,7 +264,7 @@ declare namespace core {
 		| 'image/avif'
 		| 'application/x-lzh-compressed'
 		| 'application/pgp-encrypted'
-		| 'application/asar';
+		| 'application/x-asar';
 
 	interface FileTypeResult {
 		/**

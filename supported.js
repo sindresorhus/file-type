@@ -262,6 +262,6 @@ module.exports = {
 		'image/avif',
 		'application/x-lzh-compressed',
 		'application/pgp-encrypted',
-		'application/asar'
+		'application/x-asar'
 	]
 };
