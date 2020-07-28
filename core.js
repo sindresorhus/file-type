@@ -1357,7 +1357,7 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	// Check for Asar
-	if (buffer.length > 16 && checkString('{"files":{', {offset: 16})) {
+	if (checkString('{"files":{', {offset: 16})) {
 		try {
 			// Check header_size
 			buffer.readUInt32LE(4);
