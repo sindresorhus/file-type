@@ -1195,6 +1195,24 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0x04, 0x00, 0x00, 0x00]) && buffer.length >= 16) { // Rough & quick check Pickle/ASAR
+		const jsonSize = buffer.readUInt32LE(12);
+		if (jsonSize > 12 && jsonSize < 240 && buffer.length >= jsonSize + 16) {
+			try {
+				const header = buffer.slice(16, jsonSize + 16).toString();
+				const json = JSON.parse(header);
+				// Check if Pickle is ASAR
+				if (json.files) { // Final check, assuring Pickle/ASAR format
+					return {
+						ext: 'asar',
+						mime: 'application/x-asar'
+					};
+				}
+			} catch (_) {
+			}
+		}
+	}
+
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
 		tarHeaderChecksumMatches(buffer)
@@ -1355,21 +1373,6 @@ async function _fromTokenizer(tokenizer) {
 			}
 		}
 	}
-
-	// Check for Asar
-	if (checkString('{"files":{', {offset: 16})) {
-		try {
-			// Check header
-			const jsonSize = buffer.readUInt32LE(12);
-			const header = buffer.slice(16, jsonSize + 16).toString();
-			JSON.parse(header);
-
-			return {
-				ext: 'asar',
-				mime: 'application/x-asar'
-			};
-		} catch (_) {}
-	}
 }
 
 const stream = readableStream => new Promise((resolve, reject) => {
@@ -1382,7 +1385,8 @@ const stream = readableStream => new Promise((resolve, reject) => {
 		const pass = new stream.PassThrough();
 		let outputStream;
 		if (stream.pipeline) {
-			outputStream = stream.pipeline(readableStream, pass, () => {});
+			outputStream = stream.pipeline(readableStream, pass, () => {
+			});
 		} else {
 			outputStream = readableStream.pipe(pass);
 		}
