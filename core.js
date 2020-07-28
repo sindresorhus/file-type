@@ -1359,9 +1359,6 @@ async function _fromTokenizer(tokenizer) {
 	// Check for Asar
 	if (checkString('{"files":{', {offset: 16})) {
 		try {
-			// Check header_size
-			buffer.readUInt32LE(4);
-
 			// Check header
 			const jsonSize = buffer.readUInt32LE(12);
 			const header = buffer.slice(16, jsonSize + 16).toString();
