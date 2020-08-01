@@ -135,7 +135,8 @@ declare namespace core {
 		| 'avif'
 		| 'eps'
 		| 'lzh'
-		| 'pgp';
+		| 'pgp'
+		| 'asar';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -262,7 +263,8 @@ declare namespace core {
 		| 'application/vnd.sketchup.skp'
 		| 'image/avif'
 		| 'application/x-lzh-compressed'
-		| 'application/pgp-encrypted';
+		| 'application/pgp-encrypted'
+		| 'application/x-asar';
 
 	interface FileTypeResult {
 		/**
