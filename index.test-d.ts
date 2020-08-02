@@ -39,7 +39,7 @@ expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuf
 	}
 })();
 
-expectType<readonly FileType.FileExtension[]>(FileType.extensions);
+expectType<Set<FileType.FileExtension>>(FileType.extensions);
 
 expectType<readonly FileType.MimeType[]>(FileType.mimeTypes);
 
