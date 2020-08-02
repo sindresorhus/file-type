@@ -2,10 +2,6 @@
 
 exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
 
-const uint8ArrayUtf8ByteString = (array, start, end) => {
-	return String.fromCharCode(...array.slice(start, end));
-};
-
 exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum field characters are valid
 	if (buffer.length < 512) { // `tar` header size, cannot compute checksum without it
 		return false;
@@ -30,7 +26,7 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
-	const readSum = parseInt(uint8ArrayUtf8ByteString(buffer, 148, 154), 8); // Read sum in header
+	const readSum = parseInt(buffer.toString('binary', 148, 154), 8); // Read sum in header
 
 	// Some implementations compute checksum incorrectly using signed bytes
 	return (
@@ -41,8 +37,6 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		readSum === (sum - (signedBitSum << 1))
 	);
 };
-
-exports.uint8ArrayUtf8ByteString = uint8ArrayUtf8ByteString;
 
 /**
 ID3 UINT32 sync-safe tokenizer token.
