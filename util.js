@@ -9,7 +9,7 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 
 	const MASK_8TH_BIT = 0x80;
 
-	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces in checksum field
+	let sum = 256; // Initialize sum, with 256 as sum of 8 spaces in checksum field
 	let signedBitSum = 0; // Initialize signed bit sum
 
 	for (let i = 0; i < 148; i++) {

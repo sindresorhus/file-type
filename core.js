@@ -1212,10 +1212,10 @@ async function _fromTokenizer(tokenizer) {
 		}
 	}
 
-	if (
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buffer)
-	) {
+	// Requires a buffer size of 512 bytes
+	const isTar = check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]});
+	const isChecksum = tarHeaderChecksumMatches(buffer);
+	if (isTar && isChecksum) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
