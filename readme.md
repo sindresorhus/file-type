@@ -1,4 +1,4 @@
-# file-type [![Build Status](https://travis-ci.com/sindresorhus/file-type.svg?branch=master)](https://travis-ci.com/sindresorhus/file-type)
+# file-type [![Build Status](https://travis-ci.com/sindresorhus/file-type.svg?branch=master)](https://travis-ci.com/github/sindresorhus/file-type)
 
 > Detect the file type of a Buffer/Uint8Array/ArrayBuffer
 
