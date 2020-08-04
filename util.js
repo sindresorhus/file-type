@@ -26,7 +26,7 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
-	const readSum = parseInt(buffer.toString('ascii', 148, 154), 8); // Read sum in header
+	const readSum = parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
 
 	// Some implementations compute checksum incorrectly using signed bytes
 	return (
