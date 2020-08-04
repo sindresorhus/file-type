@@ -1212,16 +1212,6 @@ async function _fromTokenizer(tokenizer) {
 		}
 	}
 
-	// Requires a buffer size of 512 bytes
-	const isTar = check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]});
-	const isChecksum = tarHeaderChecksumMatches(buffer);
-	if (isTar && isChecksum) {
-		return {
-			ext: 'tar',
-			mime: 'application/x-tar'
-		};
-	}
-
 	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E])) {
 		return {
 			ext: 'msi',
@@ -1301,6 +1291,14 @@ async function _fromTokenizer(tokenizer) {
 
 	// Increase sample size from 256 to 512
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
+
+	// Requires a buffer size of 512 bytes
+	if (checkString('ustar', {offset: 257}) && tarHeaderChecksumMatches(buffer)) {
+		return {
+			ext: 'tar',
+			mime: 'application/x-tar'
+		};
+	}
 
 	if (
 		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
