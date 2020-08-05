@@ -1293,8 +1293,7 @@ async function _fromTokenizer(tokenizer) {
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
 	// Requires a buffer size of 512 bytes
-	if ((checkString('ustar', {offset: 257}) ||
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]})
+	if ((!isNaN(parseInt(buffer.toString('ascii', 148, 154), 8))
 	) && tarHeaderChecksumMatches(buffer)) {
 		return {
 			ext: 'tar',
