@@ -2,6 +2,12 @@
 
 exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
 
+function readTarSum(buffer) {
+	return parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+}
+
+exports.readTarSum = readTarSum;
+
 exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum field characters are valid
 	if (buffer.length < 512) { // `tar` header size, cannot compute checksum without it
 		return false;
@@ -26,7 +32,7 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
 
-	const readSum = parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+	const readSum = readTarSum(buffer);
 
 	// Some implementations compute checksum incorrectly using signed bytes
 	return (
