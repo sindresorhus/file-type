@@ -1293,17 +1293,9 @@ async function _fromTokenizer(tokenizer) {
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
 	// Requires a buffer size of 512 bytes
-	if (checkString('ustar', {offset: 257}) && tarHeaderChecksumMatches(buffer)) {
-		return {
-			ext: 'tar',
-			mime: 'application/x-tar'
-		};
-	}
-
-	if (
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buffer)
-	) {
+	if ((checkString('ustar', {offset: 257}) ||
+		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]})
+	) && tarHeaderChecksumMatches(buffer)) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
