@@ -131,7 +131,8 @@ const names = {
 	],
 	tar: [
 		'fixture',
-		'fixture-v7'
+		'fixture-v7',
+		'fixture-spaces'
 	],
 	mie: [
 		'fixture-big-endian',
