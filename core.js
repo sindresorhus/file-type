@@ -4,7 +4,6 @@ const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
-	readTarSum,
 	uint32SyncSafeToken
 } = require('./util');
 const supported = require('./supported');
@@ -1294,8 +1293,7 @@ async function _fromTokenizer(tokenizer) {
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
 	// Requires a buffer size of 512 bytes
-	if ((!isNaN(readTarSum(buffer))
-	) && tarHeaderChecksumMatches(buffer)) {
+	if (tarHeaderChecksumMatches(buffer)) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
