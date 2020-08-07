@@ -7,9 +7,14 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		return false;
 	}
 
+	const readSum = parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+	if (isNaN(readSum)) {
+		return false;
+	}
+
 	const MASK_8TH_BIT = 0x80;
 
-	let sum = 256; // Intitalize sum, with 256 as sum of 8 spaces in checksum field
+	let sum = 256; // Initialize sum, with 256 as sum of 8 spaces in checksum field
 	let signedBitSum = 0; // Initialize signed bit sum
 
 	for (let i = 0; i < 148; i++) {
@@ -25,8 +30,6 @@ exports.tarHeaderChecksumMatches = buffer => { // Does not check if checksum fie
 		sum += byte;
 		signedBitSum += byte & MASK_8TH_BIT; // Add signed bit to signed bit sum
 	}
-
-	const readSum = parseInt(buffer.toString('ascii', 148, 154), 8); // Read sum in header
 
 	// Some implementations compute checksum incorrectly using signed bytes
 	return (
