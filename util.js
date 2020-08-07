@@ -3,11 +3,12 @@
 exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
 
 /**
- * Return true if the tar checksum is valid
- * @param {Buffer} buffer holding tar header [offset ... offset + 512]
- * @param {number} off TAR header offset
- * @returns {boolean} rue if the tar checksum is valid, otherwise false
- */
+Checks whether the TAR checksum is valid.
+
+@param {Buffer} buffer - The TAR header `[offset ... offset + 512]`.
+@param {number} offset - TAR header offset.
+@returns {boolean} `true` if the TAR checksum is valid, otherwise `false`.
+*/
 exports.tarHeaderChecksumMatches = (buffer, off) => {
 	off = off ? off : 0;
 
