@@ -25,7 +25,6 @@ exports.tarHeaderChecksumMatches = (buffer, offset = 0) => {
 		sum += buffer[i];
 	}
 
-	// Some implementations compute checksum incorrectly using signed bytes
 	return readSum === sum;
 };
 
