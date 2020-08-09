@@ -9,9 +9,7 @@ Checks whether the TAR checksum is valid.
 @param {number} offset - TAR header offset.
 @returns {boolean} `true` if the TAR checksum is valid, otherwise `false`.
 */
-exports.tarHeaderChecksumMatches = (buffer, off) => {
-	off = off ? off : 0;
-
+exports.tarHeaderChecksumMatches = (buffer, offset = 0) => {
 	const readSum = parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
 	if (isNaN(readSum)) {
 		return false;
@@ -19,11 +17,11 @@ exports.tarHeaderChecksumMatches = (buffer, off) => {
 
 	let sum = 8 * 0x20; // Initialize signed bit sum
 
-	for (let i = off; i < off + 148; i++) {
+	for (let i = offset; i < offset + 148; i++) {
 		sum += buffer[i];
 	}
 
-	for (let i = off + 156; i < off + 512; i++) {
+	for (let i = offset + 156; i < offset + 512; i++) {
 		sum += buffer[i];
 	}
 
