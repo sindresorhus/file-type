@@ -343,7 +343,7 @@ Returns a set of supported MIME types.
 - [`rpm`](https://fileinfo.com/extension/rpm)
 - [`Z`](https://fileinfo.com/extension/z)
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
-- [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
+- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format)
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
 - [`mts`](https://en.wikipedia.org/wiki/.m2ts)
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
@@ -407,12 +407,14 @@ Returns a set of supported MIME types.
 *Pull requests are welcome for additional commonly used file types.*
 
 The following file types will not be accepted:
-- `.doc` - Too old and difficult to parse.
-- `.xls` - Too old and difficult to parse.
-- `.ppt` - Too old and difficult to parse.
+- [[MS-CFB]: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b), too old and difficult to parse:
+  - `.doc` - Microsoft Word 97-2003 Document 
+  - `.xls` - Microsoft Excel 97-2003 Document 
+  - `.ppt` - Microsoft PowerPoint97-2003 Document
+  - `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
-
+ 
 ## file-type for enterprise
 
 Available as part of the Tidelift Subscription.

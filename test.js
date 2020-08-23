@@ -169,17 +169,18 @@ const names = {
 	eps: [
 		'fixture',
 		'fixture2'
+	],
+	cfb: [
+		'fixture.msi',
+		'fixture.xls',
+		'fixture.doc',
+		'fixture.ppt'
 	]
 };
 
 // Define an entry here only if the file type has potential
 // for false-positives
 const falsePositives = {
-	msi: [
-		'fixture-ppt',
-		'fixture-doc',
-		'fixture-xls'
-	]
 };
 
 // Known failing fixture
