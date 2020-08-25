@@ -174,7 +174,8 @@ const names = {
 		'fixture.msi',
 		'fixture.xls',
 		'fixture.doc',
-		'fixture.ppt'
+		'fixture.ppt',
+		'fixture-2.doc'
 	]
 };
 
