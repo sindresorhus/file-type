@@ -169,16 +169,13 @@ const names = {
 	eps: [
 		'fixture',
 		'fixture2'
-	]
-};
-
-// Define an entry here only if the file type has potential
-// for false-positives
-const falsePositives = {
-	msi: [
-		'fixture-ppt',
-		'fixture-doc',
-		'fixture-xls'
+	],
+	cfb: [
+		'fixture.msi',
+		'fixture.xls',
+		'fixture.doc',
+		'fixture.ppt',
+		'fixture-2.doc'
 	]
 };
 
@@ -212,15 +209,6 @@ async function testFromBuffer(t, ext, name) {
 	await checkBufferLike(t, ext, chunk);
 	await checkBufferLike(t, ext, new Uint8Array(chunk));
 	await checkBufferLike(t, ext, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
-}
-
-async function testFalsePositive(t, ext, name) {
-	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
-	const chunk = fs.readFileSync(file);
-
-	t.is(await FileType.fromBuffer(chunk), undefined);
-	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
-	t.is(await FileType.fromBuffer(chunk.buffer), undefined);
 }
 
 async function testFileFromStream(t, ext, name) {
@@ -275,12 +263,6 @@ for (const type of types) {
 		_test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
 		_test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
 		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
-	}
-
-	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
-		for (const falsePositiveFile of falsePositives[type]) {
-			test(`false positive - ${type} ${i++}`, testFalsePositive, type, falsePositiveFile);
-		}
 	}
 }
 
