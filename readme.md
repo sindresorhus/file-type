@@ -414,7 +414,7 @@ The following file types will not be accepted:
   - `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
- 
+
 ## file-type for enterprise
 
 Available as part of the Tidelift Subscription.
