@@ -1170,7 +1170,7 @@ async function _fromTokenizer(tokenizer) {
 	}
 
 	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])) {
-		//  Detected Microsoft Compound File Binary File (MS-CFB) Format
+		// Detected Microsoft Compound File Binary File (MS-CFB) Format.
 		return {
 			ext: 'cfb',
 			mime: 'application/x-cfb'
