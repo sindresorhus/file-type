@@ -370,6 +370,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			'mime',
 			'file',
 			'type',
+			'magic',
 			'archive',
 			'image',
 			'img',
