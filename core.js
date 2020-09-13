@@ -986,7 +986,7 @@ async function _fromTokenizer(tokenizer) {
 				default:
 					await tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
 			}
-		} while (tokenizer.position < tokenizer.fileInfo.size);
+		} while (tokenizer.position + 8 < tokenizer.fileInfo.size);
 
 		return {
 			ext: 'png',
