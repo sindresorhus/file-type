@@ -967,6 +967,11 @@ async function _fromTokenizer(tokenizer) {
 
 		do {
 			const chunk = await readChunkHeader();
+
+			if (chunk.length < 0) {
+				break;
+			}
+
 			switch (chunk.type) {
 				case 'IDAT':
 					return {

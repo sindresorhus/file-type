@@ -127,7 +127,8 @@ const names = {
 	],
 	png: [
 		'fixture',
-		'fixture-itxt'
+		'fixture-itxt',
+		'fixture-corrupt' // Chunk length exceeding 2^32 -1
 	],
 	tar: [
 		'fixture',
