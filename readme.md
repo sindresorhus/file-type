@@ -367,8 +367,6 @@ Returns a set of supported MIME types.
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
-- [`wma`](https://en.wikipedia.org/wiki/Windows_Media_Audio) - Windows Media Audio
-- [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video) - Windows Media Video
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`mpc`](https://en.wikipedia.org/wiki/Musepack) - Musepack (SV7 & SV8)
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
