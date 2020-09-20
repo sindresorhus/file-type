@@ -23,5 +23,7 @@ export {
 	fromTokenizer,
 	extensions,
 	mimeTypes,
-	stream
+	stream,
+	Detection,
+	addDetection
 } from './core';

@@ -10,6 +10,8 @@ const supported = require('./supported');
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range
 
+const detections = [_detectFileType];
+
 async function fromStream(stream) {
 	const tokenizer = await strtok3.fromStream(stream);
 	try {
@@ -66,7 +68,7 @@ async function _checkSequence(sequence, tokenizer, ignoreBytes) {
 
 async function fromTokenizer(tokenizer) {
 	try {
-		return _fromTokenizer(tokenizer);
+		return detectFileType(tokenizer);
 	} catch (error) {
 		if (!(error instanceof strtok3.EndOfStreamError)) {
 			throw error;
@@ -74,7 +76,20 @@ async function fromTokenizer(tokenizer) {
 	}
 }
 
-async function _fromTokenizer(tokenizer) {
+async function addDetection(detection) {
+	detections.push(detection);
+}
+
+async function detectFileType(tokenizer) {
+	let fileType;
+	for (const detection of detections) {
+		fileType = await detection(tokenizer, fileType);
+	}
+
+	return fileType;
+}
+
+async function _detectFileType(tokenizer) {
 	let buffer = Buffer.alloc(minimumBytes);
 	const bytesRead = 12;
 	const check = (header, options) => _check(buffer, header, options);
@@ -1400,7 +1415,8 @@ const fileType = {
 	fromStream,
 	fromTokenizer,
 	fromBuffer,
-	stream
+	stream,
+	addDetection
 };
 
 Object.defineProperty(fileType, 'extensions', {
