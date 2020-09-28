@@ -4,6 +4,8 @@
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
+This package is for detecting binary-based file formats, not text-based formats like `.txt`, `.csv`, `.svg`, etc.
+
 ## Install
 
 ```
