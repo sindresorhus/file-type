@@ -176,6 +176,11 @@ const names = {
 		'fixture.doc',
 		'fixture.ppt',
 		'fixture-2.doc'
+	],
+	asf: [
+		'fixture',
+		'fixture.wma',
+		'fixture.wmv'
 	]
 };
 
@@ -189,7 +194,6 @@ const falsePositives = {
 
 // Known failing fixture
 const failingFixture = [
-	'fixture.asf'
 ];
 
 async function checkBufferLike(t, type, bufferLike) {
