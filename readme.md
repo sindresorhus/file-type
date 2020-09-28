@@ -270,12 +270,13 @@ Returns a set of supported MIME types.
 
 ### FileType.addDetection(detection)
 
-Register a detection function. This function fill be called after the file-type, and other detections completed.
-the `detection(tokenizer, fileType)` method has two arguments:
-* [tokenizer](https://github.com/Borewit/strtok3#tokenizer)
-* `fileType`, which is `undefined` or the return value of a detected file type.
+Register a detection function. This function will be called after `file-type` and other detections complete.
 
-If the detector returns `undefined` the tokenizer.position should be 0. That allows other detectors to parse the file. 
+The `detection(tokenizer, fileType)` method has two arguments:
+- [tokenizer](https://github.com/Borewit/strtok3#tokenizer)
+- `fileType`, which is `undefined` or the return value of a detected file type.
+
+If the detector returns `undefined`, the `tokenizer.position` should be 0. That allows other detectors to parse the file. 
 
 ## Supported file types
 
