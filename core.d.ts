@@ -370,7 +370,7 @@ declare namespace core {
 	*/
 	function stream(readableStream: ReadableStream): Promise<core.ReadableStreamWithFileType>
 
-	type Detection = (tokenizer: ITokenizer, fileType? : core.FileTypeResult) => Promise<core.FileTypeResult | undefined>;
+	type Detection = (tokenizer: ITokenizer, fileType?: core.FileTypeResult) => Promise<core.FileTypeResult | undefined>;
 
 	function addDetection(detection: Detection): void;
 }
