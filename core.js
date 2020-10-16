@@ -920,6 +920,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('solid ')) {
+		return {
+			ext: 'stl',
+			mime: 'model/stl'
+		};
+	}
+
 	// -- 7-byte signatures --
 
 	if (checkString('BLENDER')) {

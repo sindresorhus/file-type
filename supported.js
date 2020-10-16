@@ -132,7 +132,8 @@ module.exports = {
 		'eps',
 		'lzh',
 		'pgp',
-		'asar'
+		'asar',
+		'stl'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -260,6 +261,7 @@ module.exports = {
 		'image/avif',
 		'application/x-lzh-compressed',
 		'application/pgp-encrypted',
-		'application/x-asar'
+		'application/x-asar',
+		'model/stl'
 	]
 };
