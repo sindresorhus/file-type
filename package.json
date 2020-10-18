@@ -178,7 +178,8 @@
 		"eps",
 		"lzh",
 		"pgp",
-		"asar"
+		"asar",
+		"stl"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

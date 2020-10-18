@@ -134,7 +134,8 @@ declare namespace core {
 		| 'eps'
 		| 'lzh'
 		| 'pgp'
-		| 'asar';
+		| 'asar'
+		| 'stl';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -262,7 +263,8 @@ declare namespace core {
 		| 'image/avif'
 		| 'application/x-lzh-compressed'
 		| 'application/pgp-encrypted'
-		| 'application/x-asar';
+		| 'application/x-asar'
+		| 'model/stl';
 
 	interface FileTypeResult {
 		/**
