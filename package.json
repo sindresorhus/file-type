@@ -190,7 +190,7 @@
 		"xo": "^0.25.3"
 	},
 	"dependencies": {
-		"readable-web-to-node-stream": "^2.0.0",
+		"readable-web-to-node-stream": "^3.0.0",
 		"strtok3": "^6.0.3",
 		"token-types": "^2.0.0",
 		"typedarray-to-buffer": "^3.1.5"
