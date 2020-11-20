@@ -136,7 +136,8 @@ declare namespace core {
 		| 'pgp'
 		| 'asar'
 		| 'stl'
-		| 'chm';
+		| 'chm'
+		| '3mf';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -266,7 +267,8 @@ declare namespace core {
 		| 'application/pgp-encrypted'
 		| 'application/x-asar'
 		| 'model/stl'
-		| 'application/vnd.ms-htmlhelp';
+		| 'application/vnd.ms-htmlhelp'
+		| 'model/3mf';
 
 	interface FileTypeResult {
 		/**
