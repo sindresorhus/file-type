@@ -1302,6 +1302,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('ITSF')) {
+		return {
+			ext: 'chm',
+			mime: 'application/vnd.ms-htmlhelp'
+		};
+	}
+
 	// Check for MPEG header at different starting offsets
 	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
 		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)

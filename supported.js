@@ -132,7 +132,8 @@ module.exports = {
 		'avif',
 		'eps',
 		'lzh',
-		'pgp'
+		'pgp',
+		'chm'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -258,6 +259,7 @@ module.exports = {
 		'application/vnd.sketchup.skp',
 		'image/avif',
 		'application/x-lzh-compressed',
-		'application/pgp-encrypted'
+		'application/pgp-encrypted',
+		'application/vnd.ms-htmlhelp'
 	]
 };
