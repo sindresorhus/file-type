@@ -22,6 +22,10 @@ const names = {
 		'fixture-adts-mpeg4-2',
 		'fixture-id3v2'
 	],
+	asar: [
+		'fixture',
+		'fixture2'
+	],
 	arw: [
 		'fixture',
 		'fixture2',
@@ -127,7 +131,8 @@ const names = {
 	],
 	tar: [
 		'fixture',
-		'fixture-v7'
+		'fixture-v7',
+		'fixture-spaces'
 	],
 	mie: [
 		'fixture-big-endian',
@@ -164,22 +169,31 @@ const names = {
 	eps: [
 		'fixture',
 		'fixture2'
+	],
+	cfb: [
+		'fixture.msi',
+		'fixture.xls',
+		'fixture.doc',
+		'fixture.ppt',
+		'fixture-2.doc'
+	],
+	asf: [
+		'fixture',
+		'fixture.wma',
+		'fixture.wmv'
 	]
 };
 
 // Define an entry here only if the file type has potential
 // for false-positives
 const falsePositives = {
-	msi: [
-		'fixture-ppt',
-		'fixture-doc',
-		'fixture-xls'
+	png: [
+		'fixture-corrupt'
 	]
 };
 
 // Known failing fixture
 const failingFixture = [
-	'fixture.asf'
 ];
 
 async function checkBufferLike(t, type, bufferLike) {
@@ -211,8 +225,10 @@ async function testFromBuffer(t, ext, name) {
 
 async function testFalsePositive(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
-	const chunk = fs.readFileSync(file);
 
+	await t.is(await FileType.fromFile(file), undefined);
+
+	const chunk = fs.readFileSync(file);
 	t.is(await FileType.fromBuffer(chunk), undefined);
 	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
 	t.is(await FileType.fromBuffer(chunk.buffer), undefined);
@@ -383,6 +399,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			'mime',
 			'file',
 			'type',
+			'magic',
 			'archive',
 			'image',
 			'img',

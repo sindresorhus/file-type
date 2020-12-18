@@ -1,8 +1,10 @@
-# file-type [![Build Status](https://travis-ci.com/sindresorhus/file-type.svg?branch=master)](https://travis-ci.ocomrg/sindresorhus/file-type)
+# file-type
 
 > Detect the file type of a Buffer/Uint8Array/ArrayBuffer
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+This package is for detecting binary-based file formats, not text-based formats like `.txt`, `.csv`, `.svg`, etc.
 
 ## Install
 
@@ -289,6 +291,7 @@ Returns a set of supported MIME types.
 - [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format)
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format)
+- [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format)
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format))
 - [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format)
 - [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format))
@@ -342,7 +345,7 @@ Returns a set of supported MIME types.
 - [`rpm`](https://fileinfo.com/extension/rpm)
 - [`Z`](https://fileinfo.com/extension/z)
 - [`lz`](https://en.wikipedia.org/wiki/Lzip)
-- [`msi`](https://en.wikipedia.org/wiki/Windows_Installer)
+- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format)
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
 - [`mts`](https://en.wikipedia.org/wiki/.m2ts)
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
@@ -366,8 +369,6 @@ Returns a set of supported MIME types.
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
-- [`wma`](https://en.wikipedia.org/wiki/Windows_Media_Audio) - Windows Media Audio
-- [`wmv`](https://en.wikipedia.org/wiki/Windows_Media_Video) - Windows Media Video
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`mpc`](https://en.wikipedia.org/wiki/Musepack) - Musepack (SV7 & SV8)
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
@@ -401,14 +402,18 @@ Returns a set of supported MIME types.
 - [`eps`](https://en.wikipedia.org/wiki/Encapsulated_PostScript) - Encapsulated PostScript
 - [`lzh`](https://en.wikipedia.org/wiki/LHA_(file_format)) - LZH archive
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
+- [`asar`](https://github.com/electron/asar#format) - Archive format primarily used to enclose Electron applications
+- [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 
 *Pull requests are welcome for additional commonly used file types.*
 
 The following file types will not be accepted:
-- `.doc` - Too old and difficult to parse.
-- `.xls` - Too old and difficult to parse.
-- `.ppt` - Too old and difficult to parse.
+- [MS-CFB: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b), too old and difficult to parse:
+	- `.doc` - Microsoft Word 97-2003 Document
+	- `.xls` - Microsoft Excel 97-2003 Document
+	- `.ppt` - Microsoft PowerPoint97-2003 Document
+	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
 

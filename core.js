@@ -4,8 +4,7 @@ const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
-	uint32SyncSafeToken,
-	uint8ArrayUtf8ByteString
+	uint32SyncSafeToken
 } = require('./util');
 const supported = require('./supported');
 
@@ -464,7 +463,7 @@ async function _fromTokenizer(tokenizer) {
 	) {
 		// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
 		// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
-		const brandMajor = uint8ArrayUtf8ByteString(buffer, 8, 12).replace('\0', ' ').trim();
+		const brandMajor = buffer.toString('binary', 8, 12).replace('\0', ' ').trim();
 		switch (brandMajor) {
 			case 'avif':
 				return {ext: 'avif', mime: 'image/avif'};
@@ -921,6 +920,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('solid ')) {
+		return {
+			ext: 'stl',
+			mime: 'model/stl'
+		};
+	}
+
 	// -- 7-byte signatures --
 
 	if (checkString('BLENDER')) {
@@ -968,6 +974,10 @@ async function _fromTokenizer(tokenizer) {
 
 		do {
 			const chunk = await readChunkHeader();
+			if (chunk.length < 0) {
+				return; // Invalid chunk length
+			}
+
 			switch (chunk.type) {
 				case 'IDAT':
 					return {
@@ -982,7 +992,7 @@ async function _fromTokenizer(tokenizer) {
 				default:
 					await tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
 			}
-		} while (tokenizer.position < tokenizer.fileInfo.size);
+		} while (tokenizer.position + 8 < tokenizer.fileInfo.size);
 
 		return {
 			ext: 'png',
@@ -1059,15 +1069,15 @@ async function _fromTokenizer(tokenizer) {
 				if (_check(typeId, [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
 					// Found audio:
 					return {
-						ext: 'wma',
-						mime: 'audio/x-ms-wma'
+						ext: 'asf',
+						mime: 'audio/x-ms-asf'
 					};
 				}
 
 				if (_check(typeId, [0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
 					// Found video:
 					return {
-						ext: 'wmv',
+						ext: 'asf',
 						mime: 'video/x-ms-asf'
 					};
 				}
@@ -1170,6 +1180,14 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])) {
+		// Detected Microsoft Compound File Binary File (MS-CFB) Format.
+		return {
+			ext: 'cfb',
+			mime: 'application/x-cfb'
+		};
+	}
+
 	// Increase sample size from 12 to 256.
 	await tokenizer.peekBuffer(buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
 
@@ -1195,21 +1213,22 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buffer)
-	) {
-		return {
-			ext: 'tar',
-			mime: 'application/x-tar'
-		};
-	}
-
-	if (check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E])) {
-		return {
-			ext: 'msi',
-			mime: 'application/x-msi'
-		};
+	if (check([0x04, 0x00, 0x00, 0x00]) && buffer.length >= 16) { // Rough & quick check Pickle/ASAR
+		const jsonSize = buffer.readUInt32LE(12);
+		if (jsonSize > 12 && jsonSize < 240 && buffer.length >= jsonSize + 16) {
+			try {
+				const header = buffer.slice(16, jsonSize + 16).toString();
+				const json = JSON.parse(header);
+				// Check if Pickle is ASAR
+				if (json.files) { // Final check, assuring Pickle/ASAR format
+					return {
+						ext: 'asar',
+						mime: 'application/x-asar'
+					};
+				}
+			} catch (_) {
+			}
+		}
 	}
 
 	if (check([0x06, 0x0E, 0x2B, 0x34, 0x02, 0x05, 0x01, 0x01, 0x0D, 0x01, 0x02, 0x01, 0x01, 0x02])) {
@@ -1275,13 +1294,18 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0x06, 0x06, 0xED, 0xF5, 0xD8, 0x1D, 0x46, 0xE5, 0xBD, 0x31, 0xEF, 0xE7, 0xFE, 0x74, 0xB7, 0x1D])) {
+		return {
+			ext: 'indd',
+			mime: 'application/x-indesign'
+		};
+	}
+
 	// Increase sample size from 256 to 512
 	await tokenizer.peekBuffer(buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
-	if (
-		check([0x30, 0x30, 0x30, 0x30, 0x30, 0x30], {offset: 148, mask: [0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8]}) && // Valid tar checksum
-		tarHeaderChecksumMatches(buffer)
-	) {
+	// Requires a buffer size of 512 bytes
+	if (tarHeaderChecksumMatches(buffer)) {
 		return {
 			ext: 'tar',
 			mime: 'application/x-tar'
@@ -1367,7 +1391,8 @@ const stream = readableStream => new Promise((resolve, reject) => {
 		const pass = new stream.PassThrough();
 		let outputStream;
 		if (stream.pipeline) {
-			outputStream = stream.pipeline(readableStream, pass, () => {});
+			outputStream = stream.pipeline(readableStream, pass, () => {
+			});
 		} else {
 			outputStream = readableStream.pipe(pass);
 		}

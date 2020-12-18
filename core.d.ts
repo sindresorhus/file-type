@@ -23,6 +23,7 @@ declare namespace core {
 		| 'icns'
 		| 'jxr'
 		| 'psd'
+		| 'indd'
 		| 'zip'
 		| 'tar'
 		| 'rar'
@@ -36,7 +37,6 @@ declare namespace core {
 		| 'webm'
 		| 'mov'
 		| 'avi'
-		| 'wmv'
 		| 'mpg'
 		| 'mp2'
 		| 'mp3'
@@ -72,7 +72,7 @@ declare namespace core {
 		| 'rpm'
 		| 'Z'
 		| 'lz'
-		| 'msi'
+		| 'cfb'
 		| 'mxf'
 		| 'mts'
 		| 'wasm'
@@ -98,7 +98,6 @@ declare namespace core {
 		| 'ape'
 		| 'wv'
 		| 'asf'
-		| 'wma'
 		| 'dcm'
 		| 'mpc'
 		| 'ics'
@@ -135,6 +134,8 @@ declare namespace core {
 		| 'eps'
 		| 'lzh'
 		| 'pgp'
+		| 'asar'
+		| 'stl'
 		| 'chm';
 
 	type MimeType =
@@ -150,6 +151,7 @@ declare namespace core {
 		| 'image/icns'
 		| 'image/vnd.ms-photo'
 		| 'image/vnd.adobe.photoshop'
+		| 'application/x-indesign'
 		| 'application/epub+zip'
 		| 'application/x-xpinstall'
 		| 'application/vnd.oasis.opendocument.text'
@@ -173,7 +175,7 @@ declare namespace core {
 		| 'video/vnd.avi'
 		| 'audio/vnd.wave'
 		| 'audio/qcelp'
-		| 'audio/x-ms-wma'
+		| 'audio/x-ms-asf'
 		| 'video/x-ms-asf'
 		| 'application/vnd.ms-asf'
 		| 'video/mpeg'
@@ -212,7 +214,7 @@ declare namespace core {
 		| 'application/x-rpm'
 		| 'application/x-compress'
 		| 'application/x-lzip'
-		| 'application/x-msi'
+		| 'application/x-cfb'
 		| 'application/x-mie'
 		| 'application/x-apache-arrow'
 		| 'application/mxf'
@@ -262,6 +264,8 @@ declare namespace core {
 		| 'image/avif'
 		| 'application/x-lzh-compressed'
 		| 'application/pgp-encrypted'
+		| 'application/x-asar'
+		| 'model/stl'
 		| 'application/vnd.ms-htmlhelp';
 
 	interface FileTypeResult {
@@ -334,7 +338,7 @@ declare namespace core {
 	/**
 	Supported file extensions.
 	*/
-	const extensions: readonly core.FileExtension[];
+	const extensions: Set<core.FileExtension>;
 
 	/**
 	Supported MIME types.
