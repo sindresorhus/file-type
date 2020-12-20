@@ -879,6 +879,13 @@ async function _fromTokenizer(tokenizer) {
 			};
 		}
 	}
+	
+	if (checkString('ITSF')) {
+		return {
+			ext: 'chm',
+			mime: 'application/vnd.ms-htmlhelp'
+		};
+	}
 
 	// -- 6-byte signatures --
 
@@ -1323,13 +1330,6 @@ async function _fromTokenizer(tokenizer) {
 		return {
 			ext: 'pgp',
 			mime: 'application/pgp-encrypted'
-		};
-	}
-
-	if (checkString('ITSF')) {
-		return {
-			ext: 'chm',
-			mime: 'application/vnd.ms-htmlhelp'
 		};
 	}
 
