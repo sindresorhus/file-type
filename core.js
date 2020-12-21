@@ -879,7 +879,7 @@ async function _fromTokenizer(tokenizer) {
 			};
 		}
 	}
-	
+
 	if (checkString('ITSF')) {
 		return {
 			ext: 'chm',
