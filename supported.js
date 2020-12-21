@@ -133,7 +133,8 @@ module.exports = {
 		'lzh',
 		'pgp',
 		'asar',
-		'stl'
+		'stl',
+		'chm'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -262,6 +263,7 @@ module.exports = {
 		'application/x-lzh-compressed',
 		'application/pgp-encrypted',
 		'application/x-asar',
-		'model/stl'
+		'model/stl',
+		'application/vnd.ms-htmlhelp'
 	]
 };

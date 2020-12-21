@@ -404,6 +404,7 @@ Returns a set of supported MIME types.
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
 - [`asar`](https://github.com/electron/asar#format) - Archive format primarily used to enclose Electron applications
 - [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
+- [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 
 *Pull requests are welcome for additional commonly used file types.*
 

@@ -135,7 +135,8 @@ declare namespace core {
 		| 'lzh'
 		| 'pgp'
 		| 'asar'
-		| 'stl';
+		| 'stl'
+		| 'chm';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -264,7 +265,8 @@ declare namespace core {
 		| 'application/x-lzh-compressed'
 		| 'application/pgp-encrypted'
 		| 'application/x-asar'
-		| 'model/stl';
+		| 'model/stl'
+		| 'application/vnd.ms-htmlhelp';
 
 	interface FileTypeResult {
 		/**

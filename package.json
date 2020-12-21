@@ -179,7 +179,8 @@
 		"lzh",
 		"pgp",
 		"asar",
-		"stl"
+		"stl",
+		"chm"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

@@ -880,6 +880,13 @@ async function _fromTokenizer(tokenizer) {
 		}
 	}
 
+	if (checkString('ITSF')) {
+		return {
+			ext: 'chm',
+			mime: 'application/vnd.ms-htmlhelp'
+		};
+	}
+
 	// -- 6-byte signatures --
 
 	if (check([0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])) {
