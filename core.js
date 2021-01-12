@@ -318,6 +318,13 @@ async function _fromTokenizer(tokenizer) {
 					};
 				}
 
+				if (zipHeader.filename.startsWith('3D/') && zipHeader.filename.endsWith('.model')) {
+					return {
+						ext: '3mf',
+						mime: 'model/3mf'
+					};
+				}
+
 				// The docx, xlsx and pptx file types extend the Office Open XML file format:
 				// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
 				// We look for:

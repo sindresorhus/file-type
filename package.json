@@ -180,7 +180,8 @@
 		"pgp",
 		"asar",
 		"stl",
-		"chm"
+		"chm",
+		"3mf"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

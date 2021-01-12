@@ -134,7 +134,8 @@ module.exports = {
 		'pgp',
 		'asar',
 		'stl',
-		'chm'
+		'chm',
+		'3mf'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -264,6 +265,7 @@ module.exports = {
 		'application/pgp-encrypted',
 		'application/x-asar',
 		'model/stl',
-		'application/vnd.ms-htmlhelp'
+		'application/vnd.ms-htmlhelp',
+		'model/3mf'
 	]
 };
