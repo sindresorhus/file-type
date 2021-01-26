@@ -272,12 +272,12 @@ Returns a set of supported MIME types.
 
 ## Supported file types
 
-- [`jpg`](https://en.wikipedia.org/wiki/JPEG)
-- [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics)
+- [`jpg`](https://en.wikipedia.org/wiki/JPEG) - Joint Photographic Experts Group image
+- [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics
 - [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
-- [`gif`](https://en.wikipedia.org/wiki/GIF)
-- [`webp`](https://en.wikipedia.org/wiki/WebP)
-- [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format)
+- [`gif`](https://en.wikipedia.org/wiki/GIF) - Graphics Interchange Format
+- [`webp`](https://en.wikipedia.org/wiki/WebP) - Web Picture format
+- [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format) - Free Lossless Image Format
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
@@ -286,86 +286,86 @@ Returns a set of supported MIME types.
 - [`nef`](https://www.nikonusa.com/en/learn-and-explore/a/products-and-innovation/nikon-electronic-format-nef.html) - Nikon Electronic Format image file
 - [`rw2`](https://en.wikipedia.org/wiki/Raw_image_format) - Panasonic RAW image file
 - [`raf`](https://en.wikipedia.org/wiki/Raw_image_format) - Fujifilm RAW image file
-- [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format)
-- [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format)
-- [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format)
-- [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR)
-- [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format)
-- [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format)
-- [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format))
-- [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format)
-- [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format))
-- [`gz`](https://en.wikipedia.org/wiki/Gzip)
-- [`bz2`](https://en.wikipedia.org/wiki/Bzip2)
-- [`7z`](https://en.wikipedia.org/wiki/7z)
-- [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image)
-- [`mp4`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#Filename_extensions)
-- [`mid`](https://en.wikipedia.org/wiki/MIDI)
-- [`mkv`](https://en.wikipedia.org/wiki/Matroska)
-- [`webm`](https://en.wikipedia.org/wiki/WebM)
-- [`mov`](https://en.wikipedia.org/wiki/QuickTime_File_Format)
-- [`avi`](https://en.wikipedia.org/wiki/Audio_Video_Interleave)
-- [`mpg`](https://en.wikipedia.org/wiki/MPEG-1)
+- [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format) - Tagged Image file
+- [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format) - Bitmap image file
+- [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format) - Apple Icon image
+- [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR) - Joint Photographic Experts Group extended range
+- [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
+- [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format) - Adobe InDesign document
+- [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format)) - Archive file
+- [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tarball archive file
+- [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format)) - Archive file
+- [`gz`](https://en.wikipedia.org/wiki/Gzip) - Archive file
+- [`bz2`](https://en.wikipedia.org/wiki/Bzip2) - Archive file
+- [`7z`](https://en.wikipedia.org/wiki/7z) - 7-Zip archive
+- [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
+- [`mp4`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#Filename_extensions) - MPEG-4 Part 14 video file
+- [`mid`](https://en.wikipedia.org/wiki/MIDI) - Musical Instrument Digital Interface file
+- [`mkv`](https://en.wikipedia.org/wiki/Matroska) - Matroska video file
+- [`webm`](https://en.wikipedia.org/wiki/WebM) - Web video file
+- [`mov`](https://en.wikipedia.org/wiki/QuickTime_File_Format) - QuickTime video file
+- [`avi`](https://en.wikipedia.org/wiki/Audio_Video_Interleave) - Audio Video Interleave file
+- [`mpg`](https://en.wikipedia.org/wiki/MPEG-1) - MPEG-1 file
 - [`mp1`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_I) - MPEG-1 Audio Layer I
-- [`mp2`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_II)
-- [`mp3`](https://en.wikipedia.org/wiki/MP3)
-- [`ogg`](https://en.wikipedia.org/wiki/Ogg)
-- [`ogv`](https://en.wikipedia.org/wiki/Ogg)
-- [`ogm`](https://en.wikipedia.org/wiki/Ogg)
-- [`oga`](https://en.wikipedia.org/wiki/Ogg)
-- [`spx`](https://en.wikipedia.org/wiki/Ogg)
-- [`ogx`](https://en.wikipedia.org/wiki/Ogg)
-- [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format))
-- [`flac`](https://en.wikipedia.org/wiki/FLAC)
-- [`wav`](https://en.wikipedia.org/wiki/WAV)
-- [`qcp`](https://en.wikipedia.org/wiki/QCP)
-- [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec)
-- [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format)
-- [`epub`](https://en.wikipedia.org/wiki/EPUB)
+- [`mp2`](https://en.wikipedia.org/wiki/MPEG-1_Audio_Layer_II) - MPEG-1 Audio Layer II
+- [`mp3`](https://en.wikipedia.org/wiki/MP3) - Audio file
+- [`ogg`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`ogv`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`ogm`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`oga`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`spx`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`ogx`](https://en.wikipedia.org/wiki/Ogg) - Audio file
+- [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format)) - Audio file
+- [`flac`](https://en.wikipedia.org/wiki/FLAC) - Free Lossless Audio Codec
+- [`wav`](https://en.wikipedia.org/wiki/WAV) - Waveform Audio file
+- [`qcp`](https://en.wikipedia.org/wiki/QCP) - Tagged and chunked data
+- [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec) - Adaptive Multi-Rate audio codec
+- [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
+- [`epub`](https://en.wikipedia.org/wiki/EPUB) - E-book file
 - [`mobi`](https://en.wikipedia.org/wiki/Mobipocket) - Mobipocket
-- [`exe`](https://en.wikipedia.org/wiki/.exe)
-- [`swf`](https://en.wikipedia.org/wiki/SWF)
-- [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format)
-- [`woff`](https://en.wikipedia.org/wiki/Web_Open_Font_Format)
-- [`woff2`](https://en.wikipedia.org/wiki/Web_Open_Font_Format)
-- [`eot`](https://en.wikipedia.org/wiki/Embedded_OpenType)
-- [`ttf`](https://en.wikipedia.org/wiki/TrueType)
-- [`otf`](https://en.wikipedia.org/wiki/OpenType)
-- [`ico`](https://en.wikipedia.org/wiki/ICO_(file_format))
-- [`flv`](https://en.wikipedia.org/wiki/Flash_Video)
-- [`ps`](https://en.wikipedia.org/wiki/Postscript)
-- [`xz`](https://en.wikipedia.org/wiki/Xz)
-- [`sqlite`](https://www.sqlite.org/fileformat2.html)
-- [`nes`](https://fileinfo.com/extension/nes)
-- [`crx`](https://developer.chrome.com/extensions/crx)
-- [`xpi`](https://en.wikipedia.org/wiki/XPInstall)
-- [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format))
-- [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format))
-- [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix))
-- [`rpm`](https://fileinfo.com/extension/rpm)
-- [`Z`](https://fileinfo.com/extension/z)
-- [`lz`](https://en.wikipedia.org/wiki/Lzip)
-- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format)
-- [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format)
-- [`mts`](https://en.wikipedia.org/wiki/.m2ts)
-- [`wasm`](https://en.wikipedia.org/wiki/WebAssembly)
-- [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format)
-- [`bpg`](https://bellard.org/bpg/)
-- [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML)
-- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML)
-- [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML)
+- [`exe`](https://en.wikipedia.org/wiki/.exe) - Executable file
+- [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
+- [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format) - Rich Text Format
+- [`woff`](https://en.wikipedia.org/wiki/Web_Open_Font_Format) - Web Open Font Format
+- [`woff2`](https://en.wikipedia.org/wiki/Web_Open_Font_Format) - Web Open Font Format
+- [`eot`](https://en.wikipedia.org/wiki/Embedded_OpenType) - Embedded OpenType font
+- [`ttf`](https://en.wikipedia.org/wiki/TrueType) - TrueType font
+- [`otf`](https://en.wikipedia.org/wiki/OpenType) - OpenType font
+- [`ico`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Windows icon file
+- [`flv`](https://en.wikipedia.org/wiki/Flash_Video) - Flash video
+- [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
+- [`xz`](https://en.wikipedia.org/wiki/Xz) - Compressed file
+- [`sqlite`](https://www.sqlite.org/fileformat2.html) - SQLite file
+- [`nes`](https://fileinfo.com/extension/nes) - Nintendo NES ROM
+- [`crx`](https://developer.chrome.com/extensions/crx) - Google Chrome extension
+- [`xpi`](https://en.wikipedia.org/wiki/XPInstall) - XPInstall file
+- [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
+- [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format)) - Debian package
+- [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix)) - Archive file
+- [`rpm`](https://fileinfo.com/extension/rpm) - Red Hat Package Manager file
+- [`Z`](https://fileinfo.com/extension/z) - Unix Compressed File
+- [`lz`](https://en.wikipedia.org/wiki/Lzip) - Arhive file
+- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
+- [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format) - Material Exchange Format
+- [`mts`](https://en.wikipedia.org/wiki/.m2ts) - Blu-ray Disc Audio-Video MPEG-2 Transport Stream
+- [`wasm`](https://en.wikipedia.org/wiki/WebAssembly) - WebAssembly intermediate compiled format
+- [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format) - Blender project
+- [`bpg`](https://bellard.org/bpg/) - Better Portable Graphics file
+- [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word
+- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Powerpoint
+- [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Excel
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`mj2`](https://en.wikipedia.org/wiki/Motion_JPEG_2000) - Motion JPEG 2000
-- [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format)
+- [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format) - Audio Interchange file
 - [`odt`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for word processing
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
-- [`xml`](https://en.wikipedia.org/wiki/XML)
-- [`heic`](https://nokiatech.github.io/heif/technical.html)
-- [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format))
-- [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
+- [`xml`](https://en.wikipedia.org/wiki/XML) - eXtensible Markup Language
+- [`heic`](https://nokiatech.github.io/heif/technical.html) - High Efficiency Image File Format
+- [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Icon file
+- [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL® and OpenGL® ES textures
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
