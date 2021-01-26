@@ -365,7 +365,7 @@ Returns a set of supported MIME types.
 - [`xml`](https://en.wikipedia.org/wiki/XML) - eXtensible Markup Language
 - [`heic`](https://nokiatech.github.io/heif/technical.html) - High Efficiency Image File Format
 - [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Icon file
-- [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL® and OpenGL® ES textures
+- [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL and OpenGL ES textures
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
