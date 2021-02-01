@@ -1414,9 +1414,14 @@ async function _fromTokenizer(tokenizer) {
 	}
 }
 
-const stream = readableStream => new Promise((resolve, reject) => {
+const stream = (readableStream, options) => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
+
+	options = {
+		sampleSize: minimumBytes,
+		...options
+	};
 
 	readableStream.on('error', reject);
 	readableStream.once('readable', async () => {
@@ -1431,7 +1436,7 @@ const stream = readableStream => new Promise((resolve, reject) => {
 		}
 
 		// Read the input stream and detect the filetype
-		const chunk = readableStream.read(minimumBytes) || readableStream.read() || Buffer.alloc(0);
+		const chunk = readableStream.read(options.sampleSize) || readableStream.read() || Buffer.alloc(0);
 		try {
 			const fileType = await fromBuffer(chunk);
 			pass.fileType = fileType;

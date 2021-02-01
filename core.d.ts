@@ -356,9 +356,20 @@ declare namespace core {
 	const mimeTypes: Set<core.MimeType>;
 
 	/**
+	 * Stream options.
+	 */
+	interface IStreamOptions {
+		/**
+		 *  Sample size in bytes.
+		 */
+		readonly sampleSize?: number
+	}
+
+	/**
 	Detect the file type of a readable stream.
 
 	@param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
+	@param options - Options
 	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
 	@example
@@ -370,7 +381,7 @@ declare namespace core {
 	(async () => {
 		const read = fs.createReadStream('encrypted.enc');
 		const decipher = crypto.createDecipheriv(alg, key, iv);
-		const stream = await fileType.stream(read.pipe(decipher));
+		const stream = await fileType.stream(read.pipe(decipher), {sampleSize: 1024});
 
 		console.log(stream.fileType);
 		//=> {ext: 'mov', mime: 'video/quicktime'}
@@ -380,7 +391,7 @@ declare namespace core {
 	})();
 	```
 	*/
-	function stream(readableStream: ReadableStream): Promise<core.ReadableStreamWithFileType>
+	function stream(readableStream: ReadableStream, options?: IStreamOptions): Promise<core.ReadableStreamWithFileType>
 }
 
 export = core;
