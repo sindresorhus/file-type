@@ -805,6 +805,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0x28, 0xb5, 0x2f, 0xfd])) {
+		return {
+			ext: 'zst',
+			mime: 'application/zstd'
+		};
+	}
+
 	// -- 5-byte signatures --
 
 	if (check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {

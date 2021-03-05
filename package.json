@@ -181,7 +181,8 @@
 		"asar",
 		"stl",
 		"chm",
-		"3mf"
+		"3mf",
+		"zst"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

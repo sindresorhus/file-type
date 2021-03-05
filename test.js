@@ -99,6 +99,9 @@ const names = {
 	Z: [
 		'fixture.tar'
 	],
+	zst: [
+		'fixture.tar'
+	],
 	mkv: [
 		'fixture',
 		'fixture2'
