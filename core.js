@@ -805,7 +805,7 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (check([0x28, 0xb5, 0x2f, 0xfd])) {
+	if (check([0x28, 0xB5, 0x2F, 0xFD])) {
 		return {
 			ext: 'zst',
 			mime: 'application/zstd'
