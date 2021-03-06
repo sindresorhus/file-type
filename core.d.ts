@@ -137,7 +137,8 @@ declare namespace core {
 		| 'asar'
 		| 'stl'
 		| 'chm'
-		| '3mf';
+		| '3mf'
+		| 'zst';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -268,7 +269,8 @@ declare namespace core {
 		| 'application/x-asar'
 		| 'model/stl'
 		| 'application/vnd.ms-htmlhelp'
-		| 'model/3mf';
+		| 'model/3mf'
+		| 'application/zstd';
 
 	interface FileTypeResult {
 		/**
@@ -376,4 +378,3 @@ declare namespace core {
 }
 
 export = core;
-

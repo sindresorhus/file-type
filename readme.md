@@ -297,6 +297,7 @@ Returns a set of supported MIME types.
 - [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format)) - Archive file
 - [`gz`](https://en.wikipedia.org/wiki/Gzip) - Archive file
 - [`bz2`](https://en.wikipedia.org/wiki/Bzip2) - Archive file
+- [`zst`](https://en.wikipedia.org/wiki/Zstandard) - Archive file
 - [`7z`](https://en.wikipedia.org/wiki/7z) - 7-Zip archive
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
 - [`mp4`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#Filename_extensions) - MPEG-4 Part 14 video file

@@ -135,7 +135,8 @@ module.exports = {
 		'asar',
 		'stl',
 		'chm',
-		'3mf'
+		'3mf',
+		'zst'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -266,6 +267,7 @@ module.exports = {
 		'application/x-asar',
 		'model/stl',
 		'application/vnd.ms-htmlhelp',
-		'model/3mf'
+		'model/3mf',
+		'application/zstd'
 	]
 };
