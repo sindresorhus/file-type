@@ -1341,50 +1341,47 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	// Check for MPEG header at different starting offsets
-	for (let start = 0; start < 2 && start < (buffer.length - 16); start++) {
-		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-		if (buffer.length >= start + 2 && check([0xFF, 0xE0], {offset: start, mask: [0xFF, 0xE0]})) {
-			if (check([0x10], {offset: start + 1, mask: [0x16]})) {
-				// Check for (ADTS) MPEG-2
-				if (check([0x08], {offset: start + 1, mask: [0x08]})) {
-					return {
-						ext: 'aac',
-						mime: 'audio/aac'
-					};
-				}
-
-				// Must be (ADTS) MPEG-4
+	// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
+	if (buffer.length >= 2 && check([0xFF, 0xE0], {offset: 0, mask: [0xFF, 0xE0]})) {
+		if (check([0x10], {offset: 1, mask: [0x16]})) {
+			// Check for (ADTS) MPEG-2
+			if (check([0x08], {offset: 1, mask: [0x08]})) {
 				return {
 					ext: 'aac',
 					mime: 'audio/aac'
 				};
 			}
 
-			// MPEG 1 or 2 Layer 3 header
-			// Check for MPEG layer 3
-			if (check([0x02], {offset: start + 1, mask: [0x06]})) {
-				return {
-					ext: 'mp3',
-					mime: 'audio/mpeg'
-				};
-			}
+			// Must be (ADTS) MPEG-4
+			return {
+				ext: 'aac',
+				mime: 'audio/aac'
+			};
+		}
 
-			// Check for MPEG layer 2
-			if (check([0x04], {offset: start + 1, mask: [0x06]})) {
-				return {
-					ext: 'mp2',
-					mime: 'audio/mpeg'
-				};
-			}
+		// MPEG 1 or 2 Layer 3 header
+		// Check for MPEG layer 3
+		if (check([0x02], {offset: 1, mask: [0x06]})) {
+			return {
+				ext: 'mp3',
+				mime: 'audio/mpeg'
+			};
+		}
 
-			// Check for MPEG layer 1
-			if (check([0x06], {offset: start + 1, mask: [0x06]})) {
-				return {
-					ext: 'mp1',
-					mime: 'audio/mpeg'
-				};
-			}
+		// Check for MPEG layer 2
+		if (check([0x04], {offset: 1, mask: [0x06]})) {
+			return {
+				ext: 'mp2',
+				mime: 'audio/mpeg'
+			};
+		}
+
+		// Check for MPEG layer 1
+		if (check([0x06], {offset: 1, mask: [0x06]})) {
+			return {
+				ext: 'mp1',
+				mime: 'audio/mpeg'
+			};
 		}
 	}
 }
