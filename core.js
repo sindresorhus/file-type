@@ -1029,6 +1029,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('gimp xcf ')) {
+		return {
+			ext: 'xcf',
+			mime: 'image/x-xcf'
+		};
+	}
+
 	// `mov` format variants
 	if (
 		check([0x66, 0x72, 0x65, 0x65], {offset: 4}) || // `free`
