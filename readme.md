@@ -278,7 +278,7 @@ Returns a set of supported MIME types.
 - [`gif`](https://en.wikipedia.org/wiki/GIF) - Graphics Interchange Format
 - [`webp`](https://en.wikipedia.org/wiki/WebP) - Web Picture format
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format) - Free Lossless Image Format
-- [`xcf`](https://en.wikipedia.org/wiki/XCF_(file_format)) - eXperimerntal Computing Facility
+- [`xcf`](https://en.wikipedia.org/wiki/XCF_(file_format)) - eXperimental Computing Facility
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
