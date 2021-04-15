@@ -138,7 +138,8 @@ declare namespace core {
 		| 'stl'
 		| 'chm'
 		| '3mf'
-		| 'zst';
+		| 'zst'
+		| 'vcf';
 
 	type MimeType =
 		| 'image/jpeg'

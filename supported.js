@@ -136,7 +136,8 @@ module.exports = {
 		'stl',
 		'chm',
 		'3mf',
-		'zst'
+		'zst',
+		'vcf'
 	],
 	mimeTypes: [
 		'image/jpeg',
