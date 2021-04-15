@@ -918,6 +918,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('BEGIN:VCARD')) {
+		return {
+			ext: 'vcf',
+			mime: 'text/vcard'
+		};
+	}
+
 	if (check([0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C])) {
 		return {
 			ext: '7z',

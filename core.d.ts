@@ -238,6 +238,7 @@ declare namespace core {
 		| 'application/dicom'
 		| 'audio/x-musepack'
 		| 'text/calendar'
+		| 'text/vcard'
 		| 'model/gltf-binary'
 		| 'application/vnd.tcpdump.pcap'
 		| 'audio/x-dsf' // Non-standard
