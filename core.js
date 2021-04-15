@@ -911,7 +911,7 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (checkString('BEGIN:VCALEN')) { // limit to 12 characters as precised in bytesRead const
+	if (checkString('BEGIN:VCALEN')) { // Limit to 12 characters as precised in bytesRead const
 		return {
 			ext: 'ics',
 			mime: 'text/calendar'
