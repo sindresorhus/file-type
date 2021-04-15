@@ -911,7 +911,7 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (checkString('BEGIN:')) {
+	if (checkString('BEGIN:VCALENDAR')) {
 		return {
 			ext: 'ics',
 			mime: 'text/calendar'
