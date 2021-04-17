@@ -1051,6 +1051,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('gimp xcf ')) {
+		return {
+			ext: 'xcf',
+			mime: 'image/x-xcf'
+		};
+	}
+
 	// -- 12-byte signatures --
 
 	if (check([0x49, 0x49, 0x55, 0x00, 0x18, 0x00, 0x00, 0x00, 0x88, 0xE7, 0x74, 0xD8])) {
