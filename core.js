@@ -911,13 +911,6 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
-	if (checkString('BEGIN:')) {
-		return {
-			ext: 'ics',
-			mime: 'text/calendar'
-		};
-	}
-
 	if (check([0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C])) {
 		return {
 			ext: '7z',
@@ -1212,6 +1205,24 @@ async function _fromTokenizer(tokenizer) {
 
 	// Increase sample size from 12 to 256.
 	await tokenizer.peekBuffer(buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
+
+	// -- 15-byte signatures --
+
+	if (checkString('BEGIN:')) {
+		if (checkString('VCARD', {offset: 6})) {
+			return {
+				ext: 'vcf',
+				mime: 'text/vcard'
+			};
+		}
+
+		if (checkString('VCALENDAR', {offset: 6})) {
+			return {
+				ext: 'ics',
+				mime: 'text/calendar'
+			};
+		}
+	}
 
 	// `raf` is here just to keep all the raw image detectors together.
 	if (checkString('FUJIFILMCCD-RAW')) {

@@ -183,7 +183,8 @@
 		"stl",
 		"chm",
 		"3mf",
-		"zst"
+		"zst",
+		"vcf"
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.4",

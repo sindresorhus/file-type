@@ -374,6 +374,7 @@ Returns a set of supported MIME types.
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`mpc`](https://en.wikipedia.org/wiki/Musepack) - Musepack (SV7 & SV8)
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
+- [`vcf`](https://en.wikipedia.org/wiki/VCard) - vCard
 - [`glb`](https://github.com/KhronosGroup/glTF) - GL Transmission Format
 - [`pcap`](https://wiki.wireshark.org/Development/LibpcapFileFormat) - Libpcap File Format
 - [`dsf`](https://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf) - Sony DSD Stream File (DSF)

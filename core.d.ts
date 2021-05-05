@@ -139,7 +139,8 @@ declare namespace core {
 		| 'stl'
 		| 'chm'
 		| '3mf'
-		| 'zst';
+		| 'zst'
+		| 'vcf';
 
 	type MimeType =
 		| 'image/jpeg'
@@ -240,6 +241,7 @@ declare namespace core {
 		| 'application/dicom'
 		| 'audio/x-musepack'
 		| 'text/calendar'
+		| 'text/vcard'
 		| 'model/gltf-binary'
 		| 'application/vnd.tcpdump.pcap'
 		| 'audio/x-dsf' // Non-standard

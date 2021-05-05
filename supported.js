@@ -137,7 +137,8 @@ module.exports = {
 		'stl',
 		'chm',
 		'3mf',
-		'zst'
+		'zst',
+		'vcf'
 	],
 	mimeTypes: [
 		'image/jpeg',
@@ -238,6 +239,7 @@ module.exports = {
 		'application/dicom',
 		'audio/x-musepack',
 		'text/calendar',
+		'text/vcard',
 		'model/gltf-binary',
 		'application/vnd.tcpdump.pcap',
 		'audio/x-dsf', // Non-standard
