@@ -1248,7 +1248,7 @@ async function _fromTokenizer(tokenizer) {
 
 	if (check([0x04, 0x00, 0x00, 0x00]) && buffer.length >= 16) { // Rough & quick check Pickle/ASAR
 		const jsonSize = buffer.readUInt32LE(12);
-		if (jsonSize > 12 && jsonSize < 240 && buffer.length >= jsonSize + 16) {
+		if (jsonSize > 12 && buffer.length >= jsonSize + 16) {
 			try {
 				const header = buffer.slice(16, jsonSize + 16).toString();
 				const json = JSON.parse(header);
