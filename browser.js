@@ -10,16 +10,16 @@ async function fromStream(stream) {
 }
 
 async function fromBlob(blob) {
-	const buffer = await convertBlobToBuffer(blob).then(Buffer.from);
-	return core.fromBuffer(buffer);
+	const buffer = await blobToArrayBuffer(blob);
+	return core.fromBuffer(Buffer.from(buffer));
 }
 
 /**
-Convert Web API File to Node Buffer.
+Convert Blobs to ArrayBuffer.
 @param {Blob} blob - Web API Blob.
 @returns {Promise<ArrayBuffer>}
 */
-function convertBlobToBuffer(blob) {
+function blobToArrayBuffer(blob) {
 	if (blob.arrayBuffer) {
 		return blob.arrayBuffer();
 	}
