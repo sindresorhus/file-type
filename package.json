@@ -184,6 +184,7 @@
 		"chm",
 		"3mf",
 		"zst",
+		"jxl",
 		"vcf"
 	],
 	"devDependencies": {

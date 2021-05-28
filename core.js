@@ -1162,6 +1162,16 @@ async function _fromTokenizer(tokenizer) {
 		}
 	}
 
+	if (
+		check([0xFF, 0x0A]) ||
+		check([0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A])
+	) {
+		return {
+			ext: 'jxl',
+			mime: 'image/jxl'
+		};
+	}
+
 	// -- Unsafe signatures --
 
 	if (

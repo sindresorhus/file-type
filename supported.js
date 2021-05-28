@@ -138,6 +138,7 @@ module.exports = {
 		'chm',
 		'3mf',
 		'zst',
+		'jxl',
 		'vcf'
 	],
 	mimeTypes: [
@@ -272,6 +273,7 @@ module.exports = {
 		'model/stl',
 		'application/vnd.ms-htmlhelp',
 		'model/3mf',
+		'image/jxl',
 		'application/zstd'
 	]
 };

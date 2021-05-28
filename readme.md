@@ -409,6 +409,7 @@ Returns a set of supported MIME types.
 - [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 - [`3mf`](https://en.wikipedia.org/wiki/3D_Manufacturing_Format) - 3D Manufacturing Format
+- [`jxl`](https://en.wikipedia.org/wiki/JPEG_XL) - JPEG XL image format
 
 *Pull requests are welcome for additional commonly used file types.*
 

@@ -140,6 +140,7 @@ declare namespace core {
 		| 'chm'
 		| '3mf'
 		| 'zst'
+		| 'jxl'
 		| 'vcf';
 
 	type MimeType =
@@ -274,6 +275,7 @@ declare namespace core {
 		| 'model/stl'
 		| 'application/vnd.ms-htmlhelp'
 		| 'model/3mf'
+		| 'image/jxl'
 		| 'application/zstd';
 
 	interface FileTypeResult {

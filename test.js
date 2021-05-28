@@ -189,6 +189,10 @@ const names = {
 		'fixture-normal', // Normal AI
 		'fixture-without-pdf-compatibility' // AI without the PDF compatibility (cannot be opened by PDF viewers I guess)
 	],
+	jxl: [
+		'fixture', // Image data stored within JXL container
+		'fixture2' // Bare image data with no container
+	],
 	pdf: [
 		'fixture',
 		'fixture-adobe-illustrator', // PDF saved from Adobe Illustrator, using the default "[Illustrator Default]" preset
