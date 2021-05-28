@@ -1,6 +1,5 @@
 'use strict';
 const {ReadableWebToNodeStream} = require('readable-web-to-node-stream');
-const toBuffer = require('typedarray-to-buffer');
 const core = require('./core');
 
 async function fromStream(stream) {
@@ -11,25 +10,25 @@ async function fromStream(stream) {
 }
 
 async function fromBlob(blob) {
-	const buffer = await convertBlobToBuffer(blob);
-	return core.fromBuffer(buffer);
+	const buffer = await blobToArrayBuffer(blob);
+	return core.fromBuffer(Buffer.from(buffer));
 }
 
 /**
-Convert Web API File to Node Buffer.
+Convert Blobs to ArrayBuffer.
 @param {Blob} blob - Web API Blob.
-@returns {Promise<Buffer>}
+@returns {Promise<ArrayBuffer>}
 */
-function convertBlobToBuffer(blob) {
+function blobToArrayBuffer(blob) {
+	if (blob.arrayBuffer) {
+		return blob.arrayBuffer();
+	}
+
+	// TODO: Remove when stop supporting older environments
 	return new Promise((resolve, reject) => {
 		const fileReader = new FileReader();
 		fileReader.addEventListener('loadend', event => {
-			let data = event.target.result;
-			if (data instanceof ArrayBuffer) {
-				data = toBuffer(new Uint8Array(event.target.result));
-			}
-
-			resolve(data);
+			resolve(event.target.result);
 		});
 
 		fileReader.addEventListener('error', event => {
