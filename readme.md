@@ -6,6 +6,36 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 This package is for detecting binary-based file formats, not text-based formats like `.txt`, `.csv`, `.svg`, etc.
 
+<br>
+
+---
+
+<div align="center">
+	<p>
+		<p>
+			<sup>
+				<a href="https://github.com/sponsors/sindresorhus">My open source work is supported by the community</a>
+			</sup>
+		</p>
+		<sup>Special thanks to:</sup>
+		<br>
+		<br>
+		<a href="https://bit.io/?utm_campaign=github_repo&utm_medium=referral&utm_content=file-type&utm_source=github">
+			<div>
+				<img src="https://sindresorhus.com/assets/thanks/bitio-logo.svg" width="190" alt="bit.io">
+			</div>
+			<b>Instant, shareable cloud PostgreSQL database</b>
+			<div>
+				<sup>Import any dataset in seconds, share with anyone with a click, try without signing up</sup>
+			</div>
+		</a>
+	</p>
+</div>
+
+---
+
+<br>
+
 ## Install
 
 ```
