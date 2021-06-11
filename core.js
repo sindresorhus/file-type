@@ -1162,12 +1162,12 @@ async function _fromTokenizer(tokenizer) {
 		}
 	}
 
- if (check([0x4E, 0x49, 0x54, 0x46, 0x30])) {
-   return {
-    ext: 'ntf',
-    mime: 'application/vnd.nitf'
-   }
- }
+	if (check([0x4E, 0x49, 0x54, 0x46, 0x30])) {
+		return {
+			ext: 'ntf',
+			mime: 'application/vnd.nitf'
+		};
+	}
 
 	if (
 		check([0xFF, 0x0A]) ||
