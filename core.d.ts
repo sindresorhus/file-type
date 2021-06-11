@@ -142,7 +142,6 @@ declare namespace core {
 		| 'zst'
 		| 'jxl'
 		| 'ntf'
-		| 'nitf'
 		| 'vcf';
 
 	type MimeType =
@@ -276,7 +275,7 @@ declare namespace core {
 		| 'application/x-asar'
 		| 'model/stl'
 		| 'application/vnd.ms-htmlhelp'
-		| 'model/3mf'    
+		| 'model/3mf'
 		| 'image/jxl'
 		| 'application/vnd.nitf'
 		| 'application/zstd';
