@@ -814,6 +814,13 @@ async function _fromTokenizer(tokenizer) {
 
 	// -- 5-byte signatures --
 
+	if (check([0x4E, 0x49, 0x54, 0x46, 0x30])) {
+		return {
+			ext: 'ntf',
+			mime: 'application/vnd.nitf'
+		};
+	}
+
 	if (check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
 		return {
 			ext: 'otf',
@@ -1160,13 +1167,6 @@ async function _fromTokenizer(tokenizer) {
 			default:
 				return;
 		}
-	}
-
-	if (check([0x4E, 0x49, 0x54, 0x46, 0x30])) {
-		return {
-			ext: 'ntf',
-			mime: 'application/vnd.nitf'
-		};
 	}
 
 	if (
