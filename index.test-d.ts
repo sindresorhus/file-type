@@ -1,16 +1,14 @@
 import * as fs from 'fs';
 import {expectType} from 'tsd';
-import FileType = require('.');
-import {FileTypeResult, ReadableStreamWithFileType, FileExtension, MimeType} from '.';
-import FileTypeBrowser = require('./browser');
-import {FileTypeResult as FileTypeResultBrowser} from './browser';
+import FileTypeBrowser from './browser.js';
+import FileType, {FileTypeResult, ReadableStreamWithFileType, FileExtension, MimeType} from './index.js';
 
-expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(Buffer.from([0xff, 0xd8, 0xff])));
-expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Uint8Array([0xff, 0xd8, 0xff])));
+expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(Buffer.from([0xFF, 0xD8, 0xFF])));
+expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new Uint8Array([0xFF, 0xD8, 0xFF])));
 expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuffer(42)));
 
 (async () => {
-	const result = await FileType.fromBuffer(Buffer.from([0xff, 0xd8, 0xff]));
+	const result = await FileType.fromBuffer(Buffer.from([0xFF, 0xD8, 0xFF]));
 	if (result !== undefined) {
 		expectType<FileExtension>(result.ext);
 		expectType<MimeType>(result.mime);

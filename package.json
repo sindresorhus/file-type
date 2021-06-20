@@ -11,7 +11,7 @@
 		"url": "https://sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=8"
+		"node": ">=10.0.0"
 	},
 	"scripts": {
 		"ava": "ava --serial --verbose",
@@ -193,7 +193,7 @@
 		"noop-stream": "^0.1.0",
 		"read-chunk": "^3.2.0",
 		"tsd": "^0.11.0",
-		"xo": "^0.25.3"
+		"xo": "^0.40.2"
 	},
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.0",
@@ -206,9 +206,16 @@
 			"browser"
 		],
 		"rules": {
+			"@typescript-eslint/triple-slash-reference": "off",
+			"@typescript-eslint/no-unsafe-member-access": "off",
+			"@typescript-eslint/no-unsafe-assignment": "off",
+			"unicorn/prefer-node-protocol": "off",
+			"unicorn/prefer-module": "warn",
+			"unicorn/prefer-number-properties": "off",
+			"unicorn/explicit-length-check": "off",
+			"promise/prefer-await-to-then": "warn",
 			"no-inner-declarations": "warn",
 			"no-await-in-loop": "warn",
-			"promise/prefer-await-to-then": "warn",
 			"prefer-named-capture-group": "off"
 		}
 	}

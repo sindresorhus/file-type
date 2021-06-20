@@ -1,5 +1,3 @@
-'use strict';
-
 exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
 
 /**

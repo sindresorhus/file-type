@@ -1,12 +1,11 @@
-'use strict';
 const Token = require('token-types');
 const strtok3 = require('strtok3/lib/core');
 const {
 	stringToBytes,
 	tarHeaderChecksumMatches,
 	uint32SyncSafeToken
-} = require('./util');
-const supported = require('./supported');
+} = require('./util.js');
+const supported = require('./supported.js');
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range
 
@@ -167,8 +166,8 @@ async function _fromTokenizer(tokenizer) {
 
 	if (checkString('ID3')) {
 		await tokenizer.ignore(6); // Skip ID3 header until the header size
-		const id3HeaderLen = await tokenizer.readToken(uint32SyncSafeToken);
-		if (tokenizer.position + id3HeaderLen > tokenizer.fileInfo.size) {
+		const id3HeaderLength = await tokenizer.readToken(uint32SyncSafeToken);
+		if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
 			// Guess file type based on ID3 header for backward compatibility
 			return {
 				ext: 'mp3',
@@ -176,7 +175,7 @@ async function _fromTokenizer(tokenizer) {
 			};
 		}
 
-		await tokenizer.ignore(id3HeaderLen);
+		await tokenizer.ignore(id3HeaderLength);
 		return fromTokenizer(tokenizer); // Skip ID3 header, recursion
 	}
 
@@ -693,23 +692,23 @@ async function _fromTokenizer(tokenizer) {
 
 		async function readElement() {
 			const id = await readField();
-			const lenField = await readField();
-			lenField[0] ^= 0x80 >> (lenField.length - 1);
-			const nrLen = Math.min(6, lenField.length); // JavaScript can max read 6 bytes integer
+			const lengthField = await readField();
+			lengthField[0] ^= 0x80 >> (lengthField.length - 1);
+			const nrLength = Math.min(6, lengthField.length); // JavaScript can max read 6 bytes integer
 			return {
 				id: id.readUIntBE(0, id.length),
-				len: lenField.readUIntBE(lenField.length - nrLen, nrLen)
+				len: lengthField.readUIntBE(lengthField.length - nrLength, nrLength)
 			};
 		}
 
 		async function readChildren(level, children) {
 			while (children > 0) {
-				const e = await readElement();
-				if (e.id === 0x4282) {
-					return tokenizer.readToken(new Token.StringType(e.len, 'utf-8')); // Return DocType
+				const element = await readElement();
+				if (element.id === 0x42_82) {
+					return tokenizer.readToken(new Token.StringType(element.len, 'utf-8')); // Return DocType
 				}
 
-				await tokenizer.ignore(e.len); // ignore payload
+				await tokenizer.ignore(element.len); // ignore payload
 				--children;
 			}
 		}
@@ -946,8 +945,8 @@ async function _fromTokenizer(tokenizer) {
 
 	if (checkString('!<arch>')) {
 		await tokenizer.ignore(8);
-		const str = await tokenizer.readToken(new Token.StringType(13, 'ascii'));
-		if (str === 'debian-binary') {
+		const string = await tokenizer.readToken(new Token.StringType(13, 'ascii'));
+		if (string === 'debian-binary') {
 			return {
 				ext: 'deb',
 				mime: 'application/x-deb'
@@ -1269,8 +1268,7 @@ async function _fromTokenizer(tokenizer) {
 						mime: 'application/x-asar'
 					};
 				}
-			} catch (_) {
-			}
+			} catch {}
 		}
 	}
 
@@ -1422,13 +1420,7 @@ const stream = readableStream => new Promise((resolve, reject) => {
 	readableStream.once('readable', async () => {
 		// Set up output stream
 		const pass = new stream.PassThrough();
-		let outputStream;
-		if (stream.pipeline) {
-			outputStream = stream.pipeline(readableStream, pass, () => {
-			});
-		} else {
-			outputStream = readableStream.pipe(pass);
-		}
+		const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
 
 		// Read the input stream and detect the filetype
 		const chunk = readableStream.read(minimumBytes) || readableStream.read() || Buffer.alloc(0);
