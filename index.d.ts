@@ -1,6 +1,6 @@
 /// <reference types="node"/>
 import {Readable as ReadableStream} from 'stream';
-import * as core from './core';
+import * as core from './core.js';
 
 export type ReadableStreamWithFileType = core.ReadableStreamWithFileType;
 export type FileTypeResult = core.FileTypeResult;
@@ -24,4 +24,4 @@ export {
 	extensions,
 	mimeTypes,
 	stream
-} from './core';
+} from './core.js';

@@ -1,6 +1,5 @@
-'use strict';
 const {ReadableWebToNodeStream} = require('readable-web-to-node-stream');
-const core = require('./core');
+const core = require('./core.js');
 
 async function fromStream(stream) {
 	const readableWebToNodeStream = new ReadableWebToNodeStream(stream);

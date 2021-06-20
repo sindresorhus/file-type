@@ -304,7 +304,7 @@ declare namespace core {
 	@param buffer - A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 	@returns The detected file type and MIME type, or `undefined` when there is no match.
 	*/
-	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer): Promise<core.FileTypeResult | undefined>;
+	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 	/**
 	Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
@@ -314,7 +314,7 @@ declare namespace core {
 	@param stream - A readable stream representing file data.
 	@returns The detected file type and MIME type, or `undefined` when there is no match.
 	*/
-	function fromStream(stream: ReadableStream): Promise<core.FileTypeResult | undefined>;
+	function fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
 	Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -343,17 +343,17 @@ declare namespace core {
 	@param tokenizer - File source implementing the tokenizer interface.
 	@returns The detected file type and MIME type, or `undefined` when there is no match.
 	*/
-	function fromTokenizer(tokenizer: ITokenizer): Promise<core.FileTypeResult | undefined>;
+	function fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
 
 	/**
 	Supported file extensions.
 	*/
-	const extensions: Set<core.FileExtension>;
+	const extensions: Set<FileExtension>;
 
 	/**
 	Supported MIME types.
 	*/
-	const mimeTypes: readonly core.MimeType[];
+	const mimeTypes: readonly MimeType[];
 
 	/**
 	Detect the file type of a readable stream.
@@ -380,7 +380,7 @@ declare namespace core {
 	})();
 	```
 	*/
-	function stream(readableStream: ReadableStream): Promise<core.ReadableStreamWithFileType>
+	function stream(readableStream: ReadableStream): Promise<ReadableStreamWithFileType>;
 }
 
 export = core;

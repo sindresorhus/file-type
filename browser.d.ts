@@ -1,5 +1,5 @@
 /// <reference lib="dom"/>
-import * as core from './core';
+import * as core from './core.js';
 
 export type FileTypeResult = core.FileTypeResult;
 export type FileExtension = core.FileExtension;
@@ -47,4 +47,4 @@ export {
 	fromBuffer,
 	extensions,
 	mimeTypes
-} from './core';
+} from './core.js';

@@ -3,15 +3,15 @@ import fs from 'fs';
 import stream from 'stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
-import FileType from '.';
+import FileType from './index.js';
 
-const supported = require('./supported');
+const supported = require('./supported.js');
 
-const missingTests = [
+const missingTests = new Set([
 	'mpc'
-];
+]);
 
-const types = supported.extensions.filter(ext => !missingTests.includes(ext));
+const types = supported.extensions.filter(ext => !missingTests.has(ext));
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -211,8 +211,8 @@ const falsePositives = {
 };
 
 // Known failing fixture
-const failingFixture = [
-];
+const failingFixture = new Set([
+]);
 
 async function checkBufferLike(t, type, bufferLike) {
 	const {ext, mime} = await FileType.fromBuffer(bufferLike) || {};
@@ -264,11 +264,10 @@ async function testFileFromStream(t, ext, name) {
 
 async function loadEntireFile(readable) {
 	const buffer = [];
-	readable.on('data', chunk => {
+	for await (const chunk of readable) {
 		buffer.push(Buffer.from(chunk));
-	});
+	}
 
-	await new Promise(resolve => readable.on('end', resolve));
 	return Buffer.concat(buffer);
 }
 
@@ -289,7 +288,7 @@ for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
 			const fixtureName = `${name}.${type}`;
-			const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+			const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
 			_test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
 			_test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
@@ -298,7 +297,7 @@ for (const type of types) {
 		}
 	} else {
 		const fixtureName = `fixture.${type}`;
-		const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+		const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
 		_test(`${type} ${i++} .fromFile()`, testFromFile, type);
 		_test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
@@ -450,6 +449,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Helpers
 	// Find extensions/mimes that are defined twice in a file
 	function findDuplicates(input) {
+		// eslint-disable-next-line unicorn/no-array-reduce
 		return input.reduce((accumulator, element, index, array) => {
 			if (array.indexOf(element) !== index && !accumulator.includes(element)) {
 				accumulator.push(element);
