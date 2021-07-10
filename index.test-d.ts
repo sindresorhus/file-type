@@ -41,7 +41,7 @@ expectType<Promise<FileTypeResult | undefined>>(FileType.fromBuffer(new ArrayBuf
 
 expectType<Set<FileType.FileExtension>>(FileType.extensions);
 
-expectType<readonly FileType.MimeType[]>(FileType.mimeTypes);
+expectType<Set<FileType.MimeType>>(FileType.mimeTypes);
 
 const readableStream = fs.createReadStream('file.png');
 const streamWithFileType = FileType.stream(readableStream);

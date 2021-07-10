@@ -353,7 +353,7 @@ declare namespace core {
 	/**
 	Supported MIME types.
 	*/
-	const mimeTypes: readonly core.MimeType[];
+	const mimeTypes: Set<core.MimeType>;
 
 	/**
 	Detect the file type of a readable stream.
