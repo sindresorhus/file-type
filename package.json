@@ -11,7 +11,7 @@
 		"url": "https://sindresorhus.com"
 	},
 	"engines": {
-		"node": ">=8"
+		"node": ">=10"
 	},
 	"scripts": {
 		"ava": "ava --serial --verbose",
@@ -197,8 +197,8 @@
 	},
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.0",
-		"strtok3": "^6.0.3",
-		"token-types": "^2.0.0"
+		"strtok3": "^6.1.1",
+		"token-types": "^3.0.0"
 	},
 	"xo": {
 		"envs": [
