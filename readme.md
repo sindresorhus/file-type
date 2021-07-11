@@ -440,6 +440,7 @@ Returns a set of supported MIME types.
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 - [`3mf`](https://en.wikipedia.org/wiki/3D_Manufacturing_Format) - 3D Manufacturing Format
 - [`jxl`](https://en.wikipedia.org/wiki/JPEG_XL) - JPEG XL image format
+- [`ntf`](https://en.wikipedia.org/wiki/National_Imagery_Transmission_Format) - National Imagery Transmission Format
 
 *Pull requests are welcome for additional commonly used file types.*
 
