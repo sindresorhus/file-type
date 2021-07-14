@@ -1414,9 +1414,10 @@ async function _fromTokenizer(tokenizer) {
 	}
 }
 
-const stream = readableStream => new Promise((resolve, reject) => {
+const stream = (readableStream, sampleSize) => new Promise((resolve, reject) => {
 	// Using `eval` to work around issues when bundling with Webpack
 	const stream = eval('require')('stream'); // eslint-disable-line no-eval
+	sampleSize = sampleSize === undefined ? minimumBytes : sampleSize;
 
 	readableStream.on('error', reject);
 	readableStream.once('readable', async () => {
