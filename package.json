@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "16.5.1",
+	"version": "16.5.2",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -197,7 +197,7 @@
 	},
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.0",
-		"strtok3": "^6.1.1",
+		"strtok3": "6.1.3",
 		"token-types": "^3.0.0"
 	},
 	"xo": {
