@@ -1437,6 +1437,11 @@ const stream = readableStream => new Promise((resolve, reject) => {
 			pass.fileType = fileType;
 		} catch (error) {
 			reject(error);
+			if (error instanceof strtok3.EndOfStreamError) {
+				pass.fileType = undefined;
+			} else {
+				reject(error);
+			}
 		}
 
 		resolve(outputStream);
