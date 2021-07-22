@@ -355,32 +355,44 @@ declare namespace core {
 	*/
 	const mimeTypes: Set<core.MimeType>;
 
+	interface StreamOptions {
+		/**
+		Overrides the default sample size of 4100 bytes.
+		*/
+		readonly sampleSize?: number
+	}
+
 	/**
-	Detect the file type of a readable stream.
+	Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
+
+	This method can be handy to put in between a stream, but it comes with a price.
+	Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type.
+	The sample size impacts the file detection resolution.
+	A smaller sample size will result in lower probability of the best file type detection.
+
+	*Note:* This method is only available when using Node.js.
 
 	@param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
 	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
 	@example
 	```
-	import * as fs from 'fs';
-	import * as crypto from 'crypto';
-	import fileType = require('file-type');
+	import got = require('got');
+	import FileType = require('file-type');
+
+	const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 	(async () => {
-		const read = fs.createReadStream('encrypted.enc');
-		const decipher = crypto.createDecipheriv(alg, key, iv);
-		const stream = await fileType.stream(read.pipe(decipher));
+		const stream1 = got.stream(url);
+		const stream2 = await FileType.stream(stream1, {sampleSize: 1024});
 
-		console.log(stream.fileType);
-		//=> {ext: 'mov', mime: 'video/quicktime'}
-
-		const write = fs.createWriteStream(`decrypted.${stream.fileType.ext}`);
-		stream.pipe(write);
+		if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
+			// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
+  		}
 	})();
 	```
 	*/
-	function stream(readableStream: ReadableStream): Promise<core.ReadableStreamWithFileType>
+	function stream(readableStream: ReadableStream, options?: StreamOptions): Promise<core.ReadableStreamWithFileType>
 }
 
 export = core;

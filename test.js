@@ -337,6 +337,12 @@ test('.stream() method - short stream', async t => {
 	t.deepEqual(bufferA, bufferB);
 });
 
+test('.stream() method - no end-of-stream errors', async t => {
+	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
+	const stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
+	t.is(stream.fileType, undefined);
+});
+
 test('.stream() method - error event', async t => {
 	const errorMessage = 'Fixture';
 
@@ -349,6 +355,16 @@ test('.stream() method - error event', async t => {
 	});
 
 	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
+});
+
+test('.stream() method - sampleSize option', async t => {
+	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
+	let stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
+	t.is(typeof (stream.fileType), 'undefined', 'file-type cannot be determined with a sampleSize of 30');
+
+	stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 4100});
+	t.is(typeof (stream.fileType), 'object', 'file-type can be determined with a sampleSize of 4100');
+	t.is(stream.fileType.mime, 'video/ogg');
 });
 
 test('FileType.extensions.has', t => {
