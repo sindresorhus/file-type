@@ -1,5 +1,5 @@
 #!/usr/bin/node
-const FileType = require('.');
+import FileType from './index.js';
 
 const [file] = process.argv.slice(2);
 

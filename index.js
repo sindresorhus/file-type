@@ -1,32 +1,13 @@
-'use strict';
-const strtok3 = require('strtok3');
-const core = require('./core');
+import strtok3 from 'strtok3';
+import {fromTokenizer} from './core.js';
 
-async function fromFile(path) {
+export async function fromFile(path) {
 	const tokenizer = await strtok3.fromFile(path);
 	try {
-		return await core.fromTokenizer(tokenizer);
+		return await fromTokenizer(tokenizer);
 	} finally {
 		await tokenizer.close();
 	}
 }
 
-const fileType = {
-	fromFile
-};
-
-Object.assign(fileType, core);
-
-Object.defineProperty(fileType, 'extensions', {
-	get() {
-		return core.extensions;
-	}
-});
-
-Object.defineProperty(fileType, 'mimeTypes', {
-	get() {
-		return core.mimeTypes;
-	}
-});
-
-module.exports = fileType;
+export * from './core.js';

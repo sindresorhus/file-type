@@ -1,17 +1,18 @@
-import path from 'path';
-import fs from 'fs';
-import stream from 'stream';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import fs from 'node:fs';
+import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
-import FileType from '.';
+import {fromBuffer, fromStream, fromFile, stream as fileTypeStream, supportedExtensions, supportedMimeTypes} from './index.js';
 
-const supported = require('./supported');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const missingTests = [
-	'mpc'
-];
+const missingTests = new Set([
+	'mpc',
+]);
 
-const types = supported.extensions.filter(ext => !missingTests.includes(ext));
+const types = [...supportedExtensions].filter(ext => !missingTests.has(ext));
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -20,208 +21,208 @@ const names = {
 		'fixture-adts-mpeg2',
 		'fixture-adts-mpeg4',
 		'fixture-adts-mpeg4-2',
-		'fixture-id3v2'
+		'fixture-id3v2',
 	],
 	asar: [
 		'fixture',
-		'fixture2'
+		'fixture2',
 	],
 	arw: [
 		'fixture',
 		'fixture2',
 		'fixture3',
 		'fixture4',
-		'fixture5'
+		'fixture5',
 	],
 	cr3: [
-		'fixture'
+		'fixture',
 	],
 	dng: [
 		'fixture',
-		'fixture2'
+		'fixture2',
 	],
 	nef: [
 		'fixture',
 		'fixture2',
 		'fixture3',
-		'fixture4'
+		'fixture4',
 	],
 	'3gp': [
 		'fixture',
-		'fixture2'
+		'fixture2',
 	],
 	woff2: [
 		'fixture',
-		'fixture-otto'
+		'fixture-otto',
 	],
 	woff: [
 		'fixture',
-		'fixture-otto'
+		'fixture-otto',
 	],
 	eot: [
 		'fixture',
-		'fixture-0x20001'
+		'fixture-0x20001',
 	],
 	mov: [
 		'fixture',
 		'fixture-mjpeg',
-		'fixture-moov'
+		'fixture-moov',
 	],
 	mp2: [
 		'fixture',
-		'fixture-mpa'
+		'fixture-mpa',
 	],
 	mp3: [
 		'fixture',
 		'fixture-mp2l3',
-		'fixture-ffe3'
+		'fixture-ffe3',
 	],
 	mp4: [
 		'fixture-imovie',
 		'fixture-isom',
 		'fixture-isomv2',
 		'fixture-mp4v2',
-		'fixture-dash'
+		'fixture-dash',
 	],
 	tif: [
 		'fixture-big-endian',
-		'fixture-little-endian'
+		'fixture-little-endian',
 	],
 	gz: [
-		'fixture.tar'
+		'fixture.tar',
 	],
 	xz: [
-		'fixture.tar'
+		'fixture.tar',
 	],
 	lz: [
-		'fixture.tar'
+		'fixture.tar',
 	],
 	Z: [
-		'fixture.tar'
+		'fixture.tar',
 	],
 	zst: [
-		'fixture.tar'
+		'fixture.tar',
 	],
 	mkv: [
 		'fixture',
-		'fixture2'
+		'fixture2',
 	],
 	mpg: [
 		'fixture',
 		'fixture2',
 		'fixture.ps',
-		'fixture.sub'
+		'fixture.sub',
 	],
 	heic: [
 		'fixture-mif1',
 		'fixture-msf1',
-		'fixture-heic'
+		'fixture-heic',
 	],
 	ape: [
-		'fixture-monkeysaudio'
+		'fixture-monkeysaudio',
 	],
 	mpc: [
 		'fixture-sv7',
-		'fixture-sv8'
+		'fixture-sv8',
 	],
 	pcap: [
 		'fixture-big-endian',
-		'fixture-little-endian'
+		'fixture-little-endian',
 	],
 	png: [
 		'fixture',
-		'fixture-itxt'
+		'fixture-itxt',
 	],
 	tar: [
 		'fixture',
 		'fixture-v7',
-		'fixture-spaces'
+		'fixture-spaces',
 	],
 	mie: [
 		'fixture-big-endian',
-		'fixture-little-endian'
+		'fixture-little-endian',
 	],
 	m4a: [
-		'fixture-babys-songbook.m4b' // Actually it's an `.m4b`
+		'fixture-babys-songbook.m4b', // Actually it's an `.m4b`
 	],
 	flac: [
 		'fixture',
-		'fixture-id3v2' // FLAC prefixed with ID3v2 header
+		'fixture-id3v2', // FLAC prefixed with ID3v2 header
 	],
 	docx: [
 		'fixture',
 		'fixture2',
-		'fixture-office365'
+		'fixture-office365',
 	],
 	pptx: [
 		'fixture',
 		'fixture2',
-		'fixture-office365'
+		'fixture-office365',
 	],
 	xlsx: [
 		'fixture',
 		'fixture2',
-		'fixture-office365'
+		'fixture-office365',
 	],
 	ogx: [
-		'fixture-unknown-ogg' // Manipulated fixture to unrecognized Ogg based file
+		'fixture-unknown-ogg', // Manipulated fixture to unrecognized Ogg based file
 	],
 	avif: [
-		'fixture-yuv420-8bit' // Multiple bit-depths and/or subsamplings
+		'fixture-yuv420-8bit', // Multiple bit-depths and/or subsamplings
 	],
 	eps: [
 		'fixture',
-		'fixture2'
+		'fixture2',
 	],
 	cfb: [
 		'fixture.msi',
 		'fixture.xls',
 		'fixture.doc',
 		'fixture.ppt',
-		'fixture-2.doc'
+		'fixture-2.doc',
 	],
 	asf: [
 		'fixture',
 		'fixture.wma',
-		'fixture.wmv'
+		'fixture.wmv',
 	],
 	ai: [
 		'fixture-normal', // Normal AI
-		'fixture-without-pdf-compatibility' // AI without the PDF compatibility (cannot be opened by PDF viewers I guess)
+		'fixture-without-pdf-compatibility', // AI without the PDF compatibility (cannot be opened by PDF viewers I guess)
 	],
 	jxl: [
 		'fixture', // Image data stored within JXL container
-		'fixture2' // Bare image data with no container
+		'fixture2', // Bare image data with no container
 	],
 	pdf: [
 		'fixture',
 		'fixture-adobe-illustrator', // PDF saved from Adobe Illustrator, using the default "[Illustrator Default]" preset
 		'fixture-smallest', // PDF saved from Adobe Illustrator, using the preset "smallest PDF"
 		'fixture-fast-web', // PDF saved from Adobe Illustrator, using the default "[Illustrator Default"] preset, but enabling "Optimize for Fast Web View"
-		'fixture-printed' // PDF printed from Adobe Illustrator, but with a PDF printer.
-	]
+		'fixture-printed', // PDF printed from Adobe Illustrator, but with a PDF printer.
+	],
 };
 
 // Define an entry here only if the file type has potential
 // for false-positives
 const falsePositives = {
 	png: [
-		'fixture-corrupt'
-	]
+		'fixture-corrupt',
+	],
 };
 
 // Known failing fixture
-const failingFixture = [
-];
+const failingFixture = new Set([
+]);
 
 async function checkBufferLike(t, type, bufferLike) {
-	const {ext, mime} = await FileType.fromBuffer(bufferLike) || {};
+	const {ext, mime} = await fromBuffer(bufferLike) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
 
 async function checkFile(t, type, filePath) {
-	const {ext, mime} = await FileType.fromFile(filePath) || {};
+	const {ext, mime} = await fromFile(filePath) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
@@ -244,18 +245,18 @@ async function testFromBuffer(t, ext, name) {
 async function testFalsePositive(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
 
-	await t.is(await FileType.fromFile(file), undefined);
+	await t.is(await fromFile(file), undefined);
 
 	const chunk = fs.readFileSync(file);
-	t.is(await FileType.fromBuffer(chunk), undefined);
-	t.is(await FileType.fromBuffer(new Uint8Array(chunk)), undefined);
-	t.is(await FileType.fromBuffer(chunk.buffer), undefined);
+	t.is(await fromBuffer(chunk), undefined);
+	t.is(await fromBuffer(new Uint8Array(chunk)), undefined);
+	t.is(await fromBuffer(chunk.buffer), undefined);
 }
 
 async function testFileFromStream(t, ext, name) {
 	const filename = `${(name || 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', filename);
-	const fileType = await FileType.fromStream(fs.createReadStream(file));
+	const fileType = await fromStream(fs.createReadStream(file));
 
 	t.truthy(fileType, `identify ${filename}`);
 	t.is(fileType.ext, ext, 'fileType.ext');
@@ -264,11 +265,10 @@ async function testFileFromStream(t, ext, name) {
 
 async function loadEntireFile(readable) {
 	const buffer = [];
-	readable.on('data', chunk => {
+	for await (const chunk of readable) {
 		buffer.push(Buffer.from(chunk));
-	});
+	}
 
-	await new Promise(resolve => readable.on('end', resolve));
 	return Buffer.concat(buffer);
 }
 
@@ -276,7 +276,7 @@ async function testStream(t, ext, name) {
 	const fixtureName = `${(name || 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
-	const readableStream = await FileType.stream(fs.createReadStream(file));
+	const readableStream = await fileTypeStream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
 
 	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
@@ -289,7 +289,7 @@ for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
 		for (const name of names[type]) {
 			const fixtureName = `${name}.${type}`;
-			const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+			const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
 			_test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
 			_test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
@@ -298,7 +298,7 @@ for (const type of types) {
 		}
 	} else {
 		const fixtureName = `fixture.${type}`;
-		const _test = failingFixture.includes(fixtureName) ? test.failing : test;
+		const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
 		_test(`${type} ${i++} .fromFile()`, testFromFile, type);
 		_test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
@@ -314,7 +314,7 @@ for (const type of types) {
 }
 
 test('.stream() method - empty stream', async t => {
-	const newStream = await FileType.stream(readableNoopStream());
+	const newStream = await fileTypeStream(readableNoopStream());
 	t.is(newStream.fileType, undefined);
 });
 
@@ -329,7 +329,7 @@ test('.stream() method - short stream', async t => {
 
 	// Test filetype detection
 	const shortStream = new MyStream();
-	const newStream = await FileType.stream(shortStream);
+	const newStream = await fileTypeStream(shortStream);
 	t.is(newStream.fileType, undefined);
 
 	// Test usability of returned stream
@@ -339,7 +339,7 @@ test('.stream() method - short stream', async t => {
 
 test('.stream() method - no end-of-stream errors', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
-	const stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
+	const stream = await fileTypeStream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(stream.fileType, undefined);
 });
 
@@ -351,41 +351,42 @@ test('.stream() method - error event', async t => {
 			process.nextTick(() => {
 				this.emit('error', new Error(errorMessage));
 			});
-		}
+		},
 	});
 
-	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
+	await t.throwsAsync(fileTypeStream(readableStream), {message: errorMessage});
 });
 
 test('.stream() method - sampleSize option', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
-	let stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
+	let stream = await fileTypeStream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(typeof (stream.fileType), 'undefined', 'file-type cannot be determined with a sampleSize of 30');
 
-	stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 4100});
+	stream = await fileTypeStream(fs.createReadStream(file), {sampleSize: 4100});
 	t.is(typeof (stream.fileType), 'object', 'file-type can be determined with a sampleSize of 4100');
 	t.is(stream.fileType.mime, 'video/ogg');
 });
 
-test('FileType.extensions.has', t => {
-	t.true(FileType.extensions.has('jpg'));
-	t.false(FileType.extensions.has('blah'));
+test('supportedExtensions.has', t => {
+	t.true(supportedExtensions.has('jpg'));
+	t.false(supportedExtensions.has('blah'));
 });
 
-test('FileType.mimeTypes.has', t => {
-	t.true(FileType.mimeTypes.has('video/mpeg'));
-	t.false(FileType.mimeTypes.has('video/blah'));
+test('supportedMimeTypes.has', t => {
+	t.true(supportedMimeTypes.has('video/mpeg'));
+	t.false(supportedMimeTypes.has('video/blah'));
 });
 
 test('validate the input argument type', async t => {
-	await t.throwsAsync(FileType.fromBuffer('x'),
-		/Expected the `input` argument to be of type `Uint8Array`/);
+	await t.throwsAsync(fromBuffer('x'), {
+		message: /Expected the `input` argument to be of type `Uint8Array`/,
+	});
 
-	await t.notThrowsAsync(FileType.fromBuffer(Buffer.from('x')));
+	await t.notThrowsAsync(fromBuffer(Buffer.from('x')));
 
-	await t.notThrowsAsync(FileType.fromBuffer(new Uint8Array()));
+	await t.notThrowsAsync(fromBuffer(new Uint8Array()));
 
-	await t.notThrowsAsync(FileType.fromBuffer(new ArrayBuffer()));
+	await t.notThrowsAsync(fromBuffer(new ArrayBuffer()));
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
@@ -399,7 +400,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 		return {
 			exts,
-			mimes
+			mimes,
 		};
 	}
 
@@ -420,7 +421,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 
 		return {
 			extArray,
-			mimeArray
+			mimeArray,
 		};
 	}
 
@@ -449,7 +450,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			'binary',
 			'buffer',
 			'uint8array',
-			'webassembly'
+			'webassembly',
 		]);
 
 		const extArray = keywords.filter(keyword => !allowedExtras.has(keyword));
@@ -466,6 +467,8 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Helpers
 	// Find extensions/mimes that are defined twice in a file
 	function findDuplicates(input) {
+		// TODO: Fix this.
+		// eslint-disable-next-line unicorn/no-array-reduce
 		return input.reduce((accumulator, element, index, array) => {
 			if (array.indexOf(element) !== index && !accumulator.includes(element)) {
 				accumulator.push(element);
@@ -509,9 +512,9 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Validate all extensions
 	const filesWithExtensions = {
 		'core.d.ts': readIndexDTS().extArray,
-		'supported.js': supported.extensions,
+		'supported.js': [...supportedExtensions],
 		'package.json': readPackageJSON(),
-		'readme.md': readReadmeMD()
+		'readme.md': readReadmeMD(),
 	};
 
 	for (const fileName in filesWithExtensions) {
@@ -524,7 +527,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// Validate all mimes
 	const filesWithMimeTypes = {
 		'core.d.ts': readIndexDTS().mimeArray,
-		'supported.js': supported.mimeTypes
+		'supported.js': [...supportedMimeTypes],
 	};
 
 	for (const fileName in filesWithMimeTypes) {
@@ -550,12 +553,12 @@ test('odd file sizes', async t => {
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
-		await t.notThrowsAsync(FileType.fromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
+		await t.notThrowsAsync(fromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
 	}
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
 		const stream = new BufferedStream(buffer);
-		await t.notThrowsAsync(FileType.fromStream(stream), `fromStream: File size: ${size} bytes`);
+		await t.notThrowsAsync(fromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });

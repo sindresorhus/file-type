@@ -1,6 +1,6 @@
-'use strict';
-
-exports.stringToBytes = string => [...string].map(character => character.charCodeAt(0));
+export function stringToBytes(string) {
+	return [...string].map(character => character.charCodeAt(0));
+}
 
 /**
 Checks whether the TAR checksum is valid.
@@ -9,9 +9,9 @@ Checks whether the TAR checksum is valid.
 @param {number} offset - TAR header offset.
 @returns {boolean} `true` if the TAR checksum is valid, otherwise `false`.
 */
-exports.tarHeaderChecksumMatches = (buffer, offset = 0) => {
-	const readSum = parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
-	if (isNaN(readSum)) {
+export function tarHeaderChecksumMatches(buffer, offset = 0) {
+	const readSum = Number.parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+	if (Number.isNaN(readSum)) {
 		return false;
 	}
 
@@ -26,15 +26,13 @@ exports.tarHeaderChecksumMatches = (buffer, offset = 0) => {
 	}
 
 	return readSum === sum;
-};
+}
 
 /**
 ID3 UINT32 sync-safe tokenizer token.
 28 bits (representing up to 256MB) integer, the msb is 0 to avoid "false syncsignals".
 */
-exports.uint32SyncSafeToken = {
-	get: (buffer, offset) => {
-		return (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2]) << 7) | ((buffer[offset + 1]) << 14) | ((buffer[offset]) << 21);
-	},
-	len: 4
+export const uint32SyncSafeToken = {
+	get: (buffer, offset) => (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2]) << 7) | ((buffer[offset + 1]) << 14) | ((buffer[offset]) << 21),
+	len: 4,
 };
