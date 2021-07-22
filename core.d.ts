@@ -357,7 +357,7 @@ declare namespace core {
 
 	interface StreamOptions {
 		/**
-		Sample size in bytes.
+		Overrides the default sample size of 4100 bytes.
 		*/
 		readonly sampleSize?: number
 	}
