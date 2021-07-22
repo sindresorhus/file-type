@@ -301,10 +301,10 @@ declare namespace core {
 
 	If file access is available, it is recommended to use `.fromFile()` instead.
 
-	@param buffer - A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
+	@param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 	@returns The detected file type and MIME type, or `undefined` when there is no match.
 	*/
-	function fromBuffer(buffer: Buffer | Uint8Array | ArrayBuffer): Promise<core.FileTypeResult | undefined>;
+	function fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<core.FileTypeResult | undefined>;
 
 	/**
 	Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
