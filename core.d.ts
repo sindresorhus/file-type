@@ -355,13 +355,10 @@ declare namespace core {
 	*/
 	const mimeTypes: Set<core.MimeType>;
 
-	/**
-	 * Option object, used by `stream()`.
-	 */
 	interface StreamOptions {
 		/**
-		 *  Sample size in bytes.
-		 */
+		Sample size in bytes.
+		*/
 		readonly sampleSize?: number
 	}
 
@@ -373,25 +370,25 @@ declare namespace core {
 	The sample size impacts the file detection resolution.
 	A smaller sample size will result in lower probability of the best file type detection.
 
-	 *Note:* This method is only available using Node.js.
+	*Note:* This method is only available when using Node.js.
 
 	@param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-	@param options - Option object
 	@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
 	@example
-	```js
-	const got = require('got');
-	const FileType = require('file-type');
+	```
+	import got = require('got');
+	import FileType = require('file-type');
 
 	const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 	(async () => {
 		const stream1 = got.stream(url);
 		const stream2 = await FileType.stream(stream1, {sampleSize: 1024});
+
 		if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
 			// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
-  	}
+  		}
 	})();
 	```
 	*/
