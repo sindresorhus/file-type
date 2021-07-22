@@ -20,11 +20,11 @@ async function fromStream(stream) {
 }
 
 async function fromBuffer(input) {
-	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer || Buffer.isBuffer(input))) {
+	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
 
-	const buffer = input instanceof Buffer ? input : Buffer.from(input);
+	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
 
 	if (!(buffer && buffer.length > 1)) {
 		return;
