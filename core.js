@@ -1436,7 +1436,11 @@ const stream = readableStream => new Promise((resolve, reject) => {
 			const fileType = await fromBuffer(chunk);
 			pass.fileType = fileType;
 		} catch (error) {
-			reject(error);
+			if (error instanceof strtok3.EndOfStreamError) {
+				pass.fileType = undefined;
+			} else {
+				reject(error);
+			}
 		}
 
 		resolve(outputStream);
