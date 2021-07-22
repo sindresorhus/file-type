@@ -337,7 +337,7 @@ test('.stream() method - short stream', async t => {
 	t.deepEqual(bufferA, bufferB);
 });
 
-test('.stream() method - no End-Of-Stream errors', async t => {
+test('.stream() method - no end-of-stream errors', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
 	const stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(stream.fileType, undefined);
@@ -357,7 +357,7 @@ test('.stream() method - error event', async t => {
 	await t.throwsAsync(FileType.stream(readableStream), errorMessage);
 });
 
-test('.stream() method - sampleSize', async t => {
+test('.stream() method - sampleSize option', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
 	let stream = await FileType.stream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(typeof (stream.fileType), 'undefined', 'file-type cannot be determined with a sampleSize of 30');
