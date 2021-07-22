@@ -287,19 +287,22 @@ Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-*Note:* This method is only available using Node.js.
+*Note:* This method is only available when using Node.js.
 
 #### readableStream
-Type: [`Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+
+Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 #### options
-Type: `Object`, for example:
-```js
-{ sampleSize: 400 }
-```
+
+Type: `object`
 
 ##### sampleSize
-Type: `number`, change default sample size of 4100 bytes.
+
+Type: `number`\
+Default: `4100`
+
+The sample size in bytes.
 
 #### Example
 
@@ -317,7 +320,6 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 	}
 })();
 ```
-
 
 #### readableStream
 
