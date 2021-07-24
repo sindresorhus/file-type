@@ -1,5 +1,5 @@
 #!/usr/bin/node
-import FileType from './index.js';
+import {fileTypeFromFile} from './index.js';
 
 const [file] = process.argv.slice(2);
 
@@ -9,7 +9,7 @@ if (!file) {
 }
 
 (async () => {
-	const fileType = await FileType.fromFile(file);
+	const fileType = await fileTypeFromFile(file);
 
 	if (fileType) {
 		console.log(`MIME-type: ${fileType.mime}`);

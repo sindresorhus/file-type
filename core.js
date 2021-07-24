@@ -13,16 +13,16 @@ import {extensions, mimeTypes} from './supported.js';
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
 
-export async function fromStream(stream) {
+export async function fileTypeFromStream(stream) {
 	const tokenizer = await tokenizerFromStream(stream);
 	try {
-		return await fromTokenizer(tokenizer);
+		return await fileTypeFromTokenizer(tokenizer);
 	} finally {
 		await tokenizer.close();
 	}
 }
 
-export async function fromBuffer(input) {
+export async function fileTypeFromBuffer(input) {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
@@ -33,7 +33,7 @@ export async function fromBuffer(input) {
 		return;
 	}
 
-	return fromTokenizer(tokenizerFromBuffer(buffer));
+	return fileTypeFromTokenizer(tokenizerFromBuffer(buffer));
 }
 
 function _check(buffer, headers, options) {
@@ -57,7 +57,7 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
-export async function fromTokenizer(tokenizer) {
+export async function fileTypeFromTokenizer(tokenizer) {
 	try {
 		return _fromTokenizer(tokenizer);
 	} catch (error) {
@@ -181,7 +181,7 @@ async function _fromTokenizer(tokenizer) {
 		}
 
 		await tokenizer.ignore(id3HeaderLength);
-		return fromTokenizer(tokenizer); // Skip ID3 header, recursion
+		return fileTypeFromTokenizer(tokenizer); // Skip ID3 header, recursion
 	}
 
 	// Musepack, SV7
@@ -1417,7 +1417,7 @@ async function _fromTokenizer(tokenizer) {
 	}
 }
 
-export async function stream(readableStream, {sampleSize = minimumBytes} = {}) {
+export async function fileTypeStream(readableStream, {sampleSize = minimumBytes} = {}) {
 	// eslint-disable-next-line node/no-unsupported-features/es-syntax
 	const {default: stream} = await import('node:stream');
 
@@ -1434,7 +1434,7 @@ export async function stream(readableStream, {sampleSize = minimumBytes} = {}) {
 					// Read the input stream and detect the filetype
 					const chunk = readableStream.read(sampleSize) || readableStream.read() || Buffer.alloc(0);
 					try {
-						const fileType = await fromBuffer(chunk);
+						const fileType = await fileTypeFromBuffer(chunk);
 						pass.fileType = fileType;
 					} catch (error) {
 						if (error instanceof EndOfStreamError) {

@@ -1,10 +1,10 @@
 import strtok3 from 'strtok3';
-import {fromTokenizer} from './core.js';
+import {fileTypeFromTokenizer} from './core.js';
 
-export async function fromFile(path) {
+export async function fileTypeFromFile(path) {
 	const tokenizer = await strtok3.fromFile(path);
 	try {
-		return await fromTokenizer(tokenizer);
+		return await fileTypeFromTokenizer(tokenizer);
 	} finally {
 		await tokenizer.close();
 	}

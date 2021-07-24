@@ -49,21 +49,21 @@ $ npm install file-type
 Determine file type from a file:
 
 ```js
-import FileType from 'file-type';
+import {fileTypeFromFile} from 'file-type';
 
-console.log(await FileType.fromFile('Unicorn.png'));
+console.log(await fileTypeFromFile('Unicorn.png'));
 //=> {ext: 'png', mime: 'image/png'}
 ```
 
 Determine file type from a Buffer, which may be a portion of the beginning of a file:
 
 ```js
-import FileType from 'file-type');
+import {fileTypeFromBuffer} from 'file-type');
 import readChunk from 'read-chunk';
 
 const buffer = readChunk.sync('Unicorn.png', 0, 4100);
 
-console.log(await FileType.fromBuffer(buffer));
+console.log(await fileTypeFromBuffer(buffer));
 //=> {ext: 'png', mime: 'image/png'}
 ```
 
@@ -71,11 +71,11 @@ Determine file type from a stream:
 
 ```js
 import fs from 'node:fs';
-import FileType from 'file-type';
+import {fileTypeFromStream} from 'file-type';
 
 const stream = fs.createReadStream('Unicorn.mp4');
 
-console.log(await FileType.fromStream(stream));
+console.log(await fileTypeFromStream(stream));
 //=> {ext: 'mp4', mime: 'video/mp4'}
 ```
 
@@ -83,13 +83,13 @@ The stream method can also be used to read from a remote location:
 
 ```js
 import got from 'got';
-import FileType from 'file-type';
+import {fileTypeFromStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 const stream = got.stream(url);
 
-console.log(await FileType.fromStream(stream));
+console.log(await fileTypeFromStream(stream));
 //=> {ext: 'jpg', mime: 'image/jpeg'}
 ```
 
@@ -99,49 +99,49 @@ Another stream example:
 import stream from 'node:stream';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import FileType from 'file-type';
+import {fileTypeStream} from 'file-type';
 
 const read = fs.createReadStream('encrypted.enc');
 const decipher = crypto.createDecipheriv(alg, key, iv);
 
-const fileTypeStream = await FileType.stream(stream.pipeline(read, decipher));
+const streamWithFileType = await fileTypeStream(stream.pipeline(read, decipher));
 
-console.log(fileTypeStream.fileType);
+console.log(streamWithFileType.fileType);
 //=> {ext: 'mov', mime: 'video/quicktime'}
 
-const write = fs.createWriteStream(`decrypted.${fileTypeStream.fileType.ext}`);
-fileTypeStream.pipe(write);
+const write = fs.createWriteStream(`decrypted.${streamWithFileType.fileType.ext}`);
+streamWithFileType.pipe(write);
 ```
 
 #### Browser
 
 ```js
-import FileType from 'file-type/browser';
+import {fileTypeFromStream} from 'file-type/browser';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 const response = await fetch(url);
-const fileType = await FileType.fromStream(response.body);
+const fileType = await fileTypeFromStream(response.body);
 
 console.log(fileType);
 //=> {ext: 'jpg', mime: 'image/jpeg'}
 ```
 
 ```js
-import FileType from 'file-type/browser';
+import {fileTypeFromBlob} from 'file-type/browser';
 
 const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 	type: 'plain/text',
 	endings: 'native'
 });
 
-console.log(await FileType.fromBlob(blob));
+console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
 
 ## API
 
-### FileType.fromBuffer(buffer)
+### fileTypeFromBuffer(buffer)
 
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -162,7 +162,7 @@ Type: `Buffer | Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 
-### FileType.fromFile(filePath)
+### fileTypeFromFile(filePath)
 
 Detect the file type of a file path.
 
@@ -181,7 +181,7 @@ Type: `string`
 
 The file path to parse.
 
-### FileType.fromStream(stream)
+### fileTypeFromStream(stream)
 
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
@@ -200,7 +200,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 A readable stream representing file data.
 
-### FileType.fromTokenizer(tokenizer)
+### fileTypeFromTokenizer(tokenizer)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -219,12 +219,12 @@ An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), wh
 
 ```js
 import {makeTokenizer} from '@tokenizer/http';
-import FileType from 'file-type';
+import {fileTypeFromTokenizer} from 'file-type';
 
 const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
 
 const httpTokenizer = await makeTokenizer(audioTrackUrl);
-const fileType = await FileType.fromTokenizer(httpTokenizer);
+const fileType = await fileTypeFromTokenizer(httpTokenizer);
 
 console.log(fileType);
 //=> {ext: 'mp3', mime: 'audio/mpeg'}
@@ -233,9 +233,9 @@ console.log(fileType);
 Or use [`@tokenizer/s3`](https://github.com/Borewit/tokenizer-s3) to determine the file type of a file stored on [Amazon S3](https://aws.amazon.com/s3):
 
 ```js
-import FileType from 'file-type';
 import S3 from 'aws-sdk/clients/s3';
 import {makeTokenizer} from '@tokenizer/s3';
+import {fileTypeFromTokenizer} from 'file-type';
 
 // Initialize the S3 client
 const s3 = new S3();
@@ -247,7 +247,7 @@ const s3Tokenizer = await makeTokenizer(s3, {
 });
 
 // Figure out what kind of file it is.
-const fileType = await FileType.fromTokenizer(s3Tokenizer);
+const fileType = await fileTypeFromTokenizer(s3Tokenizer);
 console.log(fileType);
 ```
 
@@ -259,7 +259,7 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-### FileType.stream(readableStream, options?)
+### fileTypeStream(readableStream, options?)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
@@ -290,12 +290,12 @@ The sample size in bytes.
 
 ```js
 import got from 'got';
-import FileType from 'file-type';
+import {fileTypeStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 const stream1 = got.stream(url);
-const stream2 = await FileType.stream(stream1, {sampleSize: 1024});
+const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
 
 if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
 	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)

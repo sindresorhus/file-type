@@ -9,6 +9,6 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 @param path - The file path to parse.
 @returns The detected file type and MIME type or `undefined` when there is no match.
 */
-export function fromFile(path: string): Promise<FileTypeResult | undefined>;
+export function fileTypeFromFile(path: string): Promise<FileTypeResult | undefined>;
 
 export * from './core.js';

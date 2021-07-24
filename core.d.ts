@@ -302,7 +302,7 @@ If file access is available, it is recommended to use `.fromFile()` instead.
 @param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 */
-export function fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
+export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
@@ -312,7 +312,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 @param stream - A readable stream representing file data.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 */
-export function fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -325,12 +325,12 @@ An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), wh
 
 ```
 import {makeTokenizer} from '@tokenizer/http';
-import {fromTokenizer} from 'file-type';
+import {fileTypeFromTokenizer} from 'file-type';
 
 const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
 
 const httpTokenizer = await makeTokenizer(audioTrackUrl);
-const fileType = await fromTokenizer(httpTokenizer);
+const fileType = await fileTypeFromTokenizer(httpTokenizer);
 
 console.log(fileType);
 //=> {ext: 'mp3', mime: 'audio/mpeg'}
@@ -339,7 +339,7 @@ console.log(fileType);
 @param tokenizer - File source implementing the tokenizer interface.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 */
-export function fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
+export function fileTypeFromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
 
 /**
 Supported file extensions.
@@ -377,16 +377,16 @@ A smaller sample size will result in lower probability of the best file type det
 @example
 ```
 import got from 'got';
-import {stream} from 'file-type';
+import {fileTypeStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
 const stream1 = got.stream(url);
-const stream2 = await stream(stream1, {sampleSize: 1024});
+const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
 
 if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
 	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
 }
 ```
 */
-export function stream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;

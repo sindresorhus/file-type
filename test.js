@@ -4,7 +4,14 @@ import fs from 'node:fs';
 import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
-import {fromBuffer, fromStream, fromFile, stream as fileTypeStream, supportedExtensions, supportedMimeTypes} from './index.js';
+import {
+	fileTypeFromBuffer,
+	fileTypeFromStream,
+	fileTypeFromFile,
+	fileTypeStream,
+	supportedExtensions,
+	supportedMimeTypes,
+} from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -216,13 +223,13 @@ const failingFixture = new Set([
 ]);
 
 async function checkBufferLike(t, type, bufferLike) {
-	const {ext, mime} = await fromBuffer(bufferLike) || {};
+	const {ext, mime} = await fileTypeFromBuffer(bufferLike) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
 
 async function checkFile(t, type, filePath) {
-	const {ext, mime} = await fromFile(filePath) || {};
+	const {ext, mime} = await fileTypeFromFile(filePath) || {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
@@ -245,18 +252,18 @@ async function testFromBuffer(t, ext, name) {
 async function testFalsePositive(t, ext, name) {
 	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
 
-	await t.is(await fromFile(file), undefined);
+	await t.is(await fileTypeFromFile(file), undefined);
 
 	const chunk = fs.readFileSync(file);
-	t.is(await fromBuffer(chunk), undefined);
-	t.is(await fromBuffer(new Uint8Array(chunk)), undefined);
-	t.is(await fromBuffer(chunk.buffer), undefined);
+	t.is(await fileTypeFromBuffer(chunk), undefined);
+	t.is(await fileTypeFromBuffer(new Uint8Array(chunk)), undefined);
+	t.is(await fileTypeFromBuffer(chunk.buffer), undefined);
 }
 
 async function testFileFromStream(t, ext, name) {
 	const filename = `${(name || 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', filename);
-	const fileType = await fromStream(fs.createReadStream(file));
+	const fileType = await fileTypeFromStream(fs.createReadStream(file));
 
 	t.truthy(fileType, `identify ${filename}`);
 	t.is(fileType.ext, ext, 'fileType.ext');
@@ -378,15 +385,15 @@ test('supportedMimeTypes.has', t => {
 });
 
 test('validate the input argument type', async t => {
-	await t.throwsAsync(fromBuffer('x'), {
+	await t.throwsAsync(fileTypeFromBuffer('x'), {
 		message: /Expected the `input` argument to be of type `Uint8Array`/,
 	});
 
-	await t.notThrowsAsync(fromBuffer(Buffer.from('x')));
+	await t.notThrowsAsync(fileTypeFromBuffer(Buffer.from('x')));
 
-	await t.notThrowsAsync(fromBuffer(new Uint8Array()));
+	await t.notThrowsAsync(fileTypeFromBuffer(new Uint8Array()));
 
-	await t.notThrowsAsync(fromBuffer(new ArrayBuffer()));
+	await t.notThrowsAsync(fileTypeFromBuffer(new ArrayBuffer()));
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
@@ -553,12 +560,12 @@ test('odd file sizes', async t => {
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
-		await t.notThrowsAsync(fromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
+		await t.notThrowsAsync(fileTypeFromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
 	}
 
 	for (const size of oddFileSizes) {
 		const buffer = Buffer.alloc(size);
 		const stream = new BufferedStream(buffer);
-		await t.notThrowsAsync(fromStream(stream), `fromStream: File size: ${size} bytes`);
+		await t.notThrowsAsync(fileTypeFromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });

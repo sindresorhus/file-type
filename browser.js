@@ -1,5 +1,5 @@
 import {ReadableWebToNodeStream} from 'readable-web-to-node-stream';
-import {fromBuffer, fromStream as coreFromStream} from './core.js';
+import {fileTypeFromBuffer, fileTypeFromStream as coreFileTypeFromStream} from './core.js';
 
 /**
 Convert Blobs to ArrayBuffer.
@@ -31,20 +31,20 @@ function blobToArrayBuffer(blob) {
 	});
 }
 
-export async function fromStream(stream) {
+export async function fileTypeFromStream(stream) {
 	const readableWebToNodeStream = new ReadableWebToNodeStream(stream);
-	const fileType = await coreFromStream(readableWebToNodeStream);
+	const fileType = await coreFileTypeFromStream(readableWebToNodeStream);
 	await readableWebToNodeStream.close();
 	return fileType;
 }
 
-export async function fromBlob(blob) {
+export async function fileTypeFromBlob(blob) {
 	const buffer = await blobToArrayBuffer(blob);
-	return fromBuffer(Buffer.from(buffer));
+	return fileTypeFromBuffer(Buffer.from(buffer));
 }
 
 export {
-	fromTokenizer,
-	fromBuffer,
-	stream,
+	fileTypeFromTokenizer,
+	fileTypeFromBuffer,
+	fileTypeStream,
 } from './core.js';
