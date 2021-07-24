@@ -194,12 +194,12 @@
 		"noop-stream": "^0.1.0",
 		"read-chunk": "^3.2.0",
 		"tsd": "^0.11.0",
-		"xo": "^0.25.3"
+		"xo": "^0.25.4"
 	},
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
 		"strtok3": "^6.2.2",
-		"token-types": "^4.0.1"
+		"token-types": "^4.1.0"
 	},
 	"xo": {
 		"envs": [
