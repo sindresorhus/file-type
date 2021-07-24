@@ -49,114 +49,99 @@ $ npm install file-type
 Determine file type from a file:
 
 ```js
-const FileType = require('file-type');
+import {fileTypeFromFile} from 'file-type';
 
-(async () => {
-	console.log(await FileType.fromFile('Unicorn.png'));
-	//=> {ext: 'png', mime: 'image/png'}
-})();
+console.log(await fileTypeFromFile('Unicorn.png'));
+//=> {ext: 'png', mime: 'image/png'}
 ```
 
 Determine file type from a Buffer, which may be a portion of the beginning of a file:
 
 ```js
-const FileType = require('file-type');
-const readChunk = require('read-chunk');
+import {fileTypeFromBuffer} from 'file-type');
+import readChunk from 'read-chunk';
 
-(async () => {
-	const buffer = readChunk.sync('Unicorn.png', 0, 4100);
+const buffer = readChunk.sync('Unicorn.png', 0, 4100);
 
-	console.log(await FileType.fromBuffer(buffer));
-	//=> {ext: 'png', mime: 'image/png'}
-})();
+console.log(await fileTypeFromBuffer(buffer));
+//=> {ext: 'png', mime: 'image/png'}
 ```
 
 Determine file type from a stream:
 
 ```js
-const fs = require('fs');
-const FileType = require('file-type');
+import fs from 'node:fs';
+import {fileTypeFromStream} from 'file-type';
 
-(async () => {
-	const stream = fs.createReadStream('Unicorn.mp4');
+const stream = fs.createReadStream('Unicorn.mp4');
 
-	console.log(await FileType.fromStream(stream));
-	//=> {ext: 'mp4', mime: 'video/mp4'}
-}
-)();
+console.log(await fileTypeFromStream(stream));
+//=> {ext: 'mp4', mime: 'video/mp4'}
 ```
 
 The stream method can also be used to read from a remote location:
 
 ```js
-const got = require('got');
-const FileType = require('file-type');
+import got from 'got';
+import {fileTypeFromStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-(async () => {
-	const stream = got.stream(url);
+const stream = got.stream(url);
 
-	console.log(await FileType.fromStream(stream));
-	//=> {ext: 'jpg', mime: 'image/jpeg'}
-})();
+console.log(await fileTypeFromStream(stream));
+//=> {ext: 'jpg', mime: 'image/jpeg'}
 ```
 
 Another stream example:
 
 ```js
-const stream = require('stream');
-const fs = require('fs');
-const crypto = require('crypto');
-const FileType = require('file-type');
+import stream from 'node:stream';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import {fileTypeStream} from 'file-type';
 
-(async () => {
-	const read = fs.createReadStream('encrypted.enc');
-	const decipher = crypto.createDecipheriv(alg, key, iv);
+const read = fs.createReadStream('encrypted.enc');
+const decipher = crypto.createDecipheriv(alg, key, iv);
 
-	const fileTypeStream = await FileType.stream(stream.pipeline(read, decipher));
+const streamWithFileType = await fileTypeStream(stream.pipeline(read, decipher));
 
-	console.log(fileTypeStream.fileType);
-	//=> {ext: 'mov', mime: 'video/quicktime'}
+console.log(streamWithFileType.fileType);
+//=> {ext: 'mov', mime: 'video/quicktime'}
 
-	const write = fs.createWriteStream(`decrypted.${fileTypeStream.fileType.ext}`);
-	fileTypeStream.pipe(write);
-})();
+const write = fs.createWriteStream(`decrypted.${streamWithFileType.fileType.ext}`);
+streamWithFileType.pipe(write);
 ```
 
 #### Browser
 
 ```js
-const FileType = require('file-type/browser');
+import {fileTypeFromStream} from 'file-type/browser';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-(async () => {
-	const response = await fetch(url);
-	const fileType = await FileType.fromStream(response.body);
+const response = await fetch(url);
+const fileType = await fileTypeFromStream(response.body);
 
-	console.log(fileType);
-	//=> {ext: 'jpg', mime: 'image/jpeg'}
-})();
+console.log(fileType);
+//=> {ext: 'jpg', mime: 'image/jpeg'}
 ```
 
 ```js
-const FileType = require('file-type/browser');
+import {fileTypeFromBlob} from 'file-type/browser';
 
-(async () => {
-	const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-		type: 'plain/text',
-		endings: 'native'
-	});
+const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+	type: 'plain/text',
+	endings: 'native'
+});
 
-	console.log(await FileType.fromBlob(blob));
-	//=> {ext: 'txt', mime: 'plain/text'}
-})();
+console.log(await fileTypeFromBlob(blob));
+//=> {ext: 'txt', mime: 'plain/text'}
 ```
 
 ## API
 
-### FileType.fromBuffer(buffer)
+### fileTypeFromBuffer(buffer)
 
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -177,7 +162,7 @@ Type: `Buffer | Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 
-### FileType.fromFile(filePath)
+### fileTypeFromFile(filePath)
 
 Detect the file type of a file path.
 
@@ -196,7 +181,7 @@ Type: `string`
 
 The file path to parse.
 
-### FileType.fromStream(stream)
+### fileTypeFromStream(stream)
 
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
@@ -215,7 +200,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 A readable stream representing file data.
 
-### FileType.fromTokenizer(tokenizer)
+### fileTypeFromTokenizer(tokenizer)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -233,41 +218,37 @@ Or `undefined` when there is no match.
 An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it can *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
 ```js
-const {makeTokenizer} = require('@tokenizer/http');
-const FileType = require('file-type');
+import {makeTokenizer} from '@tokenizer/http';
+import {fileTypeFromTokenizer} from 'file-type';
 
 const audioTrackUrl = 'https://test-audio.netlify.com/Various%20Artists%20-%202009%20-%20netBloc%20Vol%2024_%20tiuqottigeloot%20%5BMP3-V2%5D/01%20-%20Diablo%20Swing%20Orchestra%20-%20Heroines.mp3';
 
-(async () => {
-	const httpTokenizer = await makeTokenizer(audioTrackUrl);
-	const fileType = await FileType.fromTokenizer(httpTokenizer);
+const httpTokenizer = await makeTokenizer(audioTrackUrl);
+const fileType = await fileTypeFromTokenizer(httpTokenizer);
 
-	console.log(fileType);
-	//=> {ext: 'mp3', mime: 'audio/mpeg'}
-})();
+console.log(fileType);
+//=> {ext: 'mp3', mime: 'audio/mpeg'}
 ```
 
 Or use [`@tokenizer/s3`](https://github.com/Borewit/tokenizer-s3) to determine the file type of a file stored on [Amazon S3](https://aws.amazon.com/s3):
 
 ```js
-const FileType = require('file-type');
-const S3 = require('aws-sdk/clients/s3');
-const {makeTokenizer} = require('@tokenizer/s3');
+import S3 from 'aws-sdk/clients/s3';
+import {makeTokenizer} from '@tokenizer/s3';
+import {fileTypeFromTokenizer} from 'file-type';
 
-(async () => {
-	// Initialize the S3 client
-	const s3 = new S3();
+// Initialize the S3 client
+const s3 = new S3();
 
-	// Initialize the S3 tokenizer.
-	const s3Tokenizer = await makeTokenizer(s3, {
-		Bucket: 'affectlab',
-		Key: '1min_35sec.mp4'
-	});
+// Initialize the S3 tokenizer.
+const s3Tokenizer = await makeTokenizer(s3, {
+	Bucket: 'affectlab',
+	Key: '1min_35sec.mp4'
+});
 
-	// Figure out what kind of file it is.
-	const fileType = await FileType.fromTokenizer(s3Tokenizer);
-	console.log(fileType);
-})();
+// Figure out what kind of file it is.
+const fileType = await fileTypeFromTokenizer(s3Tokenizer);
+console.log(fileType);
 ```
 
 Note that only the minimum amount of data required to determine the file type is read (okay, just a bit extra to prevent too many fragmented reads).
@@ -278,7 +259,7 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-### FileType.stream(readableStream, options?)
+### fileTypeStream(readableStream, options?)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `FileType.fromFile()`.
 
@@ -287,7 +268,8 @@ Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-*Note:* This method is only available when using Node.js.
+**Note:** This method is only available when using Node.js.
+**Note:** Requires Node.js 14 or later.
 
 #### readableStream
 
@@ -307,19 +289,17 @@ The sample size in bytes.
 #### Example
 
 ```js
-const got = require('got');
-const FileType = require('file-type');
+import got from 'got';
+import {fileTypeStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-(async () => {
-	const stream1 = got.stream(url);
-	const stream2 = await FileType.stream(stream1, {sampleSize: 1024});
+const stream1 = got.stream(url);
+const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
 
-	if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
-		// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
-	}
-})();
+if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
+	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
+}
 ```
 
 #### readableStream
@@ -328,13 +308,13 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 The input stream.
 
-### FileType.extensions
+### supportedExtensions
 
-Returns a set of supported file extensions.
+Returns a `Set<string>` of supported file extensions.
 
-### FileType.mimeTypes
+### supportedMimeTypes
 
-Returns a set of supported MIME types.
+Returns a `Set<string>` of supported MIME types.
 
 ## Supported file types
 
