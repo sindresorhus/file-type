@@ -3,7 +3,7 @@ import {
 	fromStream as tokenizerFromStream,
 	fromBuffer as tokenizerFromBuffer,
 	EndOfStreamError,
-} from 'strtok3/lib/core.js';
+} from 'strtok3/core';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
