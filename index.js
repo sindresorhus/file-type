@@ -1,4 +1,4 @@
-import strtok3 from 'strtok3';
+import * as strtok3 from 'strtok3';
 import {fileTypeFromTokenizer} from './core.js';
 
 export async function fileTypeFromFile(path) {
