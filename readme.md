@@ -116,7 +116,7 @@ streamWithFileType.pipe(write);
 #### Browser
 
 ```js
-import {fileTypeFromStream} from 'file-type/browser';
+import {fileTypeFromStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
@@ -128,7 +128,7 @@ console.log(fileType);
 ```
 
 ```js
-import {fileTypeFromBlob} from 'file-type/browser';
+import {fileTypeFromBlob} from 'file-type';
 
 const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 	type: 'plain/text',

@@ -4,7 +4,7 @@ import {FileTypeResult} from './core.js';
 Determine file type from a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
 ```
-import {fileTypeFromStream} from 'file-type/browser';
+import {fileTypeFromStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
@@ -21,7 +21,7 @@ export declare function fileTypeFromStream(stream: ReadableStream): Promise<File
 Determine file type from a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
 ```
-import {fileTypeFromBlob} from 'file-type/browser';
+import {fileTypeFromBlob} from 'file-type';
 
 const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 	type: 'plain/text',
