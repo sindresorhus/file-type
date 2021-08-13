@@ -68,7 +68,7 @@ export async function fileTypeFromTokenizer(tokenizer) {
 }
 
 async function _fromTokenizer(tokenizer) {
-	let buffer = Buffer.alloc(minimumBytes);
+	const buffer = Buffer.alloc(minimumBytes);
 	const bytesRead = 12;
 	const check = (header, options) => _check(buffer, header, options);
 	const checkString = (header, options) => check(stringToBytes(header), options);
@@ -617,58 +617,87 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	async function readTiffTag(bigEndian) {
+		const tagId = await tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
+		tokenizer.ignore(10);
+		switch (tagId) {
+			case 50_341:
+				return {
+					ext: 'arw',
+					mime: 'image/x-sony-arw',
+				};
+			case 50_706:
+				return {
+					ext: 'dng',
+					mime: 'image/x-adobe-dng',
+				};
+			default:
+		}
+	}
+
+	async function readTiffIFD(bigEndian) {
+		const numberOfTags = await tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
+		for (let n = 0; n < numberOfTags; ++n) {
+			const fileType = await readTiffTag(bigEndian);
+			if (fileType) {
+				return fileType;
+			}
+		}
+	}
+
+	async function readTiffHeader(bigEndian) {
+		const version = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(buffer, 2);
+		const ifdOffset = (bigEndian ? Token.UINT32_BE : Token.UINT32_LE).get(buffer, 4);
+
+		if (version === 42) {
+			// TIFF file header
+			if (ifdOffset >= 6) {
+				if (checkString('CR', {offset: 8})) {
+					return {
+						ext: 'cr2',
+						mime: 'image/x-canon-cr2',
+					};
+				}
+
+				if (ifdOffset >= 8 && (check([0x1C, 0x00, 0xFE, 0x00], {offset: 8}) || check([0x1F, 0x00, 0x0B, 0x00], {offset: 8}))) {
+					return {
+						ext: 'nef',
+						mime: 'image/x-nikon-nef',
+					};
+				}
+			}
+
+			await tokenizer.ignore(ifdOffset);
+			const fileType = await readTiffIFD(false);
+			return fileType ? fileType : {
+				ext: 'tif',
+				mime: 'image/tiff',
+			};
+		}
+
+		if (version === 43) {
+			// Big TIFF file header
+			return {
+				ext: 'tif',
+				mime: 'image/tiff',
+			};
+		}
+	}
+
 	// TIFF, little-endian type
-	if (check([0x49, 0x49, 0x2A, 0x0])) {
-		if (checkString('CR', {offset: 8})) {
-			return {
-				ext: 'cr2',
-				mime: 'image/x-canon-cr2',
-			};
+	if (check([0x49, 0x49])) {
+		const fileType = await readTiffHeader(false);
+		if (fileType) {
+			return fileType;
 		}
-
-		if (check([0x1C, 0x00, 0xFE, 0x00], {offset: 8}) || check([0x1F, 0x00, 0x0B, 0x00], {offset: 8})) {
-			return {
-				ext: 'nef',
-				mime: 'image/x-nikon-nef',
-			};
-		}
-
-		if (
-			check([0x08, 0x00, 0x00, 0x00], {offset: 4})
-				&& (check([0x2D, 0x00, 0xFE, 0x00], {offset: 8})
-					|| check([0x27, 0x00, 0xFE, 0x00], {offset: 8}))
-		) {
-			return {
-				ext: 'dng',
-				mime: 'image/x-adobe-dng',
-			};
-		}
-
-		buffer = Buffer.alloc(24);
-		await tokenizer.peekBuffer(buffer);
-		if (
-			(check([0x10, 0xFB, 0x86, 0x01], {offset: 4}) || check([0x08, 0x00, 0x00, 0x00], {offset: 4}))
-			// This pattern differentiates ARW from other TIFF-ish file types:
-			&& check([0x00, 0xFE, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01], {offset: 9})
-		) {
-			return {
-				ext: 'arw',
-				mime: 'image/x-sony-arw',
-			};
-		}
-
-		return {
-			ext: 'tif',
-			mime: 'image/tiff',
-		};
 	}
 
 	// TIFF, big-endian type
-	if (check([0x4D, 0x4D, 0x0, 0x2A])) {
-		return {
-			ext: 'tif',
-			mime: 'image/tiff',
-		};
+	if (check([0x4D, 0x4D])) {
+		const fileType = await readTiffHeader(true);
+		if (fileType) {
+			return fileType;
+		}
 	}
 
 	if (checkString('MAC ')) {
@@ -683,7 +712,8 @@ async function _fromTokenizer(tokenizer) {
 		async function readField() {
 			const msb = await tokenizer.peekNumber(Token.UINT8);
 			let mask = 0x80;
-			let ic = 0; // 0 = A, 1 = B, 2 = C, 3 = D
+			let ic = 0; // 0 = A, 1 = B, 2 = C, 3
+			// = D
 
 			while ((msb & mask) === 0) {
 				++ic;

@@ -35,18 +35,13 @@ const names = {
 		'fixture2',
 	],
 	arw: [
-		'fixture',
-		'fixture2',
-		'fixture3',
-		'fixture4',
-		'fixture5',
+		'fixture-sony-zv-e10',
 	],
 	cr3: [
 		'fixture',
 	],
 	dng: [
-		'fixture',
-		'fixture2',
+		'fixture-Leica-M10',
 	],
 	nef: [
 		'fixture',
