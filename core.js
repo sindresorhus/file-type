@@ -1,9 +1,5 @@
 import Token from 'token-types';
-import {
-	fromStream as tokenizerFromStream,
-	fromBuffer as tokenizerFromBuffer,
-	EndOfStreamError,
-} from 'strtok3/lib/core.js';
+import * as strtok3 from 'strtok3/core';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -14,7 +10,7 @@ import {extensions, mimeTypes} from './supported.js';
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
 
 export async function fileTypeFromStream(stream) {
-	const tokenizer = await tokenizerFromStream(stream);
+	const tokenizer = await strtok3.fromStream(stream);
 	try {
 		return await fileTypeFromTokenizer(tokenizer);
 	} finally {
@@ -33,7 +29,7 @@ export async function fileTypeFromBuffer(input) {
 		return;
 	}
 
-	return fileTypeFromTokenizer(tokenizerFromBuffer(buffer));
+	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer));
 }
 
 function _check(buffer, headers, options) {
@@ -61,7 +57,7 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	try {
 		return _fromTokenizer(tokenizer);
 	} catch (error) {
-		if (!(error instanceof EndOfStreamError)) {
+		if (!(error instanceof strtok3.EndOfStreamError)) {
 			throw error;
 		}
 	}
@@ -369,7 +365,7 @@ async function _fromTokenizer(tokenizer) {
 				}
 			}
 		} catch (error) {
-			if (!(error instanceof EndOfStreamError)) {
+			if (!(error instanceof strtok3.EndOfStreamError)) {
 				throw error;
 			}
 		}
@@ -1467,7 +1463,7 @@ export async function fileTypeStream(readableStream, {sampleSize = minimumBytes}
 						const fileType = await fileTypeFromBuffer(chunk);
 						pass.fileType = fileType;
 					} catch (error) {
-						if (error instanceof EndOfStreamError) {
+						if (error instanceof strtok3.EndOfStreamError) {
 							pass.fileType = undefined;
 						} else {
 							reject(error);
