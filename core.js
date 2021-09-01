@@ -736,7 +736,8 @@ async function _fromTokenizer(tokenizer) {
 			while (children > 0) {
 				const element = await readElement();
 				if (element.id === 0x42_82) {
-					return tokenizer.readToken(new Token.StringType(element.len, 'utf-8')); // Return DocType
+					const rawValue = await tokenizer.readToken(new Token.StringType(element.len, 'utf-8'));
+					return rawValue.replace(/\00.*$/g, ''); // Return DocType
 				}
 
 				await tokenizer.ignore(element.len); // ignore payload
