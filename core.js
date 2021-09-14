@@ -1203,6 +1203,15 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0xFE, 0xFF, 0, 60, 0, 63, 0, 120, 0, 109, 0, 108]) // UTF-16-BOM-LE
+		|| check([0xFF, 0xFE, 60, 0, 63, 0, 120, 0, 109, 0, 108, 0])
+	) { // UTF-16-BOM-LE
+		return {
+			ext: 'xml',
+			mime: 'application/xml',
+		};
+	}
+
 	// -- Unsafe signatures --
 
 	if (
