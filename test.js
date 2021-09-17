@@ -206,6 +206,10 @@ const names = {
 	webm: [
 		'fixture-null', // EBML DocType with trailing null character
 	],
+	xml: [
+		'fixture',
+		'fixture-utf8-bom', // UTF-8 with BOM
+	],
 };
 
 // Define an entry here only if the file type has potential
