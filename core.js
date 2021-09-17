@@ -1066,6 +1066,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (check([0xEF, 0xBB, 0xBF]) && checkString('<?xml', {offset: 3})) { // UTF-8-BOM
+		return {
+			ext: 'xml',
+			mime: 'application/xml',
+		};
+	}
+
 	// -- 9-byte signatures --
 
 	if (check([0x49, 0x49, 0x52, 0x4F, 0x08, 0x00, 0x00, 0x00, 0x18])) {
