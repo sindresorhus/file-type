@@ -58,7 +58,7 @@ console.log(await fileTypeFromFile('Unicorn.png'));
 Determine file type from a Buffer, which may be a portion of the beginning of a file:
 
 ```js
-import {fileTypeFromBuffer} from 'file-type');
+import {fileTypeFromBuffer} from 'file-type';
 import {readChunk} from 'read-chunk';
 
 const buffer = await readChunk('Unicorn.png', {length: 4100});
