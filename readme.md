@@ -395,7 +395,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`lz`](https://en.wikipedia.org/wiki/Lzip) - Arhive file
 - [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format) - Material Exchange Format
-- [`mts`](https://en.wikipedia.org/wiki/.m2ts) - Blu-ray Disc Audio-Video MPEG-2 Transport Stream
+- [`mts`](https://en.wikipedia.org/wiki/.m2ts) - MPEG-2 Transport Stream, both raw and Blu-ray Disc Audio-Video (BDAV) versions
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly) - WebAssembly intermediate compiled format
 - [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format) - Blender project
 - [`bpg`](https://bellard.org/bpg/) - Better Portable Graphics file

@@ -1281,7 +1281,16 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.check([0x47], {offset: 4}) && (this.check([0x47], {offset: 192}) || this.check([0x47], {offset: 196}))) {
+		// Raw MPEG-2 transport stream (188-byte packets)
+		if (this.check([0x47]) && this.check([0x47], {offset: 188})) {
+			return {
+				ext: 'mts',
+				mime: 'video/mp2t',
+			};
+		}
+
+		// Blu-ray Disc Audio-Video (BDAV) MPEG-2 transport stream has 4-byte TP_extra_header before each 188-byte packet
+		if (this.check([0x47], {offset: 4}) && this.check([0x47], {offset: 196})) {
 			return {
 				ext: 'mts',
 				mime: 'video/mp2t',

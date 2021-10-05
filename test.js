@@ -86,6 +86,10 @@ const names = {
 		'fixture-mp4v2',
 		'fixture-dash',
 	],
+	mts: [
+		'fixture-raw',
+		'fixture-bdav',
+	],
 	tif: [
 		'fixture-big-endian',
 		'fixture-little-endian',
