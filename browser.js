@@ -1,3 +1,4 @@
+import {Buffer} from 'node:buffer';
 import {ReadableWebToNodeStream} from 'readable-web-to-node-stream';
 import {fileTypeFromBuffer, fileTypeFromStream as coreFileTypeFromStream} from './core.js';
 

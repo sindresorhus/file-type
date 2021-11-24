@@ -38,8 +38,8 @@ This package is for detecting binary-based file formats, not text-based formats 
 
 ## Install
 
-```
-$ npm install file-type
+```sh
+npm install file-type
 ```
 
 ## Usage

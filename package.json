@@ -19,10 +19,9 @@
 		"./core": "./core.js"
 	},
 	"engines": {
-		"node": ">=12.20"
+		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
 	},
 	"scripts": {
-		"ava": "ava --serial --verbose",
 		"test": "xo && ava && tsd"
 	},
 	"files": [
@@ -197,17 +196,17 @@
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
-		"strtok3": "^7.0.0-alpha.4",
-		"token-types": "^4.1.0"
+		"strtok3": "7.0.0-alpha.4",
+		"token-types": "^4.1.1"
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
-		"@types/node": "^16.4.1",
+		"@types/node": "^16.11.10",
 		"ava": "^3.15.0",
-		"noop-stream": "^0.1.0",
-		"tsd": "^0.17.0",
-		"typescript": "^4.3.5",
-		"xo": "^0.42.0"
+		"noop-stream": "^1.0.0",
+		"tsd": "^0.19.0",
+		"typescript": "^4.5.2",
+		"xo": "^0.46.4"
 	},
 	"xo": {
 		"envs": [
@@ -217,10 +216,12 @@
 		"rules": {
 			"no-inner-declarations": "warn",
 			"no-await-in-loop": "warn",
-			"promise/prefer-await-to-then": "warn",
-			"prefer-named-capture-group": "off",
-			"@typescript-eslint/no-unsafe-member-access": "off",
+			"no-bitwise": "off",
 			"@typescript-eslint/no-unsafe-assignment": "off"
 		}
+	},
+	"ava": {
+		"serial": true,
+		"verbose": true
 	}
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/node
+import process from 'node:process';
 import {fileTypeFromFile} from './index.js';
 
 const [file] = process.argv.slice(2);

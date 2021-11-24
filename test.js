@@ -1,3 +1,5 @@
+import process from 'node:process';
+import {Buffer} from 'node:buffer';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';
