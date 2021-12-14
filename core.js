@@ -1,5 +1,5 @@
 import {Buffer} from 'node:buffer';
-import Token from 'token-types';
+import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
 import {
 	stringToBytes,
