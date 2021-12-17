@@ -477,6 +477,7 @@ class FileTypeParser {
 			const brandMajor = this.buffer.toString('binary', 8, 12).replace('\0', ' ').trim();
 			switch (brandMajor) {
 				case 'avif':
+				case 'avis':
 					return {ext: 'avif', mime: 'image/avif'};
 				case 'mif1':
 					return {ext: 'heic', mime: 'image/heif'};
