@@ -1,6 +1,6 @@
 import {Buffer} from 'node:buffer';
 import * as Token from 'token-types';
-import * as strtok3 from 'strtok3/core';
+import * as strtok3 from 'strtok3/lib/core';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
