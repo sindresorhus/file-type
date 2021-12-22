@@ -214,6 +214,13 @@ class FileTypeParser {
 
 		// -- 4-byte signatures --
 
+		if (this.check([0x7F, 0x45, 0x4C, 0x46])) {
+			return {
+				ext: 'elf',
+				mime: 'application/x-elf',
+			};
+		}
+
 		if (this.check([0x47, 0x49, 0x46])) {
 			return {
 				ext: 'gif',

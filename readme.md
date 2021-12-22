@@ -371,6 +371,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
 - [`epub`](https://en.wikipedia.org/wiki/EPUB) - E-book file
 - [`mobi`](https://en.wikipedia.org/wiki/Mobipocket) - Mobipocket
+- [`elf`](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) - Unix Executable and Linkable Format
 - [`exe`](https://en.wikipedia.org/wiki/.exe) - Executable file
 - [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
 - [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format) - Rich Text Format
