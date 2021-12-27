@@ -51,6 +51,7 @@
 		"check",
 		"is",
 		"exif",
+		"coff",
 		"elf",
 		"exe",
 		"binary",

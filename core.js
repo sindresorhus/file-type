@@ -92,6 +92,17 @@ class FileTypeParser {
 
 		// -- 2-byte signatures --
 
+		if (
+			this.check([0x4C, 0x01])
+			|| this.check([0x64, 0x86])
+			|| this.check([0x00, 0x02])
+		) {
+			return {
+				ext: 'coff',
+				mime: 'application/octet-stream',
+			};
+		}
+
 		if (this.check([0x42, 0x4D])) {
 			return {
 				ext: 'bmp',
