@@ -6,6 +6,8 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 This package is for detecting binary-based file formats, not text-based formats like `.txt`, `.csv`, `.svg`, etc.
 
+We accept contributions for commonly used modern file formats, not historical or obscure ones. Open an issue first for discussion.
+
 <br>
 
 ---
