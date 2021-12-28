@@ -151,6 +151,13 @@ class FileTypeParser {
 
 		// -- 3-byte signatures --
 
+		if (this.check([0x47, 0x49, 0x46])) {
+			return {
+				ext: 'gif',
+				mime: 'image/gif',
+			};
+		}
+
 		if (this.check([0xFF, 0xD8, 0xFF])) {
 			return {
 				ext: 'jpg',
@@ -213,20 +220,6 @@ class FileTypeParser {
 		}
 
 		// -- 4-byte signatures --
-
-		if (this.check([0x7F, 0x45, 0x4C, 0x46])) {
-			return {
-				ext: 'elf',
-				mime: 'application/x-elf',
-			};
-		}
-
-		if (this.check([0x47, 0x49, 0x46])) {
-			return {
-				ext: 'gif',
-				mime: 'image/gif',
-			};
-		}
 
 		if (this.checkString('FLIF')) {
 			return {
@@ -795,6 +788,13 @@ class FileTypeParser {
 			return {
 				ext: 'zst',
 				mime: 'application/zstd',
+			};
+		}
+
+		if (this.check([0x7F, 0x45, 0x4C, 0x46])) {
+			return {
+				ext: 'elf',
+				mime: 'application/x-elf',
 			};
 		}
 
