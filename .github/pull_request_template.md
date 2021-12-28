@@ -6,9 +6,9 @@ If you're adding support for a new file type, please follow the below steps:
 - Add the file's MIME type to the `types` array in `supported.js`.
 - Add the file type detection logic to the `core.js` file
 - Respect the sequence:
-  - Signature with shorter sample size (counted from offset 0 until the last required byte position) will be executed first
-  - Only the initial determination for the file type counts for the sequence
-  - Existing signatures requiring same sample length (same _signature group_) will be tested prior to your new detections. Yours will be last. (rational: common formats first)
+	- Signature with shorter sample size (counted from offset 0 until the last required byte position) will be executed first.
+	- Only the initial determination for the file type counts for the sequence.
+	- Existing signatures requiring same sample length (same *signature group*) will be tested prior to your new detections. Yours will be last. (rational: common formats first).
 - Add the file extension to the `FileType` type in `core.d.ts`.
 - Add the file's MIME type to the `MimeType` type in `core.d.ts`.
 - Add the file extension to the `Supported file types` section in the readme, in the format ```- [`<extension>`](URL) - Format name```, for example, ```- [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics```
