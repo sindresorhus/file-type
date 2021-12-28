@@ -198,7 +198,7 @@
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
 		"strtok3": "^7.0.0-alpha.7",
-		"token-types": "^5.0.0-alpha.1"
+		"token-types": "^5.0.0-alpha.2"
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
