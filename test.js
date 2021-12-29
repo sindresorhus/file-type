@@ -45,6 +45,9 @@ const names = {
 	dng: [
 		'fixture-Leica-M10',
 	],
+	dwg: [
+		'fixture-dwg',
+	],
 	nef: [
 		'fixture',
 		'fixture2',

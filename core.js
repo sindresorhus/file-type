@@ -994,6 +994,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0x41, 0x43])) {
+			return {
+				ext: 'dwg',
+				mime: 'application/acad',
+			};
+		}
+
 		if (this.check([0x41, 0x52, 0x52, 0x4F, 0x57, 0x31, 0x00, 0x00])) {
 			return {
 				ext: 'arrow',

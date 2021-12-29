@@ -140,7 +140,8 @@ export type FileExtension =
 	| '3mf'
 	| 'zst'
 	| 'jxl'
-	| 'vcf';
+	| 'vcf'
+	| 'dwg';
 
 export type MimeType =
 	| 'image/jpeg'
@@ -276,7 +277,8 @@ export type MimeType =
 	| 'application/vnd.ms-htmlhelp'
 	| 'model/3mf'
 	| 'image/jxl'
-	| 'application/zstd';
+	| 'application/zstd'
+	| 'application/acad';
 
 export interface FileTypeResult {
 	/**
