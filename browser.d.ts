@@ -1,8 +1,9 @@
 import {FileTypeResult} from './core.js';
 
 /**
-Determine file type from a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+Detect the file type of a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
+@example
 ```
 import {fileTypeFromStream} from 'file-type';
 
@@ -18,8 +19,11 @@ console.log(fileType);
 export declare function fileTypeFromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
 /**
-Determine file type from a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
+__Note:__ This method is only available in the browser.
+
+@example
 ```
 import {fileTypeFromBlob} from 'file-type';
 

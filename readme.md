@@ -129,18 +129,6 @@ console.log(fileType);
 //=> {ext: 'jpg', mime: 'image/jpeg'}
 ```
 
-```js
-import {fileTypeFromBlob} from 'file-type';
-
-const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-	type: 'plain/text',
-	endings: 'native'
-});
-
-console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'plain/text'}
-```
-
 ## API
 
 ### fileTypeFromBuffer(buffer)
@@ -201,6 +189,33 @@ Or `undefined` when there is no match.
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 A readable stream representing file data.
+
+### fileTypeFromBlob(blob)
+
+Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+
+**Note:** This method is only available in the browser.
+
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+Returns a `Promise` for an object with the detected file type and MIME type:
+
+- `ext` - One of the [supported file types](#supported-file-types)
+- `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
+
+Or `undefined` when there is no match.
+
+```js
+import {fileTypeFromBlob} from 'file-type';
+
+const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+	type: 'plain/text',
+	endings: 'native'
+});
+
+console.log(await fileTypeFromBlob(blob));
+//=> {ext: 'txt', mime: 'plain/text'}
+```
 
 ### fileTypeFromTokenizer(tokenizer)
 
