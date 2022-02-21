@@ -81,11 +81,6 @@ class FileTypeParser {
 			tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER;
 		}
 
-		// Keep reading until EOF if the file size is unknown.
-		if (tokenizer.fileInfo.size === undefined) {
-			tokenizer.fileInfo.size = Number.MAX_SAFE_INTEGER;
-		}
-
 		this.tokenizer = tokenizer;
 
 		await tokenizer.peekBuffer(this.buffer, {length: 12, mayBeLess: true});
