@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
+import {Parser as ReadmeParser} from 'commonmark';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
@@ -578,5 +579,34 @@ test('odd file sizes', async t => {
 		const buffer = Buffer.alloc(size);
 		const stream = new BufferedStream(buffer);
 		await t.notThrowsAsync(fileTypeFromStream(stream), `fromStream: File size: ${size} bytes`);
+	}
+});
+
+test('supported files types are listed alphabetically', async t => {
+	const readme = await fs.promises.readFile('readme.md', {encoding: 'utf8'});
+	let currentNode = new ReadmeParser().parse(readme).firstChild;
+
+	while (currentNode) {
+		if (currentNode.type === 'heading' && currentNode.firstChild.literal === 'Supported file types') {
+			// Header → List → First list item
+			currentNode = currentNode.next.firstChild;
+			break;
+		}
+
+		currentNode = currentNode.next;
+	}
+
+	let previousFileType;
+
+	while (currentNode) {
+		// List item → Paragraph → Link → Inline code → Text
+		const currentFileType = currentNode.firstChild.firstChild.firstChild.literal;
+
+		if (previousFileType) {
+			t.true(currentFileType > previousFileType, `${currentFileType} should be listed before ${previousFileType}`);
+		}
+
+		previousFileType = currentFileType;
+		currentNode = currentNode.next;
 	}
 });
