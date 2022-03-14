@@ -144,6 +144,18 @@ class FileTypeParser {
 			};
 		}
 
+		if (
+			this.check([0x78, 0x01])
+			|| this.check([0x78, 0x5E])
+			|| this.check([0x78, 0x9C])
+			|| this.check([0x78, 0xDA])
+		) {
+			return {
+				ext: 'zlib',
+				mime: 'application/zlib',
+			};
+		}
+
 		// -- 3-byte signatures --
 
 		if (this.check([0x47, 0x49, 0x46])) {

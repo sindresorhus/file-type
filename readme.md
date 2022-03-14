@@ -473,6 +473,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`xpi`](https://en.wikipedia.org/wiki/XPInstall) - XPInstall file
 - [`xz`](https://en.wikipedia.org/wiki/Xz) - Compressed file
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format)) - Archive file
+- [`zlib`](https://en.wikipedia.org/wiki/Zlib) - Archive file
 - [`zst`](https://en.wikipedia.org/wiki/Zstandard) - Archive file
 
 *Pull requests are welcome for additional commonly used file types.*
