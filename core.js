@@ -331,7 +331,7 @@ class FileTypeParser {
 					// - one entry indicating specific type of file.
 					// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
 					if (zipHeader.filename === 'mimetype' && zipHeader.compressedSize === zipHeader.uncompressedSize) {
-						const mimeType = await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'));
+						const mimeType = (await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'))).trim();
 
 						switch (mimeType) {
 							case 'application/epub+zip':
