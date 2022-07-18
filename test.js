@@ -543,3 +543,8 @@ test('odd file sizes', async t => {
 		await t.notThrowsAsync(FileType.fromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });
+
+test('corrupt MKV throws', async t => {
+	const filePath = path.join(__dirname, 'fixture/fixture-corrupt.mkv');
+	await t.throwsAsync(FileType.fromFile(filePath), {message: /out of range/});
+});

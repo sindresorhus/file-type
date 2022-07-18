@@ -681,7 +681,7 @@ async function _fromTokenizer(tokenizer) {
 			let mask = 0x80;
 			let ic = 0; // 0 = A, 1 = B, 2 = C, 3 = D
 
-			while ((msb & mask) === 0) {
+			while ((msb & mask) === 0 && mask !== 0) {
 				++ic;
 				mask >>= 1;
 			}
