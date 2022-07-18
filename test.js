@@ -614,3 +614,8 @@ test('supported files types are listed alphabetically', async t => {
 		currentNode = currentNode.next;
 	}
 });
+
+test('corrupt MKV throws', async t => {
+	const filePath = path.join(__dirname, 'fixture/fixture-corrupt.mkv');
+	await t.throwsAsync(fileTypeFromFile(filePath), {message: /out of range/});
+});

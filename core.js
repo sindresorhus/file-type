@@ -654,7 +654,7 @@ class FileTypeParser {
 				let ic = 0; // 0 = A, 1 = B, 2 = C, 3
 				// = D
 
-				while ((msb & mask) === 0) {
+				while ((msb & mask) === 0 && mask !== 0) {
 					++ic;
 					mask >>= 1;
 				}
@@ -675,7 +675,7 @@ class FileTypeParser {
 				};
 			}
 
-			async function readChildren(level, children) {
+			async function readChildren(children) {
 				while (children > 0) {
 					const element = await readElement();
 					if (element.id === 0x42_82) {
@@ -689,7 +689,7 @@ class FileTypeParser {
 			}
 
 			const re = await readElement();
-			const docType = await readChildren(1, re.len);
+			const docType = await readChildren(re.len);
 
 			switch (docType) {
 				case 'webm':
