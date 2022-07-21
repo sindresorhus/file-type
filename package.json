@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "16.5.3",
+	"version": "16.5.4",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
