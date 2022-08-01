@@ -146,6 +146,12 @@ class FileTypeParser {
 
 		// -- 3-byte signatures --
 
+		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
+			// Strip off UTF-8-BOM
+			this.tokenizer.ignore(3);
+			return this.parse(tokenizer);
+		}
+
 		if (this.check([0x47, 0x49, 0x46])) {
 			return {
 				ext: 'gif',
@@ -1016,13 +1022,6 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xEF, 0xBB, 0xBF]) && this.checkString('<?xml', {offset: 3})) { // UTF-8-BOM
-			return {
-				ext: 'xml',
-				mime: 'application/xml',
-			};
-		}
-
 		// -- 9-byte signatures --
 
 		if (this.check([0x49, 0x49, 0x52, 0x4F, 0x08, 0x00, 0x00, 0x00, 0x18])) {
@@ -1160,14 +1159,15 @@ class FileTypeParser {
 			};
 		}
 
-		if (
-			this.check([0xFE, 0xFF, 0, 60, 0, 63, 0, 120, 0, 109, 0, 108]) // UTF-16-BOM-LE
-			|| this.check([0xFF, 0xFE, 60, 0, 63, 0, 120, 0, 109, 0, 108, 0]) // UTF-16-BOM-LE
-		) {
-			return {
-				ext: 'xml',
-				mime: 'application/xml',
-			};
+		if (this.check([0xFE, 0xFF])) { // UTF-16-BOM-LE
+			if (this.check([0, 60, 0, 63, 0, 120, 0, 109, 0, 108], {offset: 2})) {
+				return {
+					ext: 'xml',
+					mime: 'application/xml',
+				};
+			}
+
+			return undefined; // Some unknown text based format
 		}
 
 		// -- Unsafe signatures --
@@ -1361,11 +1361,22 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xFF, 0xFE, 0xFF, 0x0E, 0x53, 0x00, 0x6B, 0x00, 0x65, 0x00, 0x74, 0x00, 0x63, 0x00, 0x68, 0x00, 0x55, 0x00, 0x70, 0x00, 0x20, 0x00, 0x4D, 0x00, 0x6F, 0x00, 0x64, 0x00, 0x65, 0x00, 0x6C, 0x00])) {
-			return {
-				ext: 'skp',
-				mime: 'application/vnd.sketchup.skp',
-			};
+		if (this.check([0xFF, 0xFE])) { // UTF-16-BOM-BE
+			if (this.check([60, 0, 63, 0, 120, 0, 109, 0, 108, 0], {offset: 2})) {
+				return {
+					ext: 'xml',
+					mime: 'application/xml',
+				};
+			}
+
+			if (this.check([0xFF, 0x0E, 0x53, 0x00, 0x6B, 0x00, 0x65, 0x00, 0x74, 0x00, 0x63, 0x00, 0x68, 0x00, 0x55, 0x00, 0x70, 0x00, 0x20, 0x00, 0x4D, 0x00, 0x6F, 0x00, 0x64, 0x00, 0x65, 0x00, 0x6C, 0x00], {offset: 2})) {
+				return {
+					ext: 'skp',
+					mime: 'application/vnd.sketchup.skp',
+				};
+			}
+
+			return undefined; // Some text based format
 		}
 
 		if (this.checkString('-----BEGIN PGP MESSAGE-----')) {
