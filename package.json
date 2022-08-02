@@ -19,7 +19,7 @@
 		"./core": "./core.js"
 	},
 	"engines": {
-		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+		"node": ">=14.16.0"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -197,8 +197,8 @@
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
-		"strtok3": "^7.0.0-alpha.9",
-		"token-types": "^5.0.0-alpha.2"
+		"strtok3": "^7.0.0",
+		"token-types": "^5.0.0"
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
