@@ -387,7 +387,7 @@ const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 const stream1 = got.stream(url);
 const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
 
-if (stream2.fileType && stream2.fileType.mime === 'image/jpeg') {
+if (stream2.fileType?.mime === 'image/jpeg') {
 	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
 }
 ```

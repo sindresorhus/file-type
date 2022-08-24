@@ -9,13 +9,11 @@ if (!file) {
 	process.exit();
 }
 
-(async () => {
-	const fileType = await fileTypeFromFile(file);
+const fileType = await fileTypeFromFile(file);
 
-	if (fileType) {
-		console.log(`MIME-type: ${fileType.mime}`);
-		console.log(`Extension: ${fileType.ext}`);
-	} else {
-		console.log('Could not determine file type');
-	}
-})();
+if (fileType) {
+	console.log(`MIME-type: ${fileType.mime}`);
+	console.log(`Extension: ${fileType.ext}`);
+} else {
+	console.log('Could not determine file type');
+}

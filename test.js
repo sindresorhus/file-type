@@ -239,24 +239,24 @@ const failingFixture = new Set([
 ]);
 
 async function checkBufferLike(t, type, bufferLike) {
-	const {ext, mime} = await fileTypeFromBuffer(bufferLike) || {};
+	const {ext, mime} = await fileTypeFromBuffer(bufferLike) ?? {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
 
 async function checkFile(t, type, filePath) {
-	const {ext, mime} = await fileTypeFromFile(filePath) || {};
+	const {ext, mime} = await fileTypeFromFile(filePath) ?? {};
 	t.is(ext, type);
 	t.is(typeof mime, 'string');
 }
 
 async function testFromFile(t, ext, name) {
-	const file = path.join(__dirname, 'fixture', `${(name || 'fixture')}.${ext}`);
+	const file = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${ext}`);
 	return checkFile(t, ext, file);
 }
 
 async function testFromBuffer(t, ext, name) {
-	const fixtureName = `${(name || 'fixture')}.${ext}`;
+	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
 
 	const file = path.join(__dirname, 'fixture', fixtureName);
 	const chunk = fs.readFileSync(file);
@@ -277,7 +277,7 @@ async function testFalsePositive(t, ext, name) {
 }
 
 async function testFileFromStream(t, ext, name) {
-	const filename = `${(name || 'fixture')}.${ext}`;
+	const filename = `${(name ?? 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', filename);
 	const fileType = await fileTypeFromStream(fs.createReadStream(file));
 
@@ -296,7 +296,7 @@ async function loadEntireFile(readable) {
 }
 
 async function testStream(t, ext, name) {
-	const fixtureName = `${(name || 'fixture')}.${ext}`;
+	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await fileTypeStream(fs.createReadStream(file));

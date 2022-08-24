@@ -60,7 +60,8 @@ const readableStream = fs.createReadStream('file.png');
 const streamWithFileType = fileTypeStream(readableStream);
 expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 (async () => {
-	expectType<FileTypeResult | undefined>((await streamWithFileType).fileType);
+	const {fileType} = await streamWithFileType;
+	expectType<FileTypeResult | undefined>(fileType);
 })();
 
 // Browser

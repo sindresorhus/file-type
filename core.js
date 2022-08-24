@@ -1,6 +1,6 @@
 import {Buffer} from 'node:buffer';
 import * as Token from 'token-types';
-import * as strtok3 from 'strtok3/core';
+import * as strtok3 from 'strtok3/core'; // eslint-disable-line n/file-extension-in-import
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -26,7 +26,7 @@ export async function fileTypeFromBuffer(input) {
 
 	const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
 
-	if (!(buffer && buffer.length > 1)) {
+	if (!(buffer?.length > 1)) {
 		return;
 	}
 
@@ -337,7 +337,8 @@ class FileTypeParser {
 					// - one entry indicating specific type of file.
 					// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
 					if (zipHeader.filename === 'mimetype' && zipHeader.compressedSize === zipHeader.uncompressedSize) {
-						const mimeType = (await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'))).trim();
+						let mimeType = await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'));
+						mimeType = mimeType.trim();
 
 						switch (mimeType) {
 							case 'application/epub+zip':
@@ -1499,7 +1500,6 @@ class FileTypeParser {
 }
 
 export async function fileTypeStream(readableStream, {sampleSize = minimumBytes} = {}) {
-	// eslint-disable-next-line node/no-unsupported-features/es-syntax
 	const {default: stream} = await import('node:stream');
 
 	return new Promise((resolve, reject) => {
@@ -1513,7 +1513,7 @@ export async function fileTypeStream(readableStream, {sampleSize = minimumBytes}
 					const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
 
 					// Read the input stream and detect the filetype
-					const chunk = readableStream.read(sampleSize) || readableStream.read() || Buffer.alloc(0);
+					const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
 					try {
 						const fileType = await fileTypeFromBuffer(chunk);
 						pass.fileType = fileType;

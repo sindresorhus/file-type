@@ -1,5 +1,5 @@
 export function stringToBytes(string) {
-	return [...string].map(character => character.charCodeAt(0));
+	return [...string].map(character => character.charCodeAt(0)); // eslint-disable-line unicorn/prefer-code-point
 }
 
 /**
@@ -17,12 +17,12 @@ export function tarHeaderChecksumMatches(buffer, offset = 0) {
 
 	let sum = 8 * 0x20; // Initialize signed bit sum
 
-	for (let i = offset; i < offset + 148; i++) {
-		sum += buffer[i];
+	for (let index = offset; index < offset + 148; index++) {
+		sum += buffer[index];
 	}
 
-	for (let i = offset + 156; i < offset + 512; i++) {
-		sum += buffer[i];
+	for (let index = offset + 156; index < offset + 512; index++) {
+		sum += buffer[index];
 	}
 
 	return readSum === sum;
