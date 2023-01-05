@@ -410,7 +410,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`m4a`](https://en.wikipedia.org/wiki/M4A) - Audio-only MPEG-4 files
 - [`m4b`](https://en.wikipedia.org/wiki/M4B) - Audiobook and podcast MPEG-4 files, which also contain metadata including chapter markers, images, and hyperlinks
 - [`m4p`](https://en.wikipedia.org/wiki/MPEG-4_Part_14#Filename_extensions) - MPEG-4 files with audio streams encrypted by FairPlay Digital Rights Management as were sold through the iTunes Store
-- [`m4v`](https://en.wikipedia.org/wiki/M4V) -  MPEG-4 Visual bitstreams
+- [`m4v`](https://en.wikipedia.org/wiki/M4V) - Video container format developed by Apple, which is very similar to the MP4 format
 - [`mid`](https://en.wikipedia.org/wiki/MIDI) - Musical Instrument Digital Interface file
 - [`mie`](https://en.wikipedia.org/wiki/Sidecar_file) - Dedicated meta information format which supports storage of binary as well as textual meta information
 - [`mj2`](https://en.wikipedia.org/wiki/Motion_JPEG_2000) - Motion JPEG 2000
