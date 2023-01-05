@@ -158,6 +158,10 @@ const names = {
 	m4a: [
 		'fixture-babys-songbook.m4b', // Actually it's an `.m4b`
 	],
+	m4v: [
+		'fixture',
+		'fixture-2', // Previously named as `fixture.mp4`
+	],
 	flac: [
 		'fixture',
 		'fixture-id3v2', // FLAC prefixed with ID3v2 header
