@@ -224,6 +224,12 @@ const names = {
 		'fixture-utf16-be-bom', // UTF-16 little endian encoded XML, with BOM
 		'fixture-utf16-le-bom', // UTF-16 big endian encoded XML, with BOM
 	],
+	jls: [
+		'fixture-normal',
+		'fixture-hp1',
+		'fixture-hp2',
+		'fixture-hp3',
+	],
 };
 
 // Define an entry here only if the file type has potential
