@@ -1483,7 +1483,7 @@ class FileTypeParser {
 			}
 
 			await this.tokenizer.ignore(ifdOffset);
-			const fileType = await this.readTiffIFD(false);
+			const fileType = await this.readTiffIFD(bigEndian);
 			return fileType ?? {
 				ext: 'tif',
 				mime: 'image/tiff',
