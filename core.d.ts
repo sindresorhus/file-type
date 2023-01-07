@@ -1,5 +1,5 @@
-import {Readable as ReadableStream} from 'node:stream';
-import {ITokenizer} from 'strtok3';
+import type {Readable as ReadableStream} from 'node:stream';
+import type {ITokenizer} from 'strtok3';
 
 export type FileExtension =
 	| 'jpg'
@@ -278,7 +278,7 @@ export type MimeType =
 	| 'image/jxl'
 	| 'application/zstd';
 
-export interface FileTypeResult {
+export type FileTypeResult = {
 	/**
 	One of the supported [file types](https://github.com/sindresorhus/file-type#supported-file-types).
 	*/
@@ -288,7 +288,7 @@ export interface FileTypeResult {
 	The detected [MIME type](https://en.wikipedia.org/wiki/Internet_media_type).
 	*/
 	readonly mime: MimeType;
-}
+};
 
 export type ReadableStreamWithFileType = ReadableStream & {
 	readonly fileType?: FileTypeResult;
@@ -354,14 +354,14 @@ Supported MIME types.
 */
 export const supportedMimeTypes: ReadonlySet<MimeType>;
 
-export interface StreamOptions {
+export type StreamOptions = {
 	/**
 	The default sample size in bytes.
 
 	@default 4100
 	*/
 	readonly sampleSize?: number;
-}
+};
 
 /**
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.

@@ -1,9 +1,9 @@
 import {Buffer} from 'node:buffer';
-import fs from 'node:fs';
+import {createReadStream} from 'node:fs';
 import {expectType} from 'tsd';
 import {
 	fileTypeFromBlob,
-	FileTypeResult as FileTypeResultBrowser,
+	type FileTypeResult as FileTypeResultBrowser,
 } from './browser.js';
 import {
 	fileTypeFromBuffer,
@@ -12,10 +12,10 @@ import {
 	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
-	FileTypeResult,
-	ReadableStreamWithFileType,
-	FileExtension,
-	MimeType,
+	type FileTypeResult,
+	type ReadableStreamWithFileType,
+	type FileExtension,
+	type MimeType,
 } from './index.js';
 
 expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(Buffer.from([0xFF, 0xD8, 0xFF])));
@@ -41,7 +41,7 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 })();
 
 (async () => {
-	const stream = fs.createReadStream('myFile');
+	const stream = createReadStream('myFile');
 
 	expectType<FileTypeResult | undefined>(await fileTypeFromStream(stream));
 
@@ -56,7 +56,7 @@ expectType<ReadonlySet<FileExtension>>(supportedExtensions);
 
 expectType<ReadonlySet<MimeType>>(supportedMimeTypes);
 
-const readableStream = fs.createReadStream('file.png');
+const readableStream = createReadStream('file.png');
 const streamWithFileType = fileTypeStream(readableStream);
 expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 (async () => {

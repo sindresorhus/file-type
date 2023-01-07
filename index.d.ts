@@ -1,5 +1,4 @@
-import {Readable as ReadableStream} from 'node:stream';
-import {FileTypeResult} from './core.js';
+import type {FileTypeResult} from './core.js';
 
 /**
 Detect the file type of a file path.
