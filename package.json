@@ -203,11 +203,11 @@
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
 		"@types/node": "^18.7.13",
-		"ava": "^4.3.1",
+		"ava": "^5.1.0",
 		"commonmark": "^0.30.0",
 		"noop-stream": "^1.0.0",
-		"tsd": "^0.22.0",
-		"xo": "^0.51.0"
+		"tsd": "^0.25.0",
+		"xo": "^0.53.1"
 	},
 	"xo": {
 		"envs": [
@@ -219,7 +219,9 @@
 			"no-await-in-loop": "warn",
 			"no-bitwise": "off",
 			"@typescript-eslint/no-unsafe-assignment": "off",
-			"unicorn/text-encoding-identifier-case": "off"
+			"unicorn/text-encoding-identifier-case": "off",
+		    "unicorn/switch-case-braces": "off",
+		    "unicorn/prefer-top-level-await": "off"
 		}
 	},
 	"ava": {

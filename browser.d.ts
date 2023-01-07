@@ -1,4 +1,4 @@
-import {FileTypeResult} from './core.js';
+import type {FileTypeResult} from './core.js';
 
 /**
 Detect the file type of a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
@@ -42,7 +42,7 @@ export {
 	fileTypeFromBuffer,
 	supportedExtensions,
 	supportedMimeTypes,
-	FileTypeResult,
-	FileExtension,
-	MimeType,
+	type FileTypeResult,
+	type FileExtension,
+	type MimeType,
 } from './core.js';
