@@ -938,6 +938,16 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('AC')) {
+			const version = this.buffer.toString('binary', 2, 6);
+			if (version.match('^d*') && version >= 1000 && version <= 1050) {
+				return {
+					ext: 'dwg',
+					mime: 'image/vnd.dwg',
+				};
+			}
+		}
+
 		// -- 7-byte signatures --
 
 		if (this.checkString('BLENDER')) {

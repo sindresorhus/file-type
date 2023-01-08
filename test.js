@@ -238,6 +238,9 @@ const names = {
 	pst: [
 		'fixture-sample',
 	],
+	dwg: [
+		'fixture-line-weights',
+	],
 };
 
 // Define an entry here only if the file type has potential

@@ -140,6 +140,7 @@ export const extensions = [
 	'vcf',
 	'jls',
 	'pst',
+	'dwg',
 ];
 
 export const mimeTypes = [
@@ -279,4 +280,5 @@ export const mimeTypes = [
 	'application/zstd',
 	'image/jls',
 	'application/vnd.ms-outlook',
+	'image/vnd.dwg',
 ];

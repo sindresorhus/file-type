@@ -195,7 +195,8 @@
 		"jxl",
 		"vcf",
 		"jls",
-		"pst"
+		"pst",
+		"dwg"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
