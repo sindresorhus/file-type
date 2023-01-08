@@ -446,6 +446,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Powerpoint
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
+- [`pst`](https://en.wikipedia.org/wiki/Personal_Storage_Table) - Personal Storage Table file
 - [`qcp`](https://en.wikipedia.org/wiki/QCP) - Tagged and chunked data
 - [`raf`](https://en.wikipedia.org/wiki/Raw_image_format) - Fujifilm RAW image file
 - [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format)) - Archive file
