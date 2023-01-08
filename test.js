@@ -100,6 +100,7 @@ const names = {
 	tif: [
 		'fixture-big-endian',
 		'fixture-little-endian',
+		'fixture-bali',
 	],
 	gz: [
 		'fixture.tar',
