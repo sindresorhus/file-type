@@ -159,13 +159,6 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xFF, 0xD8, 0xFF])) {
-			return {
-				ext: 'jpg',
-				mime: 'image/jpeg',
-			};
-		}
-
 		if (this.check([0x49, 0x49, 0xBC])) {
 			return {
 				ext: 'jxr',
@@ -221,6 +214,21 @@ class FileTypeParser {
 		}
 
 		// -- 4-byte signatures --
+
+		// Requires a sample size of 4 bytes
+		if (this.check([0xFF, 0xD8, 0xFF])) {
+			if (this.check([0xF7], {offset: 3})) { // JPG7/SOF55, indicating a ISO/IEC 14495 / JPEG-LS file
+				return {
+					ext: 'jls',
+					mime: 'image/jls',
+				};
+			}
+
+			return {
+				ext: 'jpg',
+				mime: 'image/jpeg',
+			};
+		}
 
 		if (this.checkString('FLIF')) {
 			return {
