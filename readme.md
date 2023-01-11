@@ -493,12 +493,6 @@ The following file types will not be accepted:
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
 
-## file-type for enterprise
-
-Available as part of the Tidelift Subscription.
-
-The maintainers of file-type and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/npm-file-type?utm_source=npm-file-type&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
-
 ## Related
 
 - [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
@@ -506,6 +500,9 @@ The maintainers of file-type and thousands of other packages are working with Ti
 ## Maintainers
 
 - [Sindre Sorhus](https://github.com/sindresorhus)
+- [Borewit](https://github.com/Borewit)
+
+**Former**
+
 - [Mikael Finstad](https://github.com/mifi)
 - [Ben Brook](https://github.com/bencmbrook)
-- [Borewit](https://github.com/Borewit)
