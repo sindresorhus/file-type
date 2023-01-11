@@ -376,6 +376,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
 - [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word
 - [`dsf`](https://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf) - Sony DSD Stream File (DSF)
+- [`dwg`](https://en.wikipedia.org/wiki/.dwg) - Autodesk CAD file
 - [`elf`](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) - Unix Executable and Linkable Format
 - [`eot`](https://en.wikipedia.org/wiki/Embedded_OpenType) - Embedded OpenType font
 - [`eps`](https://en.wikipedia.org/wiki/Encapsulated_PostScript) - Encapsulated PostScript
