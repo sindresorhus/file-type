@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "18.0.0",
+	"version": "18.1.0",
 	"description": "Detect the file type of a Buffer/Uint8Array/ArrayBuffer",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
@@ -223,8 +223,8 @@
 			"no-bitwise": "off",
 			"@typescript-eslint/no-unsafe-assignment": "off",
 			"unicorn/text-encoding-identifier-case": "off",
-		    "unicorn/switch-case-braces": "off",
-		    "unicorn/prefer-top-level-await": "off"
+			"unicorn/switch-case-braces": "off",
+			"unicorn/prefer-top-level-await": "off"
 		}
 	},
 	"ava": {
