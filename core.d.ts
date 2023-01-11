@@ -141,7 +141,8 @@ export type FileExtension =
 	| 'zst'
 	| 'jxl'
 	| 'vcf'
-	| 'jls';
+	| 'jls'
+	| 'pst';
 
 export type MimeType =
 	| 'image/jpeg'
@@ -278,7 +279,8 @@ export type MimeType =
 	| 'model/3mf'
 	| 'image/jxl'
 	| 'application/zstd'
-	| 'image/jls';
+	| 'image/jls'
+	| 'application/vnd.ms-outlook';
 
 export type FileTypeResult = {
 	/**

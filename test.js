@@ -235,6 +235,9 @@ const names = {
 		'fixture-hp2',
 		'fixture-hp3',
 	],
+	pst: [
+		'fixture-sample',
+	],
 };
 
 // Define an entry here only if the file type has potential

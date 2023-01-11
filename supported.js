@@ -139,6 +139,7 @@ export const extensions = [
 	'jxl',
 	'vcf',
 	'jls',
+	'pst',
 ];
 
 export const mimeTypes = [
@@ -277,4 +278,5 @@ export const mimeTypes = [
 	'image/jxl',
 	'application/zstd',
 	'image/jls',
+	'application/vnd.ms-outlook',
 ];

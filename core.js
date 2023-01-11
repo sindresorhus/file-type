@@ -808,6 +808,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0x21, 0x42, 0x44, 0x4E])) {
+			return {
+				ext: 'pst',
+				mime: 'application/vnd.ms-outlook',
+			};
+		}
+
 		// -- 5-byte signatures --
 
 		if (this.check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
