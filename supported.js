@@ -141,6 +141,7 @@ export const extensions = [
 	'jls',
 	'pst',
 	'dwg',
+	'parquet',
 ];
 
 export const mimeTypes = [
@@ -281,4 +282,5 @@ export const mimeTypes = [
 	'image/jls',
 	'application/vnd.ms-outlook',
 	'image/vnd.dwg',
+	'application/x-parquet',
 ];

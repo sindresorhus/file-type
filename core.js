@@ -815,6 +815,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('PAR1')) {
+			return {
+				ext: 'parquet',
+				mime: 'application/x-parquet',
+			};
+		}
+
 		// -- 5-byte signatures --
 
 		if (this.check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
