@@ -143,7 +143,8 @@ export type FileExtension =
 	| 'vcf'
 	| 'jls'
 	| 'pst'
-	| 'dwg';
+	| 'dwg'
+	| 'parquet';
 
 export type MimeType =
 	| 'image/jpeg'
@@ -282,7 +283,8 @@ export type MimeType =
 	| 'application/zstd'
 	| 'image/jls'
 	| 'application/vnd.ms-outlook'
-	| 'image/vnd.dwg';
+	| 'image/vnd.dwg'
+	| 'application/x-parquet';
 
 export type FileTypeResult = {
 	/**

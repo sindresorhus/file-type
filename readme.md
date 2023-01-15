@@ -440,6 +440,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format)) - Audio file
 - [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
 - [`otf`](https://en.wikipedia.org/wiki/OpenType) - OpenType font
+- [`parquet`](https://en.wikipedia.org/wiki/Apache_Parquet) - Apache Parquet
 - [`pcap`](https://wiki.wireshark.org/Development/LibpcapFileFormat) - Libpcap File Format
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
