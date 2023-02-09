@@ -611,17 +611,24 @@ class FileTypeParser {
 		}
 
 		if (this.checkString('%PDF')) {
-			await tokenizer.ignore(1350);
-			const maxBufferSize = 10 * 1024 * 1024;
-			const buffer = Buffer.alloc(Math.min(maxBufferSize, tokenizer.fileInfo.size));
-			await tokenizer.readBuffer(buffer, {mayBeLess: true});
+			try {
+				await tokenizer.ignore(1350);
+				const maxBufferSize = 10 * 1024 * 1024;
+				const buffer = Buffer.alloc(Math.min(maxBufferSize, tokenizer.fileInfo.size));
+				await tokenizer.readBuffer(buffer, {mayBeLess: true});
 
-			// Check if this is an Adobe Illustrator file
-			if (buffer.includes(Buffer.from('AIPrivateData'))) {
-				return {
-					ext: 'ai',
-					mime: 'application/postscript',
-				};
+				// Check if this is an Adobe Illustrator file
+				if (buffer.includes(Buffer.from('AIPrivateData'))) {
+					return {
+						ext: 'ai',
+						mime: 'application/postscript',
+					};
+				}
+			} catch (error) {
+				// Swallow end of stream error if file is too small for the Adobe AI check
+				if (!(error instanceof strtok3.EndOfStreamError)) {
+					throw error;
+				}
 			}
 
 			// Assume this is just a normal PDF
