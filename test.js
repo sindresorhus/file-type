@@ -219,6 +219,7 @@ const names = {
 		'fixture-smallest', // PDF saved from Adobe Illustrator, using the preset "smallest PDF"
 		'fixture-fast-web', // PDF saved from Adobe Illustrator, using the default "[Illustrator Default"] preset, but enabling "Optimize for Fast Web View"
 		'fixture-printed', // PDF printed from Adobe Illustrator, but with a PDF printer.
+		'fixture-minimal', // PDF written to be as small as the spec allows
 	],
 	webm: [
 		'fixture-null', // EBML DocType with trailing null character
