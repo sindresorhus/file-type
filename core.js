@@ -33,6 +33,11 @@ export async function fileTypeFromBuffer(input) {
 	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer));
 }
 
+export async function fileTypeFromBlob(blob) {
+	const buffer = await blob.arrayBuffer();
+	return fileTypeFromBuffer(new Uint8Array(buffer));
+}
+
 function _check(buffer, headers, options) {
 	options = {
 		offset: 0,
