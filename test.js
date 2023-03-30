@@ -332,19 +332,19 @@ for (const type of types) {
 			const fixtureName = `${name}.${type}`;
 			const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
-			_test(`${name}.${type} ${i++} .fromFile() method - same fileType`, testFromFile, type, name);
-			_test(`${name}.${type} ${i++} .fromBuffer() method - same fileType`, testFromBuffer, type, name);
-			_test(`${name}.${type} ${i++} .fromStream() method - same fileType`, testFileFromStream, type, name);
-			test(`${name}.${type} ${i++} .stream() - identical streams`, testStream, type, name);
+			_test(`${name}.${type} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, type, name);
+			_test(`${name}.${type} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, type, name);
+			_test(`${name}.${type} ${i++} .fileTypeFromStream() method - same fileType`, testFileFromStream, type, name);
+			test(`${name}.${type} ${i++} .fileTypeStream() - identical streams`, testStream, type, name);
 		}
 	} else {
 		const fixtureName = `fixture.${type}`;
 		const _test = failingFixture.has(fixtureName) ? test.failing : test;
 
-		_test(`${type} ${i++} .fromFile()`, testFromFile, type);
-		_test(`${type} ${i++} .fromBuffer()`, testFromBuffer, type);
-		_test(`${type} ${i++} .fromStream()`, testFileFromStream, type);
-		test(`${type} ${i++} .stream() - identical streams`, testStream, type);
+		_test(`${type} ${i++} .fileTypeFromFile()`, testFromFile, type);
+		_test(`${type} ${i++} .fileTypeFromBuffer()`, testFromBuffer, type);
+		_test(`${type} ${i++} .fileTypeFromStream()`, testFileFromStream, type);
+		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStream, type);
 	}
 
 	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
@@ -354,12 +354,12 @@ for (const type of types) {
 	}
 }
 
-test('.stream() method - empty stream', async t => {
+test('.fileTypeStream() method - empty stream', async t => {
 	const newStream = await fileTypeStream(readableNoopStream());
 	t.is(newStream.fileType, undefined);
 });
 
-test('.stream() method - short stream', async t => {
+test('.fileTypeStream() method - short stream', async t => {
 	const bufferA = Buffer.from([0, 1, 0, 1]);
 	class MyStream extends stream.Readable {
 		_read() {
@@ -378,13 +378,13 @@ test('.stream() method - short stream', async t => {
 	t.deepEqual(bufferA, bufferB);
 });
 
-test('.stream() method - no end-of-stream errors', async t => {
+test('.fileTypeStream() method - no end-of-stream errors', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
 	const stream = await fileTypeStream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(stream.fileType, undefined);
 });
 
-test('.stream() method - error event', async t => {
+test('.fileTypeStream() method - error event', async t => {
 	const errorMessage = 'Fixture';
 
 	const readableStream = new stream.Readable({
@@ -398,7 +398,7 @@ test('.stream() method - error event', async t => {
 	await t.throwsAsync(fileTypeStream(readableStream), {message: errorMessage});
 });
 
-test('.stream() method - sampleSize option', async t => {
+test('.fileTypeStream() method - sampleSize option', async t => {
 	const file = path.join(__dirname, 'fixture', 'fixture.ogm');
 	let stream = await fileTypeStream(fs.createReadStream(file), {sampleSize: 30});
 	t.is(typeof (stream.fileType), 'undefined', 'file-type cannot be determined with a sampleSize of 30');
