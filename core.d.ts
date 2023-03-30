@@ -285,7 +285,8 @@ export type MimeType =
 	| 'image/jls'
 	| 'application/vnd.ms-outlook'
 	| 'image/vnd.dwg'
-	| 'application/x-parquet';
+	| 'application/x-parquet'
+	| 'application/x-arj';
 
 export type FileTypeResult = {
 	/**
