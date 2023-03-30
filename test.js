@@ -11,9 +11,10 @@ import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
 	fileTypeFromFile,
+	fileTypeFromBlob,
 	fileTypeStream,
 	supportedExtensions,
-	supportedMimeTypes, fileTypeFromBlob,
+	supportedMimeTypes,
 } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
