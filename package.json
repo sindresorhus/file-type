@@ -197,7 +197,8 @@
 		"jls",
 		"pst",
 		"dwg",
-		"parquet"
+		"parquet",
+		"cpio"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",

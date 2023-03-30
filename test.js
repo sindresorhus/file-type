@@ -242,6 +242,10 @@ const names = {
 	dwg: [
 		'fixture-line-weights',
 	],
+	cpio: [
+		'fixture-bin',
+		'fixture-ascii',
+	],
 };
 
 // Define an entry here only if the file type has potential
