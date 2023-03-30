@@ -144,7 +144,8 @@ export type FileExtension =
 	| 'jls'
 	| 'pst'
 	| 'dwg'
-	| 'parquet';
+	| 'parquet'
+	| 'arj';
 
 export type MimeType =
 	| 'image/jpeg'

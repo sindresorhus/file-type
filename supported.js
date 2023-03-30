@@ -142,6 +142,7 @@ export const extensions = [
 	'pst',
 	'dwg',
 	'parquet',
+	'arj',
 ];
 
 export const mimeTypes = [
