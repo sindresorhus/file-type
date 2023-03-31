@@ -144,7 +144,8 @@ export type FileExtension =
 	| 'jls'
 	| 'pst'
 	| 'dwg'
-	| 'parquet';
+	| 'parquet'
+	| 'class';
 
 export type MimeType =
 	| 'image/jpeg'
@@ -284,7 +285,8 @@ export type MimeType =
 	| 'image/jls'
 	| 'application/vnd.ms-outlook'
 	| 'image/vnd.dwg'
-	| 'application/x-parquet';
+	| 'application/x-parquet'
+	| 'application/java-vm';
 
 export type FileTypeResult = {
 	/**
