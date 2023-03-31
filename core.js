@@ -280,13 +280,6 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('070707')) {
-			return {
-				ext: 'cpio',
-				mime: 'application/x-cpio',
-			};
-		}
-
 		// Zip-based file formats
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
@@ -974,6 +967,14 @@ class FileTypeParser {
 					mime: 'image/vnd.dwg',
 				};
 			}
+		}
+		
+		
+		if (this.checkString('070707')) {
+			return {
+				ext: 'cpio',
+				mime: 'application/x-cpio',
+			};
 		}
 
 		// -- 7-byte signatures --
