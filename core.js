@@ -968,8 +968,7 @@ class FileTypeParser {
 				};
 			}
 		}
-		
-		
+
 		if (this.checkString('070707')) {
 			return {
 				ext: 'cpio',
