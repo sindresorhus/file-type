@@ -198,8 +198,6 @@ A readable stream representing file data.
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
-**Note:** This method is only available in the browser.
-
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 Returns a `Promise` for an object with the detected file type and MIME type:
