@@ -992,6 +992,15 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('**ACE', {offset: 7})) {
+			await tokenizer.peekBuffer(this.buffer, {length: 14, mayBeLess: true});
+			if (this.checkString('**', {offset: 12})) {
+				return {
+					ext: 'ace',
+					mime: 'application/x-ace-compressed',
+				};
+			}
+		}
 		// -- 8-byte signatures --
 
 		if (this.check([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {

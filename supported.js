@@ -142,6 +142,7 @@ export const extensions = [
 	'pst',
 	'dwg',
 	'parquet',
+	'ace',
 ];
 
 export const mimeTypes = [
@@ -283,4 +284,5 @@ export const mimeTypes = [
 	'application/vnd.ms-outlook',
 	'image/vnd.dwg',
 	'application/x-parquet',
+	'application/x-ace-compressed',
 ];
