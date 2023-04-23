@@ -351,6 +351,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
 - [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix)) - Archive file
+- [`arj`](https://en.wikipedia.org/wiki/ARJ) - Archive file
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
 - [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
 - [`asar`](https://github.com/electron/asar#format) - Archive format primarily used to enclose Electron applications
