@@ -364,6 +364,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
 - [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
+- [`class`](https://en.wikipedia.org/wiki/Java_class_file) - Java class file
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`crx`](https://developer.chrome.com/extensions/crx) - Google Chrome extension

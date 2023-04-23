@@ -917,6 +917,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0xCA, 0xFE, 0xBA, 0xBE])) {
+			return {
+				ext: 'class',
+				mime: 'application/java-vm',
+			};
+		}
+
 		// -- 6-byte signatures --
 
 		if (this.check([0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])) {
