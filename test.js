@@ -1,5 +1,5 @@
 import process from 'node:process';
-import {Buffer} from 'node:buffer';
+import {Buffer, Blob} from 'node:buffer';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';
@@ -11,6 +11,7 @@ import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
 	fileTypeFromFile,
+	fileTypeFromBlob,
 	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
@@ -262,6 +263,13 @@ async function checkBufferLike(t, type, bufferLike) {
 	t.is(typeof mime, 'string');
 }
 
+async function checkBlobLike(t, type, bufferLike) {
+	const blob = new Blob([bufferLike]);
+	const {ext, mime} = await fileTypeFromBlob(blob) ?? {};
+	t.is(ext, type);
+	t.is(typeof mime, 'string');
+}
+
 async function checkFile(t, type, filePath) {
 	const {ext, mime} = await fileTypeFromFile(filePath) ?? {};
 	t.is(ext, type);
@@ -281,6 +289,14 @@ async function testFromBuffer(t, ext, name) {
 	await checkBufferLike(t, ext, chunk);
 	await checkBufferLike(t, ext, new Uint8Array(chunk));
 	await checkBufferLike(t, ext, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
+}
+
+async function testFromBlob(t, ext, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+
+	const file = path.join(__dirname, 'fixture', fixtureName);
+	const chunk = fs.readFileSync(file);
+	await checkBlobLike(t, ext, chunk);
 }
 
 async function testFalsePositive(t, ext, name) {
@@ -334,6 +350,7 @@ for (const type of types) {
 
 			_test(`${name}.${type} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, type, name);
 			_test(`${name}.${type} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, type, name);
+			_test(`${name}.${type} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, type, name);
 			_test(`${name}.${type} ${i++} .fileTypeFromStream() method - same fileType`, testFileFromStream, type, name);
 			test(`${name}.${type} ${i++} .fileTypeStream() - identical streams`, testStream, type, name);
 		}

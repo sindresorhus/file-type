@@ -18,28 +18,9 @@ console.log(fileType);
 */
 export declare function fileTypeFromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
-/**
-Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
-
-__Note:__ This method is only available in the browser.
-
-@example
-```
-import {fileTypeFromBlob} from 'file-type';
-
-const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-	type: 'plain/text',
-	endings: 'native'
-});
-
-console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'plain/text'}
-```
-*/
-export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
-
 export {
 	fileTypeFromBuffer,
+	fileTypeFromBlob,
 	supportedExtensions,
 	supportedMimeTypes,
 	type FileTypeResult,
