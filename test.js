@@ -243,6 +243,9 @@ const names = {
 	dwg: [
 		'fixture-line-weights',
 	],
+	j2c: [
+		'fixture',
+	],
 };
 
 // Define an entry here only if the file type has potential
