@@ -145,7 +145,8 @@ export type FileExtension =
 	| 'pst'
 	| 'dwg'
 	| 'parquet'
-	| 'class';
+	| 'class'
+	; // eslint-disable-line semi-style
 
 export type MimeType =
 	| 'image/jpeg'
@@ -286,7 +287,8 @@ export type MimeType =
 	| 'application/vnd.ms-outlook'
 	| 'image/vnd.dwg'
 	| 'application/x-parquet'
-	| 'application/java-vm';
+	| 'application/java-vm'
+	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
 	/**
@@ -419,5 +421,5 @@ const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
- */
+*/
 export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
