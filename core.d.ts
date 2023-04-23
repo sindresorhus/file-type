@@ -146,7 +146,7 @@ export type FileExtension =
 	| 'dwg'
 	| 'parquet'
 	| 'class'
-  | 'arj'
+	| 'arj'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -289,7 +289,7 @@ export type MimeType =
 	| 'image/vnd.dwg'
 	| 'application/x-parquet'
 	| 'application/java-vm'
-  | 'application/x-arj'
+	| 'application/x-arj'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
