@@ -143,7 +143,7 @@ export const extensions = [
 	'dwg',
 	'parquet',
 	'class',
-  'arj',
+	'arj',
 ];
 
 export const mimeTypes = [
@@ -286,5 +286,5 @@ export const mimeTypes = [
 	'image/vnd.dwg',
 	'application/x-parquet',
 	'application/java-vm',
-  'application/x-arj',
+	'application/x-arj',
 ];
