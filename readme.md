@@ -352,6 +352,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
 - [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix)) - Archive file
+- [`arj`](https://en.wikipedia.org/wiki/ARJ) - Archive file
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
 - [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
 - [`asar`](https://github.com/electron/asar#format) - Archive format primarily used to enclose Electron applications
@@ -365,6 +366,8 @@ Returns a `Set<string>` of supported MIME types.
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
 - [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
+- [`class`](https://en.wikipedia.org/wiki/Java_class_file) - Java class file
+- [`cpio`](https://en.wikipedia.org/wiki/Cpio) - Cpio archive
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`crx`](https://developer.chrome.com/extensions/crx) - Google Chrome extension
