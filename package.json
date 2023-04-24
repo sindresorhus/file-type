@@ -199,7 +199,8 @@
 		"dwg",
 		"parquet",
 		"class",
-		"arj"
+		"arj",
+		"cpio"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",

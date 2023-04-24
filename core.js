@@ -149,6 +149,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0xC7, 0x71])) {
+			return {
+				ext: 'cpio',
+				mime: 'application/x-cpio',
+			};
+		}
+
 		if (this.check([0x60, 0xEA])) {
 			return {
 				ext: 'arj',
@@ -979,6 +986,13 @@ class FileTypeParser {
 					mime: 'image/vnd.dwg',
 				};
 			}
+		}
+
+		if (this.checkString('070707')) {
+			return {
+				ext: 'cpio',
+				mime: 'application/x-cpio',
+			};
 		}
 
 		// -- 7-byte signatures --

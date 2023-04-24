@@ -147,6 +147,7 @@ export type FileExtension =
 	| 'parquet'
 	| 'class'
 	| 'arj'
+	| 'cpio'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -290,6 +291,7 @@ export type MimeType =
 	| 'application/x-parquet'
 	| 'application/java-vm'
 	| 'application/x-arj'
+	| 'application/x-cpio'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
