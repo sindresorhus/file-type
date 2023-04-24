@@ -148,7 +148,7 @@ export type FileExtension =
 	| 'class'
 	| 'arj'
 	| 'cpio'
-  ; // eslint-disable-line semi-style
+	; // eslint-disable-line semi-style
 
 export type MimeType =
 	| 'image/jpeg'
