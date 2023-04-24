@@ -150,7 +150,6 @@ export type FileExtension =
 	| 'cpio'
   ; // eslint-disable-line semi-style
 
-
 export type MimeType =
 	| 'image/jpeg'
 	| 'image/png'
@@ -292,7 +291,7 @@ export type MimeType =
 	| 'application/x-parquet'
 	| 'application/java-vm'
 	| 'application/x-arj'
-  | 'application/x-cpio'
+	| 'application/x-cpio'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {

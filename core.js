@@ -153,14 +153,13 @@ class FileTypeParser {
 			return {
 				ext: 'cpio',
 				mime: 'application/x-cpio',
-      };
-    }
-    
+			};
+		}
+
 		if (this.check([0x60, 0xEA])) {
 			return {
 				ext: 'arj',
 				mime: 'application/x-arj',
-
 			};
 		}
 
