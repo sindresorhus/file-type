@@ -198,7 +198,9 @@
 		"pst",
 		"dwg",
 		"parquet",
-		"cpio"
+		"class",
+		"arj",
+    "cpio"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
@@ -207,12 +209,12 @@
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
-		"@types/node": "^18.7.13",
-		"ava": "^5.1.0",
+		"@types/node": "^18.16.0",
+		"ava": "^5.2.0",
 		"commonmark": "^0.30.0",
 		"noop-stream": "^1.0.0",
-		"tsd": "^0.25.0",
-		"xo": "^0.53.1"
+		"tsd": "^0.28.1",
+		"xo": "^0.54.1"
 	},
 	"xo": {
 		"envs": [

@@ -145,7 +145,11 @@ export type FileExtension =
 	| 'pst'
 	| 'dwg'
 	| 'parquet'
-	| 'cpio';
+	| 'class'
+	| 'arj'
+	| 'cpio'
+  ; // eslint-disable-line semi-style
+
 
 export type MimeType =
 	| 'image/jpeg'
@@ -286,7 +290,10 @@ export type MimeType =
 	| 'application/vnd.ms-outlook'
 	| 'image/vnd.dwg'
 	| 'application/x-parquet'
-	| 'application/x-cpio';
+	| 'application/java-vm'
+	| 'application/x-arj'
+  | 'application/x-cpio'
+	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
 	/**
@@ -403,3 +410,21 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 ```
 */
 export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+
+/**
+Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
+
+@example
+```
+import {fileTypeFromBlob} from 'file-type';
+
+const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
+	type: 'plain/text',
+	endings: 'native'
+});
+
+console.log(await fileTypeFromBlob(blob));
+//=> {ext: 'txt', mime: 'plain/text'}
+```
+*/
+export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;

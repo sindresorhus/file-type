@@ -33,6 +33,11 @@ export async function fileTypeFromBuffer(input) {
 	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer));
 }
 
+export async function fileTypeFromBlob(blob) {
+	const buffer = await blob.arrayBuffer();
+	return fileTypeFromBuffer(new Uint8Array(buffer));
+}
+
 function _check(buffer, headers, options) {
 	options = {
 		offset: 0,
@@ -148,6 +153,14 @@ class FileTypeParser {
 			return {
 				ext: 'cpio',
 				mime: 'application/x-cpio',
+      };
+    }
+    
+		if (this.check([0x60, 0xEA])) {
+			return {
+				ext: 'arj',
+				mime: 'application/x-arj',
+
 			};
 		}
 
@@ -916,6 +929,13 @@ class FileTypeParser {
 			return {
 				ext: 'chm',
 				mime: 'application/vnd.ms-htmlhelp',
+			};
+		}
+
+		if (this.check([0xCA, 0xFE, 0xBA, 0xBE])) {
+			return {
+				ext: 'class',
+				mime: 'application/java-vm',
 			};
 		}
 
