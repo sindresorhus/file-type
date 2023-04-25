@@ -246,6 +246,10 @@ const names = {
 	j2c: [
 		'fixture',
 	],
+	cpio: [
+		'fixture-bin',
+		'fixture-ascii',
+	],
 };
 
 // Define an entry here only if the file type has potential

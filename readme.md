@@ -344,6 +344,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`Z`](https://fileinfo.com/extension/z) - Unix Compressed File
 - [`aac`](https://en.wikipedia.org/wiki/Advanced_Audio_Coding) - Advanced Audio Coding
 - [`ac3`](https://www.atsc.org/standard/a522012-digital-audio-compression-ac-3-e-ac-3-standard-12172012/) - ATSC A/52 Audio File
+- [`ace`](https://en.wikipedia.org/wiki/ACE_(compressed_file_format)) - ACE archive
 - [`ai`](https://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork) - Adobe Illustrator Artwork
 - [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format) - Audio Interchange file
 - [`alias`](https://en.wikipedia.org/wiki/Alias_%28Mac_OS%29) - macOS Alias file
@@ -351,6 +352,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
 - [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
 - [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix)) - Archive file
+- [`arj`](https://en.wikipedia.org/wiki/ARJ) - Archive file
 - [`arrow`](https://arrow.apache.org) - Columnar format for tables of data
 - [`arw`](https://en.wikipedia.org/wiki/Raw_image_format#ARW) - Sony Alpha Raw image file
 - [`asar`](https://github.com/electron/asar#format) - Archive format primarily used to enclose Electron applications
@@ -364,6 +366,8 @@ Returns a `Set<string>` of supported MIME types.
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
 - [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
+- [`class`](https://en.wikipedia.org/wiki/Java_class_file) - Java class file
+- [`cpio`](https://en.wikipedia.org/wiki/Cpio) - Cpio archive
 - [`cr2`](https://fileinfo.com/extension/cr2) - Canon Raw image file (v2)
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`crx`](https://developer.chrome.com/extensions/crx) - Google Chrome extension

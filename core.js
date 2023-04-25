@@ -149,6 +149,20 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0xC7, 0x71])) {
+			return {
+				ext: 'cpio',
+				mime: 'application/x-cpio',
+			};
+		}
+
+		if (this.check([0x60, 0xEA])) {
+			return {
+				ext: 'arj',
+				mime: 'application/x-arj',
+			};
+		}
+
 		// -- 3-byte signatures --
 
 		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
@@ -917,6 +931,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0xCA, 0xFE, 0xBA, 0xBE])) {
+			return {
+				ext: 'class',
+				mime: 'application/java-vm',
+			};
+		}
+
 		// -- 6-byte signatures --
 
 		if (this.check([0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])) {
@@ -967,6 +988,13 @@ class FileTypeParser {
 			}
 		}
 
+		if (this.checkString('070707')) {
+			return {
+				ext: 'cpio',
+				mime: 'application/x-cpio',
+			};
+		}
+
 		// -- 7-byte signatures --
 
 		if (this.checkString('BLENDER')) {
@@ -990,6 +1018,16 @@ class FileTypeParser {
 				ext: 'ar',
 				mime: 'application/x-unix-archive',
 			};
+		}
+
+		if (this.checkString('**ACE', {offset: 7})) {
+			await tokenizer.peekBuffer(this.buffer, {length: 14, mayBeLess: true});
+			if (this.checkString('**', {offset: 12})) {
+				return {
+					ext: 'ace',
+					mime: 'application/x-ace-compressed',
+				};
+			}
 		}
 
 		// -- 8-byte signatures --
