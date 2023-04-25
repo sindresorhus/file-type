@@ -243,6 +243,9 @@ const names = {
 	dwg: [
 		'fixture-line-weights',
 	],
+	j2c: [
+		'fixture',
+	],
 	cpio: [
 		'fixture-bin',
 		'fixture-ascii',

@@ -400,6 +400,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
 - [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format) - Adobe InDesign document
 - [`it`](https://wiki.openmpt.org/Manual:_Module_formats#The_Impulse_Tracker_format_.28.it.29) - Audio module format: Impulse Tracker
+- [`j2c`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jls`](https://en.wikipedia.org/wiki/Lossless_JPEG#JPEG-LS) - Lossless/near-lossless compression standard for continuous-tone images
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG) - Joint Photographic Experts Group image
