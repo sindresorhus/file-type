@@ -344,6 +344,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`Z`](https://fileinfo.com/extension/z) - Unix Compressed File
 - [`aac`](https://en.wikipedia.org/wiki/Advanced_Audio_Coding) - Advanced Audio Coding
 - [`ac3`](https://www.atsc.org/standard/a522012-digital-audio-compression-ac-3-e-ac-3-standard-12172012/) - ATSC A/52 Audio File
+- [`ace`](https://en.wikipedia.org/wiki/ACE_(compressed_file_format)) - ACE archive
 - [`ai`](https://en.wikipedia.org/wiki/Adobe_Illustrator_Artwork) - Adobe Illustrator Artwork
 - [`aif`](https://en.wikipedia.org/wiki/Audio_Interchange_File_Format) - Audio Interchange file
 - [`alias`](https://en.wikipedia.org/wiki/Alias_%28Mac_OS%29) - macOS Alias file
