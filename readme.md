@@ -359,6 +359,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`asf`](https://en.wikipedia.org/wiki/Advanced_Systems_Format) - Advanced Systems Format
 - [`avi`](https://en.wikipedia.org/wiki/Audio_Video_Interleave) - Audio Video Interleave file
 - [`avif`](https://en.wikipedia.org/wiki/AV1#AV1_Image_File_Format_(AVIF)) - AV1 Image File Format
+- [`avro`](https://en.wikipedia.org/wiki/Apache_Avro#Avro_Object_Container_File) - Object container file developed by Apache Avro
 - [`blend`](https://wiki.blender.org/index.php/Dev:Source/Architecture/File_Format) - Blender project
 - [`bmp`](https://en.wikipedia.org/wiki/BMP_file_format) - Bitmap image file
 - [`bpg`](https://bellard.org/bpg/) - Better Portable Graphics file

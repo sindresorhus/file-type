@@ -202,7 +202,8 @@
 		"class",
 		"arj",
 		"cpio",
-		"ace"
+		"ace",
+		"avro"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",

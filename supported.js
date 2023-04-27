@@ -1,4 +1,5 @@
 export const extensions = [
+	'avro',
 	'jpg',
 	'png',
 	'apng',
@@ -162,6 +163,7 @@ export const mimeTypes = [
 	'image/bmp',
 	'image/vnd.ms-photo',
 	'image/vnd.adobe.photoshop',
+	'application/avro',
 	'application/x-indesign',
 	'application/epub+zip',
 	'application/x-xpinstall',

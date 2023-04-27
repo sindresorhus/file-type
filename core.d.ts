@@ -2,6 +2,7 @@ import type {Readable as ReadableStream} from 'node:stream';
 import type {ITokenizer} from 'strtok3';
 
 export type FileExtension =
+	| 'avro'
 	| 'jpg'
 	| 'png'
 	| 'apng'
@@ -167,6 +168,7 @@ export type MimeType =
 	| 'image/vnd.ms-photo'
 	| 'image/vnd.adobe.photoshop'
 	| 'application/x-indesign'
+	| 'application/avro'
 	| 'application/epub+zip'
 	| 'application/x-xpinstall'
 	| 'application/vnd.oasis.opendocument.text'

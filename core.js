@@ -249,6 +249,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0x4F, 0x62, 0x6A, 0x01])) {
+			return {
+				ext: 'avro',
+				mime: 'application/avro',
+			};
+		}
+
 		if (this.checkString('FLIF')) {
 			return {
 				ext: 'flif',
@@ -289,6 +296,13 @@ class FileTypeParser {
 			return {
 				ext: 'icns',
 				mime: 'image/icns',
+			};
+		}
+
+		if (this.checkString('avro')) {
+			return {
+				ext: 'avro',
+				mime: 'application/avro',
 			};
 		}
 
