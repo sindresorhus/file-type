@@ -2,7 +2,6 @@ import type {Readable as ReadableStream} from 'node:stream';
 import type {ITokenizer} from 'strtok3';
 
 export type FileExtension =
-	| 'avro'
 	| 'jpg'
 	| 'png'
 	| 'apng'
@@ -151,6 +150,7 @@ export type FileExtension =
 	| 'arj'
 	| 'cpio'
 	| 'ace'
+	| 'avro'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -168,7 +168,6 @@ export type MimeType =
 	| 'image/vnd.ms-photo'
 	| 'image/vnd.adobe.photoshop'
 	| 'application/x-indesign'
-	| 'application/avro'
 	| 'application/epub+zip'
 	| 'application/x-xpinstall'
 	| 'application/vnd.oasis.opendocument.text'
@@ -298,6 +297,7 @@ export type MimeType =
 	| 'application/x-arj'
 	| 'application/x-cpio'
 	| 'application/x-ace-compressed'
+	| 'application/avro'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
