@@ -1,5 +1,4 @@
 export const extensions = [
-	'avro',
 	'jpg',
 	'png',
 	'apng',
@@ -148,6 +147,7 @@ export const extensions = [
 	'arj',
 	'cpio',
 	'ace',
+	'avro',
 ];
 
 export const mimeTypes = [
@@ -163,7 +163,6 @@ export const mimeTypes = [
 	'image/bmp',
 	'image/vnd.ms-photo',
 	'image/vnd.adobe.photoshop',
-	'application/avro',
 	'application/x-indesign',
 	'application/epub+zip',
 	'application/x-xpinstall',
@@ -295,4 +294,5 @@ export const mimeTypes = [
 	'application/x-arj',
 	'application/x-cpio',
 	'application/x-ace-compressed',
+	'application/avro',
 ];
