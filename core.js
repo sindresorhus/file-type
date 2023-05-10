@@ -299,13 +299,6 @@ class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('avro')) {
-			return {
-				ext: 'avro',
-				mime: 'application/avro',
-			};
-		}
-
 		// Zip-based file formats
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
