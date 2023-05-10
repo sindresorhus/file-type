@@ -212,12 +212,12 @@
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
-		"@types/node": "^18.16.0",
+		"@types/node": "^20.1.2",
 		"ava": "^5.2.0",
 		"commonmark": "^0.30.0",
 		"noop-stream": "^1.0.0",
 		"tsd": "^0.28.1",
-		"xo": "^0.54.1"
+		"xo": "^0.54.2"
 	},
 	"xo": {
 		"envs": [
