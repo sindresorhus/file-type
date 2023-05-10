@@ -147,6 +147,7 @@ export const extensions = [
 	'arj',
 	'cpio',
 	'ace',
+	'avro',
 ];
 
 export const mimeTypes = [
@@ -293,4 +294,5 @@ export const mimeTypes = [
 	'application/x-arj',
 	'application/x-cpio',
 	'application/x-ace-compressed',
+	'application/avro',
 ];

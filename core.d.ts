@@ -150,6 +150,7 @@ export type FileExtension =
 	| 'arj'
 	| 'cpio'
 	| 'ace'
+	| 'avro'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -296,6 +297,7 @@ export type MimeType =
 	| 'application/x-arj'
 	| 'application/x-cpio'
 	| 'application/x-ace-compressed'
+	| 'application/avro'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
