@@ -256,6 +256,20 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0x4B, 0x43, 0x4D, 0x53])) {
+			if (this.checkString('icm')) {
+				return {
+					ext: 'icm',
+					mime: 'application/vnd.iccprofile',
+				};
+			}
+
+			return {
+				ext: 'icc',
+				mime: 'application/vnd.iccprofile',
+			};
+		}
+
 		if (this.checkString('FLIF')) {
 			return {
 				ext: 'flif',
