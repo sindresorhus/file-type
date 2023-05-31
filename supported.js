@@ -148,7 +148,6 @@ export const extensions = [
 	'cpio',
 	'ace',
 	'avro',
-	'icm',
 	'icc',
 ];
 

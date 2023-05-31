@@ -151,7 +151,6 @@ export type FileExtension =
 	| 'cpio'
 	| 'ace'
 	| 'avro'
-	| 'icm'
 	| 'icc'
 	; // eslint-disable-line semi-style
 

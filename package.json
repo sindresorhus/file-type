@@ -204,7 +204,6 @@
 		"cpio",
 		"ace",
 		"avro",
-		"icm",
 		"icc"
 	],
 	"dependencies": {
