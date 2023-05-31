@@ -207,7 +207,6 @@
 		"icc"
 	],
 	"dependencies": {
-		"file-type": "^18.4.0",
 		"readable-web-to-node-stream": "^3.0.2",
 		"strtok3": "^7.0.0",
 		"token-types": "^5.0.1"
