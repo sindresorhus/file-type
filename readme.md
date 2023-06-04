@@ -366,6 +366,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`glb`](https://github.com/KhronosGroup/glTF) - GL Transmission Format
 - [`gz`](https://en.wikipedia.org/wiki/Gzip) - Archive file
 - [`heic`](https://nokiatech.github.io/heif/technical.html) - High Efficiency Image File Format
+- [`icc`](https://en.wikipedia.org/wiki/ICC_profile) - ICC Profile
 - [`icns`](https://en.wikipedia.org/wiki/Apple_Icon_Image_format) - Apple Icon image
 - [`ico`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Windows icon file
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar

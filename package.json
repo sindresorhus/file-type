@@ -203,7 +203,8 @@
 		"arj",
 		"cpio",
 		"ace",
-		"avro"
+		"avro",
+		"icc"
 	],
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",

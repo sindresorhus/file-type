@@ -1311,6 +1311,13 @@ class FileTypeParser {
 		// Increase sample size from 12 to 256.
 		await tokenizer.peekBuffer(this.buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
 
+		if (this.check([0x61, 0x63, 0x73, 0x70], {offset: 36})) {
+			return {
+				ext: 'icc',
+				mime: 'application/vnd.iccprofile',
+			};
+		}
+
 		// -- 15-byte signatures --
 
 		if (this.checkString('BEGIN:')) {
