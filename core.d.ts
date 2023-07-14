@@ -355,7 +355,6 @@ Example detector array which can be extended and provided as argument to each pu
  */
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
-
 /**
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
