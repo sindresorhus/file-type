@@ -10,16 +10,16 @@ import {extensions, mimeTypes} from './supported.js';
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
 
-export async function fileTypeFromStream(stream) {
+export async function fileTypeFromStream(stream, customDetectors) {
 	const tokenizer = await strtok3.fromStream(stream);
 	try {
-		return await fileTypeFromTokenizer(tokenizer);
+		return await fileTypeFromTokenizer(tokenizer, customDetectors);
 	} finally {
 		await tokenizer.close();
 	}
 }
 
-export async function fileTypeFromBuffer(input) {
+export async function fileTypeFromBuffer(input, customDetectors) {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
@@ -30,12 +30,12 @@ export async function fileTypeFromBuffer(input) {
 		return;
 	}
 
-	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer));
+	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer), customDetectors);
 }
 
-export async function fileTypeFromBlob(blob) {
+export async function fileTypeFromBlob(blob, customDetectors) {
 	const buffer = await blob.arrayBuffer();
-	return fileTypeFromBuffer(new Uint8Array(buffer));
+	return fileTypeFromBuffer(new Uint8Array(buffer), customDetectors);
 }
 
 function _check(buffer, headers, options) {
@@ -59,9 +59,23 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
-export async function fileTypeFromTokenizer(tokenizer) {
+async function runCustomDetectors(tokenizer, fileType, detectors) {
+	if (!detectors || detectors.length === 0) {
+		return fileType;
+	}
+
+	for (const detector of detectors) {
+		fileType = detector(tokenizer, fileType);
+	}
+
+	return fileType;
+}
+
+export async function fileTypeFromTokenizer(tokenizer, customDetectors) {
 	try {
-		return new FileTypeParser().parse(tokenizer);
+		const parser = new FileTypeParser();
+		const fileType = await parser.parse(tokenizer, customDetectors);
+		return runCustomDetectors(tokenizer, fileType, customDetectors);
 	} catch (error) {
 		if (!(error instanceof strtok3.EndOfStreamError)) {
 			throw error;
@@ -78,7 +92,7 @@ class FileTypeParser {
 		return this.check(stringToBytes(header), options);
 	}
 
-	async parse(tokenizer) {
+	async parse(tokenizer, customDetectors) {
 		this.buffer = Buffer.alloc(minimumBytes);
 
 		// Keep reading until EOF if the file size is unknown.
@@ -211,7 +225,7 @@ class FileTypeParser {
 			}
 
 			await tokenizer.ignore(id3HeaderLength);
-			return fileTypeFromTokenizer(tokenizer); // Skip ID3 header, recursion
+			return fileTypeFromTokenizer(tokenizer, customDetectors); // Skip ID3 header, recursion
 		}
 
 		// Musepack, SV7

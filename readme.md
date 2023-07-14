@@ -105,7 +105,7 @@ console.log(fileType);
 
 ## API
 
-### fileTypeFromBuffer(buffer)
+### fileTypeFromBuffer(buffer, customDetectors)
 
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -126,7 +126,13 @@ Type: `Buffer | Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 
-### fileTypeFromFile(filePath)
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
+### fileTypeFromFile(filePath, customDetectors)
 
 Detect the file type of a file path.
 
@@ -145,7 +151,14 @@ Type: `string`
 
 The file path to parse.
 
-### fileTypeFromStream(stream)
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
+
+### fileTypeFromStream(stream, customDetectors)
 
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
@@ -164,7 +177,14 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 A readable stream representing file data.
 
-### fileTypeFromBlob(blob)
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
+
+### fileTypeFromBlob(blob, customDetectors)
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
@@ -189,7 +209,18 @@ console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
 
-### fileTypeFromTokenizer(tokenizer)
+#### blob
+
+Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
+
+### fileTypeFromTokenizer(tokenizer, customDetectors)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -248,7 +279,13 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-### fileTypeStream(readableStream, options?)
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
+### fileTypeStream(readableStream, options?, customDetectors)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
@@ -296,6 +333,13 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 The input stream.
+
+#### customDetectors
+
+Type: `Iterable<Detector>`
+
+Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+
 
 ### supportedExtensions
 
@@ -468,6 +512,53 @@ The following file types will not be accepted:
 	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
+
+
+## Custom detectors
+
+A custom detector is a function that allows specifying custom detection mechanisms.
+
+A single detector or a list of detectors can be provided as argument for filetype detection methods.
+
+The detectors are called after the default detections in the provided order.
+
+Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
+For the latter, specific FileTypeResults can be identified via the fileType argument.
+
+If the detector returns `undefined`, the `tokenizer.position` should be 0 (unless it's a stream). That allows other detectors to parse the file.
+
+Example detector array which can be extended and provided as argument to each public method:
+```
+const customDetectors = [
+	async (tokenizer, filetype) => {
+		const expected = [84, 51, 68, 76]; // decimal byte representation of 'T3DL'
+		const buffer = Buffer.alloc(4);
+		await tokenizer.peekBuffer(buffer, {length: 4, mayBeLess: true});
+		const firstFourBytes = Array.from(buffer).slice(0,4);
+		if (arraysAreEqual(firstFourBytes, expected)) {
+			return {
+				ext: 'T3DL or drc',
+				mime: 'application/T3DL',
+			};
+		} else {
+			return filetype;
+		}
+	}
+]
+```
+#### tokenizer
+
+Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
+
+Usable as source of the examined file.
+
+#### fileType
+
+Type: FileTypeResult
+
+Object having an `ext` (extension) and `mime` (mime type) property.
+
+Detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
 
 ## Related
 
