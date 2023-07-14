@@ -1614,7 +1614,7 @@ class FileTypeParser {
 	}
 }
 
-export async function fileTypeStream(readableStream, {sampleSize = minimumBytes} = {}) {
+export async function fileTypeStream(readableStream, {sampleSize = minimumBytes} = {}, customDetectors) {
 	const {default: stream} = await import('node:stream');
 
 	return new Promise((resolve, reject) => {
@@ -1630,7 +1630,7 @@ export async function fileTypeStream(readableStream, {sampleSize = minimumBytes}
 					// Read the input stream and detect the filetype
 					const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
 					try {
-						const fileType = await fileTypeFromBuffer(chunk);
+						const fileType = await fileTypeFromBuffer(chunk, customDetectors);
 						pass.fileType = fileType;
 					} catch (error) {
 						if (error instanceof strtok3.EndOfStreamError) {
