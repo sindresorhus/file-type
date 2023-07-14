@@ -60,12 +60,10 @@ function _check(buffer, headers, options) {
 }
 
 async function runCustomDetectors(tokenizer, fileType, detectors) {
-	if (!detectors || detectors.length === 0) {
-		return fileType;
-	}
-
-	for (const detector of detectors) {
-		fileType = detector(tokenizer, fileType);
+	if (detectors) {
+		for (const detector of detectors) {
+			fileType = detector(tokenizer, fileType);
+		}
 	}
 
 	return fileType;
