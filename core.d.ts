@@ -333,21 +333,17 @@ If the detector returns `undefined`, the `tokenizer.position` should be 0 (unles
 Example detector array which can be extended and provided as argument to each public method:
 
 	const customDetectors = [
-		async (tokenizer, filetype) => {
-			const expected = [84, 51, 68, 76]; // decimal byte representation of 'T3DL'
-			const buffer = Buffer.alloc(4);
-			await tokenizer.peekBuffer(buffer, {length: 4, mayBeLess: true});
-			const firstFourBytes = Array.from(buffer).slice(0,4);
-			if (arraysAreEqual(firstFourBytes, expected)) {
-				return {
-					ext: 'T3DL or drc',
-					mime: 'application/T3DL',
-				};
-			} else {
-				return filetype;
+		async tokenizer => {
+			const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+			const buffer = Buffer.alloc(7);
+			await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+			if (unicornHeader.every((value, index) => value === buffer[index])) {
+				return {ext: 'unicorn', mime: 'application/unicorn'};
 			}
-		}
-	]
+
+			return undefined;
+		},
+	];
 
  @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
  @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.

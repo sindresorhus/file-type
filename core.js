@@ -59,21 +59,23 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
-async function runCustomDetectors(tokenizer, fileType, detectors) {
+async function runCustomDetectors(tokenizer, detectors) {
 	if (detectors) {
 		for (const detector of detectors) {
-			fileType = detector(tokenizer, fileType);
+			const fileType = await detector(tokenizer);
+			if (fileType) {
+				return fileType;
+			}
 		}
 	}
 
-	return fileType;
+	return undefined;
 }
 
 export async function fileTypeFromTokenizer(tokenizer, customDetectors) {
 	try {
-		const parser = new FileTypeParser();
-		const fileType = await parser.parse(tokenizer, customDetectors);
-		return runCustomDetectors(tokenizer, fileType, customDetectors);
+		return await runCustomDetectors(tokenizer, customDetectors)
+			|| await new FileTypeParser().parse(tokenizer, customDetectors);
 	} catch (error) {
 		if (!(error instanceof strtok3.EndOfStreamError)) {
 			throw error;
