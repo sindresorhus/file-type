@@ -518,12 +518,11 @@ The following file types will not be accepted:
 
 A custom detector is a function that allows specifying custom detection mechanisms.
 
-A single detector or a list of detectors can be provided as argument for filetype detection methods.
+An iterable of detectors can be provided as argument for filetype detection methods.
 
-The detectors are called after the default detections in the provided order.
+The detectors are called before the default detections in the provided order.
 
 Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
-For the latter, specific FileTypeResults can be identified via the fileType argument.
 
 If the detector returns `undefined`, the `tokenizer.position` should be 0 (unless it's a stream). That allows other detectors to parse the file.
 
