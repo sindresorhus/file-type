@@ -743,14 +743,15 @@ test('fileTypeFromBuffer should allow overriding default file type detectors', a
 	const result = await fileTypeFromBuffer(uint8ArrayContent, customDetectors);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
-test('fileTypeFromStream should detect custom file type "unicorn" using custom detectors', async t => {
-	// Set up the "unicorn" file content
-	const header = 'UNICORN FILE\n';
-	const uint8ArrayContent = new TextEncoder().encode(header);
 
+class CustomReadableStream extends stream.Readable {
+	_read(_size) {
+		this.push('UNICORN');
+	}
+}
+test('fileTypeFromStream should detect custom file type "unicorn" using custom detectors', async t => {
 	// Convert the "unicorn" file content to a readable stream
-	const readableStream = new stream.Readable();
-	readableStream.push(uint8ArrayContent);
+	const readableStream = new CustomReadableStream();
 
 	const customDetectors = [unicornDetector];
 
