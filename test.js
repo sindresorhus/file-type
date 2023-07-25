@@ -683,7 +683,7 @@ test('fileTypeFromBlob should detect custom file type "unicorn" using custom det
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromBlob(blob, customDetectors);
+	const result = await fileTypeFromBlob(blob, {customDetectors});
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -695,7 +695,7 @@ test('fileTypeFromBlob should keep detecting default file types when no custom d
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromBlob(blob, customDetectors);
+	const result = await fileTypeFromBlob(blob, {customDetectors});
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -707,7 +707,7 @@ test('fileTypeFromBlob should allow overriding default file type detectors', asy
 
 	const customDetectors = [mockPngDetector];
 
-	const result = await fileTypeFromBlob(blob, customDetectors);
+	const result = await fileTypeFromBlob(blob, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -718,7 +718,7 @@ test('fileTypeFromBuffer should detect custom file type "unicorn" using custom d
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromBuffer(uint8ArrayContent, customDetectors);
+	const result = await fileTypeFromBuffer(uint8ArrayContent, {customDetectors});
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -729,7 +729,7 @@ test('fileTypeFromBuffer should keep detecting default file types when no custom
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromBuffer(uint8ArrayContent, customDetectors);
+	const result = await fileTypeFromBuffer(uint8ArrayContent, {customDetectors});
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -740,7 +740,7 @@ test('fileTypeFromBuffer should allow overriding default file type detectors', a
 
 	const customDetectors = [mockPngDetector];
 
-	const result = await fileTypeFromBuffer(uint8ArrayContent, customDetectors);
+	const result = await fileTypeFromBuffer(uint8ArrayContent, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -755,7 +755,7 @@ test('fileTypeFromStream should detect custom file type "unicorn" using custom d
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromStream(readableStream, customDetectors);
+	const result = await fileTypeFromStream(readableStream, {customDetectors});
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -766,7 +766,7 @@ test('fileTypeFromStream should keep detecting default file types when no custom
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromStream(readableStream, customDetectors);
+	const result = await fileTypeFromStream(readableStream, {customDetectors});
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -777,7 +777,7 @@ test('fileTypeFromStream should allow overriding default file type detectors', a
 
 	const customDetectors = [mockPngDetector];
 
-	const result = await fileTypeFromStream(readableStream, customDetectors);
+	const result = await fileTypeFromStream(readableStream, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -787,7 +787,7 @@ test('fileTypeFromFile should detect custom file type "unicorn" using custom det
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromFile(file, customDetectors);
+	const result = await fileTypeFromFile(file, {customDetectors});
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -797,7 +797,7 @@ test('fileTypeFromFile should keep detecting default file types when no custom d
 
 	const customDetectors = [unicornDetector];
 
-	const result = await fileTypeFromFile(file, customDetectors);
+	const result = await fileTypeFromFile(file, {customDetectors});
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -807,6 +807,6 @@ test('fileTypeFromFile should allow overriding default file type detectors', asy
 
 	const customDetectors = [mockPngDetector];
 
-	const result = await fileTypeFromFile(file, customDetectors);
+	const result = await fileTypeFromFile(file, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });

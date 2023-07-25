@@ -321,7 +321,7 @@ export type ReadableStreamWithFileType = ReadableStream & {
 /**
 Function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided as argument for filetype detection methods.
+An iterable of detectors can be provided as argument for file type detection options.
 
 The detectors are called before the default detections in the provided order.
 
@@ -329,7 +329,7 @@ Custom detectors can be used to add new FileTypeResults or to modify return beha
 
 If the detector returns `undefined`, the `tokenizer.position` should be 0 (unless it's a stream). That allows other detectors to parse the file.
 
-Example detector array which can be extended and provided as argument to each public method:
+Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
 
 	const customDetectors = [
 		async tokenizer => {
@@ -350,6 +350,10 @@ Example detector array which can be extended and provided as argument to each pu
  */
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
+export type FileTypeOptions = {
+	customDetectors?: Iterable<Detector>;
+};
+
 /**
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -358,10 +362,10 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 If file access is available, it is recommended to use `.fromFile()` instead.
 
 @param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
-@param customDetectors - Optional: An Iterable of Detector functions. They are called in the order provided.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 */
-export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer, customDetectors?: Iterable<Detector>): Promise<FileTypeResult | undefined>;
+export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer, fileTypeOptions?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
@@ -369,10 +373,10 @@ Detect the file type of a Node.js [readable stream](https://nodejs.org/api/strea
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 @param stream - A readable stream representing file data.
-@param customDetectors - Optional: An Iterable of Detector functions. They are called in the order provided.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: ReadableStream, customDetectors?: Iterable<Detector>): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: ReadableStream, fileTypeOptions?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -382,7 +386,7 @@ This method is used internally, but can also be used for a special "tokenizer" r
 A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
 @param tokenizer - File source implementing the tokenizer interface.
-@param customDetectors - Optional: An Iterable of Detector functions. They are called in the order provided.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 
 An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it is able to *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
@@ -401,7 +405,7 @@ console.log(fileType);
 //=> {ext: 'mp3', mime: 'audio/mpeg'}
 ```
 */
-export function fileTypeFromTokenizer(tokenizer: ITokenizer, customDetectors?: Iterable<Detector>): Promise<FileTypeResult | undefined>;
+export function fileTypeFromTokenizer(tokenizer: ITokenizer, fileTypeOptions?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Supported file extensions.
@@ -434,7 +438,7 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@param customDetectors - Optional: An Iterable of Detector functions. They are called in the order provided.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
@@ -452,13 +456,13 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions, customDetectors?: Iterable<Detector>): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions, fileTypeOptions?: FileTypeOptions): Promise<ReadableStreamWithFileType>;
 
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
 
 @param blob
-@param customDetectors - Optional: An Iterable of Detector functions. They are called in the order provided.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 
 @example
@@ -474,4 +478,4 @@ console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
 */
-export declare function fileTypeFromBlob(blob: Blob, customDetectors?: Iterable<Detector>): Promise<FileTypeResult | undefined>;
+export declare function fileTypeFromBlob(blob: Blob, fileTypeOptions?: FileTypeOptions): Promise<FileTypeResult | undefined>;

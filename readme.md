@@ -105,7 +105,7 @@ console.log(fileType);
 
 ## API
 
-### fileTypeFromBuffer(buffer, customDetectors)
+### fileTypeFromBuffer(buffer, fileTypeOptions?)
 
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -126,13 +126,14 @@ Type: `Buffer | Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
-### fileTypeFromFile(filePath, customDetectors)
+### fileTypeFromFile(filePath, fileTypeOptions?)
 
 Detect the file type of a file path.
 
@@ -151,14 +152,14 @@ Type: `string`
 
 The file path to parse.
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
-
-### fileTypeFromStream(stream, customDetectors)
+### fileTypeFromStream(stream, fileTypeOptions?)
 
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
@@ -177,14 +178,14 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 A readable stream representing file data.
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
-
-### fileTypeFromBlob(blob, customDetectors)
+### fileTypeFromBlob(blob, fileTypeOptions?)
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
@@ -213,14 +214,14 @@ console.log(await fileTypeFromBlob(blob));
 
 Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
-
-### fileTypeFromTokenizer(tokenizer, customDetectors)
+### fileTypeFromTokenizer(tokenizer, fileTypeOptions?)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -279,13 +280,14 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
-### fileTypeStream(readableStream, options?, customDetectors)
+### fileTypeStream(readableStream, options?, fileTypeOptions?)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
@@ -334,12 +336,12 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 The input stream.
 
-#### customDetectors
+#### fileTypeOptions
 
-Type: `Iterable<Detector>`
+Type: `Object`
 
-Optional: An Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
+Optional: Allows specification of details for file type parsing. Currently supported parameters:
+- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
 ### supportedExtensions
 
@@ -513,12 +515,11 @@ The following file types will not be accepted:
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
 
-
 ## Custom detectors
 
 A custom detector is a function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided as argument for filetype detection methods.
+An iterable of detectors can be provided as argument for file type detection options.
 
 The detectors are called before the default detections in the provided order.
 
@@ -526,7 +527,7 @@ Custom detectors can be used to add new FileTypeResults or to modify return beha
 
 If the detector returns `undefined`, the `tokenizer.position` should be 0 (unless it's a stream). That allows other detectors to parse the file.
 
-Example detector array which can be extended and provided as argument to each public method:
+Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
 ```
 const customDetectors = [
 	async tokenizer => {
@@ -540,6 +541,7 @@ const customDetectors = [
 		return undefined;
 	},
 ];
+// to be used like fileTypeFromStream(readableStream, {customDetectors});
 ```
 #### tokenizer
 

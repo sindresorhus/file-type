@@ -10,16 +10,16 @@ import {extensions, mimeTypes} from './supported.js';
 
 const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
 
-export async function fileTypeFromStream(stream, customDetectors) {
+export async function fileTypeFromStream(stream, fileTypeOptions) {
 	const tokenizer = await strtok3.fromStream(stream);
 	try {
-		return await fileTypeFromTokenizer(tokenizer, customDetectors);
+		return await fileTypeFromTokenizer(tokenizer, fileTypeOptions);
 	} finally {
 		await tokenizer.close();
 	}
 }
 
-export async function fileTypeFromBuffer(input, customDetectors) {
+export async function fileTypeFromBuffer(input, fileTypeOptions) {
 	if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
 		throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 	}
@@ -30,12 +30,12 @@ export async function fileTypeFromBuffer(input, customDetectors) {
 		return;
 	}
 
-	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer), customDetectors);
+	return fileTypeFromTokenizer(strtok3.fromBuffer(buffer), fileTypeOptions);
 }
 
-export async function fileTypeFromBlob(blob, customDetectors) {
+export async function fileTypeFromBlob(blob, fileTypeOptions) {
 	const buffer = await blob.arrayBuffer();
-	return fileTypeFromBuffer(new Uint8Array(buffer), customDetectors);
+	return fileTypeFromBuffer(new Uint8Array(buffer), fileTypeOptions);
 }
 
 function _check(buffer, headers, options) {
@@ -72,8 +72,10 @@ async function runCustomDetectors(tokenizer, detectors) {
 	return undefined;
 }
 
-export async function fileTypeFromTokenizer(tokenizer, customDetectors) {
+export async function fileTypeFromTokenizer(tokenizer, fileTypeOptions) {
 	try {
+		const customDetectors = fileTypeOptions?.customDetectors;
+
 		return await runCustomDetectors(tokenizer, customDetectors)
 			|| await new FileTypeParser().parse(tokenizer, customDetectors);
 	} catch (error) {
