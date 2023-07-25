@@ -347,7 +347,7 @@ Example detector array which can be extended and provided as argument to each pu
  @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
  @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
  @returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
- */
+*/
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
 /**
