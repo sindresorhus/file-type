@@ -152,6 +152,7 @@ export type FileExtension =
 	| 'ace'
 	| 'avro'
 	| 'icc'
+	| 'fbx'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -300,6 +301,7 @@ export type MimeType =
 	| 'application/x-ace-compressed'
 	| 'application/avro'
 	| 'application/vnd.iccprofile'
+	| 'application/x.autodesk.fbx'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {

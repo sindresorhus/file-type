@@ -1433,6 +1433,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('Kaydara FBX Binary  \u0000')) {
+			return {
+				ext: 'fbx',
+				mime: 'application/x.autodesk.fbx', // Invented by us
+			};
+		}
+
 		if (
 			this.check([0x4C, 0x50], {offset: 34})
 			&& (
