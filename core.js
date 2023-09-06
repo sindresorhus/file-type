@@ -694,7 +694,7 @@ class FileTypeParser {
 			};
 		}
 
-		// https://github.com/threatstack/libmagic/blob/master/magic/Magdir/matroska
+		// https://github.com/file/file/blob/master/magic/Magdir/matroska
 		if (this.check([0x1A, 0x45, 0xDF, 0xA3])) { // Root element: EBML
 			async function readField() {
 				const msb = await tokenizer.peekNumber(Token.UINT8);
