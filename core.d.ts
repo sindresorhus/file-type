@@ -399,6 +399,7 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
+@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
@@ -416,7 +417,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions, fileTypeOptions?: FileTypeOptions): Promise<ReadableStreamWithFileType>;
 
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
