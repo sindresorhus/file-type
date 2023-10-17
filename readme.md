@@ -105,7 +105,7 @@ console.log(fileType);
 
 ## API
 
-### fileTypeFromBuffer(buffer, fileTypeOptions?)
+### fileTypeFromBuffer(buffer)
 
 Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
 
@@ -126,14 +126,7 @@ Type: `Buffer | Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
 
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
-### fileTypeFromFile(filePath, fileTypeOptions?)
+### fileTypeFromFile(filePath)
 
 Detect the file type of a file path.
 
@@ -152,14 +145,7 @@ Type: `string`
 
 The file path to parse.
 
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
-### fileTypeFromStream(stream, fileTypeOptions?)
+### fileTypeFromStream(stream)
 
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 
@@ -178,14 +164,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 A readable stream representing file data.
 
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
-### fileTypeFromBlob(blob, fileTypeOptions?)
+### fileTypeFromBlob(blob)
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
 
@@ -214,14 +193,7 @@ console.log(await fileTypeFromBlob(blob));
 
 Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
 
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
-### fileTypeFromTokenizer(tokenizer, fileTypeOptions?)
+### fileTypeFromTokenizer(tokenizer)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -279,13 +251,6 @@ Note that only the minimum amount of data required to determine the file type is
 Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
-
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
 
 ### fileTypeStream(readableStream, options?, fileTypeOptions?)
 
@@ -519,13 +484,16 @@ The following file types will not be accepted:
 
 A custom detector is a function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided as argument for file type detection options.
+An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser.constructor`.
 
 The detectors are called before the default detections in the provided order.
 
-Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
+Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
 
-If the detector returns `undefined`, the `tokenizer.position` should be 0 (unless it's a stream). That allows other detectors to parse the file.
+If the detector returns `undefined`, it is not allowed to read from the tokenizer (the `tokenizer.position` must remain 0) otherwise following scanners will read from the wrong file offset.
+
+If the detector returns `FileTypeParser.detectionImpossible`, the detector is certain the file type cannot be determined, even by other scanners.
+The `FileTypeParser` interrupts the parsing and immediately returns undefined in that case.
 
 Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
 ```
@@ -541,8 +509,18 @@ const customDetectors = [
 		return undefined;
 	},
 ];
-// to be used like fileTypeFromStream(readableStream, {customDetectors});
 ```
+
+Example usage:
+```
+const buffer = ...
+const parser = new FileTypeParser({customDetectors});
+const fileType = await parser.fileTypeFromBuffer(buffer);
+// fileTypeFromStream(...), fileTypeFromTokenizer(...), and fileTypeFromBlob(...) are available in the same manner.
+
+```
+
+
 #### tokenizer
 
 Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)

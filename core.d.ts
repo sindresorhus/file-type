@@ -443,7 +443,7 @@ export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | u
 /**
 Function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided as argument for the {@link FileTypeParser.constructor}.
+An iterable of detectors can be provided via the fileTypeOptions argument for the {@link FileTypeParser.constructor}.
 
 The detectors are called before the default detections in the provided order.
 
