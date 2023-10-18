@@ -47,6 +47,13 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	await new FileTypeParser().fileTypeFromTokenizer(tokenizer);
 }
 
+export class TokenizerPositionError extends Error {
+	constructor(message = 'Tokenizer position changed during operation. This is not allowed as it makes following detectors read from the wrong offset. If the offset change is intentional, use recursion.') {
+		super(message);
+		this.name = 'TokenizerPositionError';
+	}
+}
+
 export class FileTypeParser {
 	/**
 	 * The detectionImpossible below can be returned by custom detectors
@@ -67,11 +74,16 @@ export class FileTypeParser {
 
 	async runCustomDetectors(tokenizer) {
 		const {detectors} = this;
+		const initialPosition = tokenizer?.position;
 
 		for (const detector of detectors || []) {
 			const fileType = await detector(tokenizer);
 			if (fileType) {
 				return fileType;
+			}
+
+			if (initialPosition !== tokenizer?.position) {
+				throw new TokenizerPositionError();
 			}
 		}
 

@@ -7,15 +7,17 @@ import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
+import * as strtok3 from 'strtok3/core'; // eslint-disable-line n/file-extension-in-import
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
 	fileTypeFromFile,
 	fileTypeFromBlob,
-	fileTypeStream,
 	FileTypeParser,
+	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
+	TokenizerPositionError,
 } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -675,7 +677,18 @@ const unicornDetector = async tokenizer => {
 	return undefined;
 };
 
-const mockPngDetector = async _tokenizer => ({ext: 'mockPng', mime: 'image/mockPng'});
+const mockPngDetector = _tokenizer => ({ext: 'mockPng', mime: 'image/mockPng'});
+
+const tokenizerPositionChanger = tokenizer => {
+	const buffer = Buffer.alloc(1);
+	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
+	return FileTypeParser.detectionImpossible;
+};
+
+const illegalTokenizerPositionChanger = tokenizer => {
+	const buffer = Buffer.alloc(1);
+	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
+};
 
 test('fileTypeFromBlob should detect custom file type "unicorn" using custom detectors', async t => {
 	// Set up the "unicorn" file content
@@ -819,4 +832,27 @@ test('fileTypeFromFile should allow overriding default file type detectors', asy
 
 	const result = await fileTypeFromFile(file, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
+});
+
+test('fileTypeFromTokenizer should not throw an error when a custom detector legally changes the tokenizer position', async t => {
+	// Set up "unicorn" file content
+	const header = 'UNICORN FILE\n';
+	const uint8ArrayContent = new TextEncoder().encode(header);
+
+	const customDetectors = [tokenizerPositionChanger];
+	const parser = new FileTypeParser({customDetectors});
+
+	const result = await parser.fileTypeFromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
+	t.true(FileTypeParser.detectionImpossible === result);
+});
+
+test('fileTypeFromTokenizer should throw an error when a custom detector changes the tokenizer position and returns undefined', async t => {
+	// Set up "unicorn" file content
+	const header = 'UNICORN FILE\n';
+	const uint8ArrayContent = new TextEncoder().encode(header);
+
+	const customDetectors = [illegalTokenizerPositionChanger];
+	const parser = new FileTypeParser({customDetectors});
+
+	await t.throwsAsync(parser.fileTypeFromTokenizer(strtok3.fromBuffer(uint8ArrayContent)), new TokenizerPositionError());
 });
