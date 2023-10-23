@@ -316,6 +316,46 @@ Returns a `Set<string>` of supported file extensions.
 
 Returns a `Set<string>` of supported MIME types.
 
+## Custom detectors
+
+A custom detector is a function that allows specifying custom detection mechanisms.
+
+An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser.constructor`.
+
+The detectors are called before the default detections in the provided order.
+
+Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
+
+If the detector returns `undefined`, it is not allowed to read from the tokenizer (the `tokenizer.position` must remain 0) otherwise following scanners will read from the wrong file offset.
+
+If the detector returns `FileTypeParser.detectionImpossible`, the detector is certain the file type cannot be determined, even by other scanners.
+The `FileTypeParser` interrupts the parsing and immediately returns undefined in that case.
+
+Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
+```
+const customDetectors = [
+	async tokenizer => {
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const buffer = Buffer.alloc(7);
+		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+		if (unicornHeader.every((value, index) => value === buffer[index])) {
+			return {ext: 'unicorn', mime: 'application/unicorn'};
+		}
+
+		return undefined;
+	},
+];
+```
+
+Example usage:
+```
+const buffer = ...
+const parser = new FileTypeParser({customDetectors});
+const fileType = await parser.fileTypeFromBuffer(buffer);
+// fileTypeFromStream(...), fileTypeFromTokenizer(...), and fileTypeFromBlob(...) are available in the same manner.
+
+```
+
 ## Supported file types
 
 - [`3g2`](https://en.wikipedia.org/wiki/3GP_and_3G2#3G2) - Multimedia container format defined by the 3GPP2 for 3G CDMA2000 multimedia services
@@ -479,47 +519,6 @@ The following file types will not be accepted:
 	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
-
-## Custom detectors
-
-A custom detector is a function that allows specifying custom detection mechanisms.
-
-An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser.constructor`.
-
-The detectors are called before the default detections in the provided order.
-
-Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
-
-If the detector returns `undefined`, it is not allowed to read from the tokenizer (the `tokenizer.position` must remain 0) otherwise following scanners will read from the wrong file offset.
-
-If the detector returns `FileTypeParser.detectionImpossible`, the detector is certain the file type cannot be determined, even by other scanners.
-The `FileTypeParser` interrupts the parsing and immediately returns undefined in that case.
-
-Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
-```
-const customDetectors = [
-	async tokenizer => {
-		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
-		const buffer = Buffer.alloc(7);
-		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
-		if (unicornHeader.every((value, index) => value === buffer[index])) {
-			return {ext: 'unicorn', mime: 'application/unicorn'};
-		}
-
-		return undefined;
-	},
-];
-```
-
-Example usage:
-```
-const buffer = ...
-const parser = new FileTypeParser({customDetectors});
-const fileType = await parser.fileTypeFromBuffer(buffer);
-// fileTypeFromStream(...), fileTypeFromTokenizer(...), and fileTypeFromBlob(...) are available in the same manner.
-
-```
-
 
 #### tokenizer
 
