@@ -456,18 +456,18 @@ The FileTypeParser interrupts the parsing and immediately returns undefined in t
 
 Example detector array which can be extended and provided via the fileTypeOptions argument:
 
-	const customDetectors = [
-		async tokenizer => {
-			const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
-			const buffer = Buffer.alloc(7);
-			await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
-			if (unicornHeader.every((value, index) => value === buffer[index])) {
-				return {ext: 'unicorn', mime: 'application/unicorn'};
-			}
-
-			return undefined;
-		},
-	];
+```js
+const customDetectors = [
+	async tokenizer => {
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const buffer = Buffer.alloc(7);
+		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+		if (unicornHeader.every((value, index) => value === buffer[index])) {
+			return {ext: 'unicorn', mime: 'application/unicorn'};
+		}
+		return undefined;
+	}
+]
 
 	Example usage:
 
