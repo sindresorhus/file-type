@@ -471,9 +471,10 @@ const customDetectors = [
 
 	Example usage:
 
-	const buffer = ...
-	const parser = new FileTypeParser({customDetectors});
-	const fileType = await parser.fileTypeFromBuffer(buffer);
+```js
+const buffer = ...
+const parser = new FileTypeParser({customDetectors});
+const fileType = await parser.fileTypeFromBuffer(buffer);
 
 	fileTypeFromStream(...), fileTypeFromTokenizer(...), and fileTypeFromBlob(...) are available in the same manner.
 
