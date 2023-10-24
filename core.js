@@ -66,13 +66,13 @@ export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
 
-		this.runCustomDetectors = this.runCustomDetectors.bind(this);
+		this.runCustomDetectors = this.#runCustomDetectors.bind(this);
 		this.fromTokenizer = this.fromTokenizer.bind(this);
 		this.fromBuffer = this.fromBuffer.bind(this);
 		this.parse = this.parse.bind(this);
 	}
 
-	async runCustomDetectors(tokenizer) {
+	async #runCustomDetectors(tokenizer) {
 		const {detectors} = this;
 		const initialPosition = tokenizer?.position;
 
