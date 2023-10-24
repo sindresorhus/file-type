@@ -130,6 +130,42 @@ export class FileTypeParser {
 		}
 	}
 
+	async stream(readableStream, options = {}) {
+		const {default: stream} = await import('node:stream');
+		const {sampleSize = minimumBytes} = options;
+
+		return new Promise((resolve, reject) => {
+			readableStream.on('error', reject);
+
+			readableStream.once('readable', () => {
+				(async () => {
+					try {
+						// Set up output stream
+						const pass = new stream.PassThrough();
+						const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
+
+						// Read the input stream and detect the filetype
+						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
+						try {
+							const fileType = await this.fromBuffer(chunk);
+							pass.fileType = fileType;
+						} catch (error) {
+							if (error instanceof strtok3.EndOfStreamError) {
+								pass.fileType = undefined;
+							} else {
+								reject(error);
+							}
+						}
+
+						resolve(outputStream);
+					} catch (error) {
+						reject(error);
+					}
+				})();
+			});
+		});
+	}
+
 	check(header, options) {
 		return _check(this.buffer, header, options);
 	}
@@ -1662,40 +1698,8 @@ export class FileTypeParser {
 	}
 }
 
-export async function fileTypeStream(readableStream, {sampleSize = minimumBytes} = {}, fileTypeOptions) {
-	const {default: stream} = await import('node:stream');
-
-	return new Promise((resolve, reject) => {
-		readableStream.on('error', reject);
-
-		readableStream.once('readable', () => {
-			(async () => {
-				try {
-					// Set up output stream
-					const pass = new stream.PassThrough();
-					const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
-
-					// Read the input stream and detect the filetype
-					const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
-					try {
-						const parser = new FileTypeParser(fileTypeOptions);
-						const fileType = await parser.fromBuffer(chunk);
-						pass.fileType = fileType;
-					} catch (error) {
-						if (error instanceof strtok3.EndOfStreamError) {
-							pass.fileType = undefined;
-						} else {
-							reject(error);
-						}
-					}
-
-					resolve(outputStream);
-				} catch (error) {
-					reject(error);
-				}
-			})();
-		});
-	});
+export async function fileTypeStream(readableStream, options = {}) {
+	return new FileTypeParser().stream(readableStream, options);
 }
 
 export const supportedExtensions = new Set(extensions);

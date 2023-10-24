@@ -399,7 +399,6 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@param fileTypeOptions - Optional: An options object including the `customDetectors` property as an Iterable of Detector functions. Those are called in the order provided.
 @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
@@ -417,7 +416,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions, fileTypeOptions?: FileTypeOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
@@ -476,7 +475,7 @@ const buffer = ...
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 
-	fromStream(...), fromTokenizer(...), and fromBlob(...) are available in the same manner.
+	fromStream(...), fromTokenizer(...), fromBlob(...) and stream(...) are available in the same manner.
 
  @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
  @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
@@ -527,4 +526,11 @@ export declare class FileTypeParser {
 	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
+
+	/**
+	 *
+	 * Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
+	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
+	 */
+	stream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
 }

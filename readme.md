@@ -252,7 +252,7 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-### fileTypeStream(readableStream, options?, fileTypeOptions?)
+### fileTypeStream(readableStream, options?)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
@@ -301,13 +301,6 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 The input stream.
 
-#### fileTypeOptions
-
-Type: `Object`
-
-Optional: Allows specification of details for file type parsing. Currently supported parameters:
-- customDetectors: Iterable of [Detector](#custom-detectors) functions. They are called in the order provided.
-
 ### supportedExtensions
 
 Returns a `Set<string>` of supported file extensions.
@@ -352,7 +345,7 @@ Example usage:
 const buffer = ...
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
-// fromStream(...), fromTokenizer(...), and fromBlob(...) are available in the same manner.
+// fromStream(...), fromTokenizer(...), fromBlob(...) and stream(...) are available in the same manner.
 
 ```
 
