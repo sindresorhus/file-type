@@ -698,7 +698,7 @@ test('fileTypeFromBlob should detect custom file type "unicorn" using custom det
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBlob(blob);
+	const result = await parser.fromBlob(blob);
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -711,7 +711,7 @@ test('fileTypeFromBlob should keep detecting default file types when no custom d
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBlob(blob);
+	const result = await parser.fromBlob(blob);
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -724,7 +724,7 @@ test('fileTypeFromBlob should allow overriding default file type detectors', asy
 	const customDetectors = [mockPngDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBlob(blob);
+	const result = await parser.fromBlob(blob);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -736,7 +736,7 @@ test('fileTypeFromBuffer should detect custom file type "unicorn" using custom d
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBuffer(uint8ArrayContent);
+	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -748,7 +748,7 @@ test('fileTypeFromBuffer should keep detecting default file types when no custom
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBuffer(uint8ArrayContent);
+	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -760,7 +760,7 @@ test('fileTypeFromBuffer should allow overriding default file type detectors', a
 	const customDetectors = [mockPngDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromBuffer(uint8ArrayContent);
+	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -776,7 +776,7 @@ test('fileTypeFromStream should detect custom file type "unicorn" using custom d
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromStream(readableStream);
+	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
 });
 
@@ -788,7 +788,7 @@ test('fileTypeFromStream should keep detecting default file types when no custom
 	const customDetectors = [unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromStream(readableStream);
+	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
 });
 
@@ -800,7 +800,7 @@ test('fileTypeFromStream should allow overriding default file type detectors', a
 	const customDetectors = [mockPngDetector];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromStream(readableStream);
+	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
@@ -842,7 +842,7 @@ test('fileTypeFromTokenizer should not throw an error when a custom detector leg
 	const customDetectors = [tokenizerPositionChanger];
 	const parser = new FileTypeParser({customDetectors});
 
-	const result = await parser.fileTypeFromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
+	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.true(FileTypeParser.detectionImpossible === result);
 });
 
@@ -854,5 +854,5 @@ test('fileTypeFromTokenizer should throw an error when a custom detector changes
 	const customDetectors = [illegalTokenizerPositionChanger];
 	const parser = new FileTypeParser({customDetectors});
 
-	await t.throwsAsync(parser.fileTypeFromTokenizer(strtok3.fromBuffer(uint8ArrayContent)), new TokenizerPositionError());
+	await t.throwsAsync(parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent)), new TokenizerPositionError());
 });
