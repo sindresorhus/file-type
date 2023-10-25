@@ -142,7 +142,7 @@ export class FileTypeParser {
 							const fileType = await this.fromBuffer(chunk);
 							pass.fileType = fileType;
 						} catch (error) {
-							if (error instanceof strtok3.EndOfStreamError) {
+							if (error instanceof strtok3.EndOfStreamError  || error instanceof TokenizerPositionError) {
 								pass.fileType = undefined;
 							} else {
 								reject(error);
