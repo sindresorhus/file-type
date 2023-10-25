@@ -477,7 +477,7 @@ const buffer = ...
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 
-	fromStream(...), fromTokenizer(...), fromBlob(...) and stream(...) are available in the same manner.
+	fromStream(...), fromTokenizer(...), fromBlob(...) and toDetectingStream(...) are available in the same manner.
 
  @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
  @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.

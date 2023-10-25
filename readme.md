@@ -348,7 +348,7 @@ Example usage:
 const buffer = ...
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
-// fromStream(...), fromTokenizer(...), fromBlob(...) and stream(...) are available in the same manner.
+// fromStream(...), fromTokenizer(...), fromBlob(...) and toDetectingStream(...) are available in the same manner.
 
 ```
 

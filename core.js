@@ -122,7 +122,7 @@ export class FileTypeParser {
 		}
 	}
 
-	async stream(readableStream, options = {}) {
+	async toDetectingStream(readableStream, options = {}) {
 		const {default: stream} = await import('node:stream');
 		const {sampleSize = minimumBytes} = options;
 
@@ -1691,7 +1691,7 @@ export class FileTypeParser {
 }
 
 export async function fileTypeStream(readableStream, options = {}) {
-	return new FileTypeParser().stream(readableStream, options);
+	return new FileTypeParser().toDetectingStream(readableStream, options);
 }
 
 export const supportedExtensions = new Set(extensions);
