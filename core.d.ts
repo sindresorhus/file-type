@@ -526,5 +526,5 @@ export declare class FileTypeParser {
 	 *
 	 * Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
-	stream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
+	toDetectingStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
 }
