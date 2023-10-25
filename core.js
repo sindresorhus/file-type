@@ -47,51 +47,30 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	return new FileTypeParser().fromTokenizer(tokenizer);
 }
 
-export class TokenizerPositionError extends Error {
-	constructor(message = 'Tokenizer position changed without detecting a file type.') {
-		super(message);
-		this.name = 'TokenizerPositionError';
-	}
-}
-
 export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
 
-		this.runCustomDetectors = this.#runCustomDetectors.bind(this);
 		this.fromTokenizer = this.fromTokenizer.bind(this);
 		this.fromBuffer = this.fromBuffer.bind(this);
 		this.parse = this.parse.bind(this);
 	}
 
-	async #runCustomDetectors(tokenizer) {
-		const {detectors} = this;
-		const initialPosition = tokenizer?.position;
+	async fromTokenizer(tokenizer) {
+		const initialPosition = tokenizer.position;
 
-		for (const detector of detectors || []) {
+		for (const detector of this.detectors || []) {
 			const fileType = await detector(tokenizer);
 			if (fileType) {
 				return fileType;
 			}
 
-			if (initialPosition !== tokenizer?.position) {
-				throw new TokenizerPositionError();
+			if (initialPosition !== tokenizer.position) {
+				return undefined; // Cannot proceed scanning of the tokenizer is at an arbitrary position
 			}
 		}
 
-		return undefined;
-	}
-
-	async fromTokenizer(tokenizer) {
-		const {parse, runCustomDetectors} = this;
-		try {
-			const customFileType = await runCustomDetectors(tokenizer);
-			return (customFileType || await parse(tokenizer));
-		} catch (error) {
-			if (!(error instanceof strtok3.EndOfStreamError) && !(error instanceof TokenizerPositionError)) {
-				throw error;
-			}
-		}
+		return this.parse(tokenizer);
 	}
 
 	async fromBuffer(input) {
@@ -139,10 +118,9 @@ export class FileTypeParser {
 						// Read the input stream and detect the filetype
 						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
 						try {
-							const fileType = await this.fromBuffer(chunk);
-							pass.fileType = fileType;
+							pass.fileType = await this.fromBuffer(chunk);
 						} catch (error) {
-							if (error instanceof strtok3.EndOfStreamError  || error instanceof TokenizerPositionError) {
+							if (error instanceof strtok3.EndOfStreamError) {
 								pass.fileType = undefined;
 							} else {
 								reject(error);
