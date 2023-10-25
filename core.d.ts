@@ -501,35 +501,30 @@ export declare class FileTypeParser {
 	/**
 	 *
 	 * Works the same way as {@link fileTypeFromBuffer}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 	/**
 	 *
 	 * Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
 	 *
 	 * Works the same way as {@link fileTypeFromTokenizer}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
 
 	/**
 	 *
 	 * Works the same way as {@link fileTypeFromBlob}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
 
 	/**
 	 *
 	 * Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 * @throws {TokenizerPositionError} when a custom detector illegally changes the tokenizier.position (usually by read operations followed by returning undefined).
 	 */
 	stream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
 }
