@@ -44,7 +44,7 @@ function _check(buffer, headers, options) {
 }
 
 export async function fileTypeFromTokenizer(tokenizer) {
-	await new FileTypeParser().fromTokenizer(tokenizer);
+	return new FileTypeParser().fromTokenizer(tokenizer);
 }
 
 export class TokenizerPositionError extends Error {
