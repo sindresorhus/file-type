@@ -319,10 +319,13 @@ The detectors are called before the default detections in the provided order.
 
 Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
 
-If the detector returns `undefined`, it is not allowed to read from the tokenizer (the `tokenizer.position` must remain 0) otherwise following scanners will read from the wrong file offset.
+If the detector returns `undefined`, there are 2 possible scenarios:
 
-If the detector returns `FileTypeParser.detectionImpossible`, the detector is certain the file type cannot be determined, even by other scanners.
-The `FileTypeParser` interrupts the parsing and immediately returns undefined in that case.
+1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
+2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
+		In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
+
 
 Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
 ```

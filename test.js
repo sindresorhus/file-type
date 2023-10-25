@@ -17,7 +17,6 @@ import {
 	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
-	TokenizerPositionError,
 } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -682,12 +681,6 @@ const mockPngDetector = _tokenizer => ({ext: 'mockPng', mime: 'image/mockPng'});
 const tokenizerPositionChanger = tokenizer => {
 	const buffer = Buffer.alloc(1);
 	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
-	return FileTypeParser.detectionImpossible;
-};
-
-const illegalTokenizerPositionChanger = tokenizer => {
-	const buffer = Buffer.alloc(1);
-	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
 };
 
 test('fileTypeFromBlob should detect custom file type "unicorn" using custom detectors', async t => {
@@ -834,25 +827,16 @@ test('fileTypeFromFile should allow overriding default file type detectors', asy
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
 });
 
-test('fileTypeFromTokenizer should not throw an error when a custom detector legally changes the tokenizer position', async t => {
+test('fileTypeFromTokenizer should return undefined when a custom detector changes the tokenizer position and does not return a file type', async t => {
 	// Set up "unicorn" file content
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
-	const customDetectors = [tokenizerPositionChanger];
+	// Include the unicormDetector here to verify it's not used after the tokenizer.position changed
+	const customDetectors = [tokenizerPositionChanger, unicornDetector];
 	const parser = new FileTypeParser({customDetectors});
 
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
-	t.true(FileTypeParser.detectionImpossible === result);
+	t.true(result === undefined);
 });
 
-test('fileTypeFromTokenizer should throw an error when a custom detector changes the tokenizer position and returns undefined', async t => {
-	// Set up "unicorn" file content
-	const header = 'UNICORN FILE\n';
-	const uint8ArrayContent = new TextEncoder().encode(header);
-
-	const customDetectors = [illegalTokenizerPositionChanger];
-	const parser = new FileTypeParser({customDetectors});
-
-	await t.throwsAsync(parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent)), new TokenizerPositionError());
-});

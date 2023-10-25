@@ -448,10 +448,12 @@ The detectors are called before the default detections in the provided order.
 
 Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
 
-If the detector returns undefined, it is not allowed to read from the tokenizer (the tokenizer.position must remain 0) otherwise following scanners will read from the wrong file offset.
+If the detector returns `undefined`, there are 2 possible scenarios:
 
-If the detector returns {@link FileTypeParser.detectionImpossible}, the detector is certain the file type cannot be determined, even by other scanners.
-The FileTypeParser interrupts the parsing and immediately returns undefined in that case.
+	1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
+	2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
+		 In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+		 Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
 
 Example detector array which can be extended and provided via the fileTypeOptions argument:
 
@@ -480,7 +482,6 @@ const fileType = await parser.fromBuffer(buffer);
  @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
  @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
  @returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
- May also return {@link FileTypeParser.detectionImpossible} to stop detection.
 */
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
@@ -493,8 +494,6 @@ export declare class TokenizerPositionError extends Error {
 }
 
 export declare class FileTypeParser {
-	static detectionImpossible: string;
-
 	detectors: Iterable<Detector>;
 
 	constructor(options?: {customDetectors?: Iterable<Detector>});
