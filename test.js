@@ -261,7 +261,9 @@ const falsePositives = {
 };
 
 // Known failing fixture
-const failingFixture = new Set(['fixture-password-protected']);
+const failingFixture = new Set([
+	'fixture-password-protected',
+]);
 
 async function checkBufferLike(t, type, bufferLike) {
 	const {ext, mime} = await fileTypeFromBuffer(bufferLike) ?? {};
