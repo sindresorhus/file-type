@@ -52,6 +52,7 @@
 		"is",
 		"exif",
 		"elf",
+		"macho",
 		"exe",
 		"binary",
 		"buffer",
