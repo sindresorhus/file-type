@@ -855,6 +855,13 @@ class FileTypeParser {
 			};
 		}
 
+		if (this.check([0xCF, 0xFA, 0xED, 0xFE])) {
+			return {
+				ext: 'macho',
+				mime: 'application/x-mach-binary',
+			};
+		}
+
 		// -- 5-byte signatures --
 
 		if (this.check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
