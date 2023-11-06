@@ -499,31 +499,26 @@ export declare class FileTypeParser {
 	constructor(options?: {customDetectors?: Iterable<Detector>});
 
 	/**
-	 *
 	 * Works the same way as {@link fileTypeFromBuffer}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
 	fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 	/**
-	 *
 	 * Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
 	fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
-	 *
 	 * Works the same way as {@link fileTypeFromTokenizer}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
 	fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
 
 	/**
-	 *
 	 * Works the same way as {@link fileTypeFromBlob}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
 	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
 
 	/**
-	 *
 	 * Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
 	toDetectionStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
