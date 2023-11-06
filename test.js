@@ -696,7 +696,6 @@ test('fileTypeFromBlob should detect custom file type "unicorn" using custom det
 });
 
 test('fileTypeFromBlob should keep detecting default file types when no custom detector matches', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const chunk = fs.readFileSync(file);
 	const blob = new Blob([chunk]);
@@ -709,7 +708,6 @@ test('fileTypeFromBlob should keep detecting default file types when no custom d
 });
 
 test('fileTypeFromBlob should allow overriding default file type detectors', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const chunk = fs.readFileSync(file);
 	const blob = new Blob([chunk]);
@@ -722,7 +720,6 @@ test('fileTypeFromBlob should allow overriding default file type detectors', asy
 });
 
 test('fileTypeFromBuffer should detect custom file type "unicorn" using custom detectors', async t => {
-	// Set up the "unicorn" file content
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
@@ -734,7 +731,6 @@ test('fileTypeFromBuffer should detect custom file type "unicorn" using custom d
 });
 
 test('fileTypeFromBuffer should keep detecting default file types when no custom detector matches', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const uint8ArrayContent = fs.readFileSync(file);
 
@@ -746,7 +742,6 @@ test('fileTypeFromBuffer should keep detecting default file types when no custom
 });
 
 test('fileTypeFromBuffer should allow overriding default file type detectors', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const uint8ArrayContent = fs.readFileSync(file);
 
@@ -763,7 +758,6 @@ class CustomReadableStream extends stream.Readable {
 	}
 }
 test('fileTypeFromStream should detect custom file type "unicorn" using custom detectors', async t => {
-	// Convert the "unicorn" file content to a readable stream
 	const readableStream = new CustomReadableStream();
 
 	const customDetectors = [unicornDetector];
@@ -774,7 +768,6 @@ test('fileTypeFromStream should detect custom file type "unicorn" using custom d
 });
 
 test('fileTypeFromStream should keep detecting default file types when no custom detector matches', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const readableStream = fs.createReadStream(file);
 
@@ -786,7 +779,6 @@ test('fileTypeFromStream should keep detecting default file types when no custom
 });
 
 test('fileTypeFromStream should allow overriding default file type detectors', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 	const readableStream = fs.createReadStream(file);
 
@@ -798,7 +790,6 @@ test('fileTypeFromStream should allow overriding default file type detectors', a
 });
 
 test('fileTypeFromFile should detect custom file type "unicorn" using custom detectors', async t => {
-	// Load unicorn file content
 	const file = path.join(__dirname, 'fixture', 'fixture.unicorn');
 
 	const customDetectors = [unicornDetector];
@@ -808,7 +799,6 @@ test('fileTypeFromFile should detect custom file type "unicorn" using custom det
 });
 
 test('fileTypeFromFile should keep detecting default file types when no custom detector matches', async t => {
-	// Load unicorn file content
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 
 	const customDetectors = [unicornDetector];
@@ -818,7 +808,6 @@ test('fileTypeFromFile should keep detecting default file types when no custom d
 });
 
 test('fileTypeFromFile should allow overriding default file type detectors', async t => {
-	// Load the content of a PNG file
 	const file = path.join(__dirname, 'fixture', 'fixture.png');
 
 	const customDetectors = [mockPngDetector];
@@ -828,7 +817,6 @@ test('fileTypeFromFile should allow overriding default file type detectors', asy
 });
 
 test('fileTypeFromTokenizer should return undefined when a custom detector changes the tokenizer position and does not return a file type', async t => {
-	// Set up "unicorn" file content
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
@@ -839,4 +827,3 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.true(result === undefined);
 });
-
