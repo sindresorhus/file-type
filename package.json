@@ -18,6 +18,7 @@
 		},
 		"./core": "./core.js"
 	},
+	"sideEffects": false,
 	"engines": {
 		"node": ">=14.16"
 	},

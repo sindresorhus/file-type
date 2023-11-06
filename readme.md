@@ -473,13 +473,9 @@ The following file types will not be accepted:
 ## Related
 
 - [file-type-cli](https://github.com/sindresorhus/file-type-cli) - CLI for this module
+- [image-dimensions](https://github.com/sindresorhus/image-dimensions) - Get the dimensions of an image
 
 ## Maintainers
 
 - [Sindre Sorhus](https://github.com/sindresorhus)
 - [Borewit](https://github.com/Borewit)
-
-**Former**
-
-- [Mikael Finstad](https://github.com/mifi)
-- [Ben Brook](https://github.com/bencmbrook)
