@@ -419,9 +419,9 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 
 /**
-Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
+Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or .
 
-@param blob
+@param blob [`Blob`](https://nodejs.org/api/buffer.html#class-blob) used for file detection
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 
 @example
@@ -458,6 +458,8 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 Example detector array which can be extended and provided via the fileTypeOptions argument:
 
 ```js
+import {FileTypeParser} from 'file-type';
+
 const customDetectors = [
 	async tokenizer => {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
@@ -466,22 +468,20 @@ const customDetectors = [
 		if (unicornHeader.every((value, index) => value === buffer[index])) {
 			return {ext: 'unicorn', mime: 'application/unicorn'};
 		}
+
 		return undefined;
-	}
-]
+	},
+];
 
-	Example usage:
-
-```js
-const buffer = ...
+const buffer = Buffer.from("UNICORN");
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
+console.log(fileType);
+```
 
-	fromStream(...), fromTokenizer(...), fromBlob(...) and toDetectingStream(...) are available in the same manner.
-
- @param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
- @param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
- @returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
+@param tokenizer - An [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) usable as source of the examined file.
+@param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
+@returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
 */
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
@@ -526,5 +526,5 @@ export declare class FileTypeParser {
 	 *
 	 * Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	 */
-	toDetectingStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
+	toDetectionStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
 }

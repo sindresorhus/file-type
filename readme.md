@@ -328,7 +328,9 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 
 
 Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
-```
+```js
+import {FileTypeParser} from 'file-type';
+
 const customDetectors = [
 	async tokenizer => {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
@@ -341,15 +343,11 @@ const customDetectors = [
 		return undefined;
 	},
 ];
-```
 
-Example usage:
-```
-const buffer = ...
+const buffer = Buffer.from("UNICORN");
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
-// fromStream(...), fromTokenizer(...), fromBlob(...) and toDetectingStream(...) are available in the same manner.
-
+console.log(fileType);
 ```
 
 ## Supported file types
