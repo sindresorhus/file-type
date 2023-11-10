@@ -113,7 +113,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 If file access is available, it is recommended to use `fileTypeFromFile()` instead.
 
-Returns a `Promise` for an object with the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -124,7 +124,7 @@ Or `undefined` when there is no match.
 
 Type: `Buffer | Uint8Array | ArrayBuffer`
 
-A buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
+A buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 
 ### fileTypeFromFile(filePath)
 
@@ -132,7 +132,7 @@ Detect the file type of a file path.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-Returns a `Promise` for an object with the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -151,7 +151,7 @@ Detect the file type of a Node.js [readable stream](https://nodejs.org/api/strea
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-Returns a `Promise` for an object with the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -170,7 +170,7 @@ Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-Returns a `Promise` for an object with the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -181,12 +181,12 @@ Or `undefined` when there is no match.
 import {fileTypeFromBlob} from 'file-type';
 
 const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-	type: 'plain/text',
+	type: 'text/plain',
 	endings: 'native'
 });
 
 console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'plain/text'}
+//=> {ext: 'txt', mime: 'text/plain'}
 ```
 
 #### blob
@@ -201,7 +201,7 @@ This method is used internally, but can also be used for a special "tokenizer" r
 
 A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
-Returns a `Promise` for an object with the detected file type and MIME type:
+Returns a `Promise` for an object with the detected file type:
 
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
@@ -313,27 +313,28 @@ Returns a `Set<string>` of supported MIME types.
 
 A custom detector is a function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser.constructor`.
+An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
 
 The detectors are called before the default detections in the provided order.
 
-Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
+Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing `FileTypeResult` detections.
 
 If the detector returns `undefined`, there are 2 possible scenarios:
 
 1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
 2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
-		In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
-		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
-
+	In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+	Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
 
 Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
+
 ```js
 import {FileTypeParser} from 'file-type';
 
 const customDetectors = [
 	async tokenizer => {
-		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
+
 		const buffer = Buffer.alloc(7);
 		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
 
@@ -345,7 +346,7 @@ const customDetectors = [
 	},
 ];
 
-const buffer = Buffer.from("UNICORN");
+const buffer = Buffer.from('UNICORN');
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
@@ -381,7 +382,7 @@ console.log(fileType);
 - [`bpg`](https://bellard.org/bpg/) - Better Portable Graphics file
 - [`bz2`](https://en.wikipedia.org/wiki/Bzip2) - Archive file
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
-- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compount File Binary Format
+- [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compound File Binary Format
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 - [`class`](https://en.wikipedia.org/wiki/Java_class_file) - Java class file
 - [`cpio`](https://en.wikipedia.org/wiki/Cpio) - Cpio archive
@@ -393,7 +394,7 @@ console.log(fileType);
 - [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format)) - Debian package
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
-- [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word
+- [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word document
 - [`dsf`](https://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf) - Sony DSD Stream File (DSF)
 - [`dwg`](https://en.wikipedia.org/wiki/.dwg) - Autodesk CAD file
 - [`elf`](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) - Unix Executable and Linkable Format
@@ -429,7 +430,7 @@ console.log(fileType);
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR) - Joint Photographic Experts Group extended range
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL and OpenGL ES textures
 - [`lnk`](https://en.wikipedia.org/wiki/Shortcut_%28computing%29#Microsoft_Windows) - Microsoft Windows file shortcut
-- [`lz`](https://en.wikipedia.org/wiki/Lzip) - Arhive file
+- [`lz`](https://en.wikipedia.org/wiki/Lzip) - Archive file
 - [`lzh`](https://en.wikipedia.org/wiki/LHA_(file_format)) - LZH archive
 - [`m4a`](https://en.wikipedia.org/wiki/M4A) - Audio-only MPEG-4 files
 - [`m4b`](https://en.wikipedia.org/wiki/M4B) - Audiobook and podcast MPEG-4 files, which also contain metadata including chapter markers, images, and hyperlinks
@@ -468,7 +469,7 @@ console.log(fileType);
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics
-- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Powerpoint
+- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Powerpoint document
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
 - [`pst`](https://en.wikipedia.org/wiki/Personal_Storage_Table) - Personal Storage Table file
@@ -498,7 +499,7 @@ console.log(fileType);
 - [`woff2`](https://en.wikipedia.org/wiki/Web_Open_Font_Format) - Web Open Font Format
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`xcf`](https://en.wikipedia.org/wiki/XCF_(file_format)) - eXperimental Computing Facility
-- [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Excel
+- [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Excel document
 - [`xm`](https://wiki.openmpt.org/Manual:_Module_formats#The_FastTracker_2_format_.28.xm.29) - Audio module format: FastTracker 2
 - [`xml`](https://en.wikipedia.org/wiki/XML) - eXtensible Markup Language
 - [`xpi`](https://en.wikipedia.org/wiki/XPInstall) - XPInstall file
@@ -506,7 +507,7 @@ console.log(fileType);
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format)) - Archive file
 - [`zst`](https://en.wikipedia.org/wiki/Zstandard) - Archive file
 
-*Pull requests are welcome for additional commonly used file types.*
+*[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
 The following file types will not be accepted:
 - [MS-CFB: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b), too old and difficult to parse:
@@ -525,9 +526,9 @@ Usable as source of the examined file.
 
 #### fileType
 
-Type: FileTypeResult
+Type: `FileTypeResult`
 
-Object having an `ext` (extension) and `mime` (mime type) property.
+An object having an `ext` (extension) and `mime` (mime type) property.
 
 Detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
 

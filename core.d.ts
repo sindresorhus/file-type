@@ -329,8 +329,8 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 If file access is available, it is recommended to use `.fromFile()` instead.
 
-@param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file, it may work with a smaller portion as well.
-@returns The detected file type and MIME type, or `undefined` when there is no match.
+@param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
+@returns The detected file type, or `undefined` when there is no match.
 */
 export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
@@ -340,7 +340,7 @@ Detect the file type of a Node.js [readable stream](https://nodejs.org/api/strea
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 @param stream - A readable stream representing file data.
-@returns The detected file type and MIME type, or `undefined` when there is no match.
+@returns The detected file type, or `undefined` when there is no match.
 */
 export function fileTypeFromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
 
@@ -352,7 +352,7 @@ This method is used internally, but can also be used for a special "tokenizer" r
 A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
 @param tokenizer - File source implementing the tokenizer interface.
-@returns The detected file type and MIME type, or `undefined` when there is no match.
+@returns The detected file type, or `undefined` when there is no match.
 
 An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it is able to *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
@@ -425,20 +425,20 @@ export function fileTypeStream(readableStream: ReadableStream, options?: StreamO
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
 
-@param blob [`Blob`](https://nodejs.org/api/buffer.html#class-blob) used for file detection
-@returns The detected file type and MIME type, or `undefined` when there is no match.
+@param blob - The [`Blob`](https://nodejs.org/api/buffer.html#class-blob) used for file detection.
+@returns The detected file type, or `undefined` when there is no match.
 
 @example
 ```
 import {fileTypeFromBlob} from 'file-type';
 
 const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
-	type: 'plain/text',
+	type: 'text/plain',
 	endings: 'native'
 });
 
 console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'plain/text'}
+//=> {ext: 'txt', mime: 'text/plain'}
 ```
 */
 export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
@@ -450,14 +450,14 @@ An iterable of detectors can be provided via the `fileTypeOptions` argument for 
 
 The detectors are called before the default detections in the provided order.
 
-Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
+Custom detectors can be used to add new `FileTypeResults` or to modify return behavior of existing `FileTypeResult` detections.
 
 If the detector returns `undefined`, there are 2 possible scenarios:
 
-	1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
-	2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
-		In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
-		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
+1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
+2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
+	In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+	Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
 
 Example detector array which can be extended and provided via the fileTypeOptions argument:
 
@@ -466,7 +466,8 @@ import {FileTypeParser} from 'file-type';
 
 const customDetectors = [
 	async tokenizer => {
-		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
+
 		const buffer = Buffer.alloc(7);
 		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
 		if (unicornHeader.every((value, index) => value === buffer[index])) {
@@ -477,15 +478,15 @@ const customDetectors = [
 	},
 ];
 
-const buffer = Buffer.from("UNICORN");
+const buffer = Buffer.from('UNICORN');
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```
 
-@param tokenizer - [Tokenizer](https://github.com/Borewit/strtok3#tokenizer), used to read the file content from.
-@param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
-@returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
+@param tokenizer - The [tokenizer](https://github.com/Borewit/strtok3#tokenizer) used to read the file content from.
+@param fileType - The file type detected by the standard detections or a previous custom detection, or `undefined`` if no matching file type could be found.
+@returns The detected file type, or `undefined` when there is no match.
 */
 export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 
