@@ -359,7 +359,7 @@ Returns a `Set<string>` of supported MIME types.
 - [`f4b`](https://en.wikipedia.org/wiki/Flash_Video) - Audiobook and podcast ISO base media file format used by Adobe Flash Player
 - [`f4p`](https://en.wikipedia.org/wiki/Flash_Video) - ISO base media file format protected by Adobe Access DRM used by Adobe Flash Player
 - [`f4v`](https://en.wikipedia.org/wiki/Flash_Video) - ISO base media file format used by Adobe Flash Player
-- [`fbx`](https://en.wikipedia.org/wiki/FBX) - FBX (Filmbox) is a proprietary file format (.fbx) developed by Kaydara and owned by [Autodesk](https://en.wikipedia.org/wiki/Autodesk). It is used to provide interoperability between digital content creation applications.
+- [`fbx`](https://en.wikipedia.org/wiki/FBX) - Filmbox is a proprietary file format used to provide interoperability between digital content creation apps.
 - [`flac`](https://en.wikipedia.org/wiki/FLAC) - Free Lossless Audio Codec
 - [`flif`](https://en.wikipedia.org/wiki/Free_Lossless_Image_Format) - Free Lossless Image Format
 - [`flv`](https://en.wikipedia.org/wiki/Flash_Video) - Flash video
