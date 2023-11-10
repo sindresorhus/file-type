@@ -425,7 +425,6 @@ Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob
 @returns The detected file type and MIME type, or `undefined` when there is no match.
 
 @example
-
 ```
 import {fileTypeFromBlob} from 'file-type';
 
@@ -437,7 +436,6 @@ const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
-
 */
 export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
 
