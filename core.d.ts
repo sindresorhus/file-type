@@ -421,7 +421,10 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 
 /**
-Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob).
+Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+
+@param blob [`Blob`](https://nodejs.org/api/buffer.html#class-blob) used for file detection
+@returns The detected file type and MIME type, or `undefined` when there is no match.
 
 @example
 ```
@@ -437,3 +440,88 @@ console.log(await fileTypeFromBlob(blob));
 ```
 */
 export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
+
+/**
+Function that allows specifying custom detection mechanisms.
+
+An iterable of detectors can be provided via the `fileTypeOptions` argument for the {@link FileTypeParser.constructor}.
+
+The detectors are called before the default detections in the provided order.
+
+Custom detectors can be used to add new FileTypeResults or to modify return behaviour of existing FileTypeResult detections.
+
+If the detector returns `undefined`, there are 2 possible scenarios:
+
+	1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
+	2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
+		In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
+
+Example detector array which can be extended and provided via the fileTypeOptions argument:
+
+```
+import {FileTypeParser} from 'file-type';
+
+const customDetectors = [
+	async tokenizer => {
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const buffer = Buffer.alloc(7);
+		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+		if (unicornHeader.every((value, index) => value === buffer[index])) {
+			return {ext: 'unicorn', mime: 'application/unicorn'};
+		}
+
+		return undefined;
+	},
+];
+
+const buffer = Buffer.from("UNICORN");
+const parser = new FileTypeParser({customDetectors});
+const fileType = await parser.fromBuffer(buffer);
+console.log(fileType);
+```
+
+@param tokenizer - [Tokenizer](https://github.com/Borewit/strtok3#tokenizer), used to read the file content from.
+@param fileType - FileTypeResult detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
+@returns supposedly detected file extension and MIME type as a FileTypeResult-like object, or `undefined` when there is no match.
+*/
+export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
+
+export type FileTypeOptions = {
+	customDetectors?: Iterable<Detector>;
+};
+
+export declare class TokenizerPositionError extends Error {
+	constructor(message?: string);
+}
+
+export declare class FileTypeParser {
+	detectors: Iterable<Detector>;
+
+	constructor(options?: {customDetectors?: Iterable<Detector>});
+
+	/**
+	Works the same way as {@link fileTypeFromBuffer}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
+
+	/**
+	Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
+
+	/**
+	Works the same way as {@link fileTypeFromTokenizer}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
+
+	/**
+	Works the same way as {@link fileTypeFromBlob}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
+
+	/**
+	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	toDetectionStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
+}

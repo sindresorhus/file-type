@@ -189,6 +189,10 @@ console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'plain/text'}
 ```
 
+#### blob
+
+Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+
 ### fileTypeFromTokenizer(tokenizer)
 
 Detect the file type from an `ITokenizer` source.
@@ -304,6 +308,48 @@ Returns a `Set<string>` of supported file extensions.
 ### supportedMimeTypes
 
 Returns a `Set<string>` of supported MIME types.
+
+## Custom detectors
+
+A custom detector is a function that allows specifying custom detection mechanisms.
+
+An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser.constructor`.
+
+The detectors are called before the default detections in the provided order.
+
+Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing FileTypeResult detections.
+
+If the detector returns `undefined`, there are 2 possible scenarios:
+
+1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
+2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
+		In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
+		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
+
+
+Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
+```js
+import {FileTypeParser} from 'file-type';
+
+const customDetectors = [
+	async tokenizer => {
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const buffer = Buffer.alloc(7);
+		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+
+		if (unicornHeader.every((value, index) => value === buffer[index])) {
+			return {ext: 'unicorn', mime: 'application/unicorn'};
+		}
+
+		return undefined;
+	},
+];
+
+const buffer = Buffer.from("UNICORN");
+const parser = new FileTypeParser({customDetectors});
+const fileType = await parser.fromBuffer(buffer);
+console.log(fileType);
+```
 
 ## Supported file types
 
@@ -469,6 +515,20 @@ The following file types will not be accepted:
 	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg` - Detecting it requires a full-blown parser. Check out [`is-svg`](https://github.com/sindresorhus/is-svg) for something that mostly works.
+
+#### tokenizer
+
+Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
+
+Usable as source of the examined file.
+
+#### fileType
+
+Type: FileTypeResult
+
+Object having an `ext` (extension) and `mime` (mime type) property.
+
+Detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
 
 ## Related
 
