@@ -825,5 +825,5 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const parser = new FileTypeParser({customDetectors});
 
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
-	t.true(result === undefined);
+	t.is(result, undefined);
 });

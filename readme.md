@@ -327,7 +327,7 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 		Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
 
 
-Example detector array which can be extended and provided to each public method via the fileTypeOptions argument:
+Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
 ```js
 import {FileTypeParser} from 'file-type';
 
@@ -336,6 +336,7 @@ const customDetectors = [
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
 		const buffer = Buffer.alloc(7);
 		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+
 		if (unicornHeader.every((value, index) => value === buffer[index])) {
 			return {ext: 'unicorn', mime: 'application/unicorn'};
 		}
