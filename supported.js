@@ -150,6 +150,7 @@ export const extensions = [
 	'ace',
 	'avro',
 	'icc',
+	'fbx',
 ];
 
 export const mimeTypes = [
@@ -299,4 +300,5 @@ export const mimeTypes = [
 	'application/x-ace-compressed',
 	'application/avro',
 	'application/vnd.iccprofile',
+	'application/x.autodesk.fbx', // Invented by us
 ];
