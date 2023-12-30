@@ -192,7 +192,7 @@ export type MimeType =
 	| 'video/webm'
 	| 'video/quicktime'
 	| 'video/vnd.avi'
-	| 'audio/vnd.wave'
+	| 'audio/wav'
 	| 'audio/qcelp'
 	| 'audio/x-ms-asf'
 	| 'video/x-ms-asf'
