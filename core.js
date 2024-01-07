@@ -1,6 +1,6 @@
 import {Buffer} from 'node:buffer';
 import * as Token from 'token-types';
-import * as strtok3 from 'strtok3/core'; // eslint-disable-line n/file-extension-in-import
+import * as strtok3 from 'strtok3/core';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -794,7 +794,7 @@ export class FileTypeParser {
 					const element = await readElement();
 					if (element.id === 0x42_82) {
 						const rawValue = await tokenizer.readToken(new Token.StringType(element.len, 'utf-8'));
-						return rawValue.replace(/\00.*$/g, ''); // Return DocType
+						return rawValue.replaceAll(/\00.*$/g, ''); // Return DocType
 					}
 
 					await tokenizer.ignore(element.len); // ignore payload

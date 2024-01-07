@@ -1,5 +1,5 @@
 import process from 'node:process';
-import {Buffer, Blob} from 'node:buffer';
+import {Buffer} from 'node:buffer';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';
@@ -7,7 +7,7 @@ import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
-import * as strtok3 from 'strtok3/core'; // eslint-disable-line n/file-extension-in-import
+import * as strtok3 from 'strtok3/core';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,

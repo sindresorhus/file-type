@@ -20,7 +20,7 @@
 	},
 	"sideEffects": false,
 	"engines": {
-		"node": ">=14.16"
+		"node": ">=18"
 	},
 	"scripts": {
 		"test": "xo && ava && tsd"
@@ -216,17 +216,20 @@
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
-		"@types/node": "^20.1.2",
-		"ava": "^5.2.0",
+		"@types/node": "^20.10.7",
+		"ava": "^6.0.1",
 		"commonmark": "^0.30.0",
 		"noop-stream": "^1.0.0",
-		"tsd": "^0.28.1",
-		"xo": "^0.54.2"
+		"tsd": "^0.30.3",
+		"xo": "^0.56.0"
 	},
 	"xo": {
 		"envs": [
 			"node",
 			"browser"
+		],
+		"ignores": [
+			"fixture"
 		],
 		"rules": {
 			"no-inner-declarations": "warn",
