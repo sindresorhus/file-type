@@ -332,7 +332,7 @@ If file access is available, it is recommended to use `.fromFile()` instead.
 @param buffer - An Uint8Array or Buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 @returns The detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
+export function fileTypeFromBuffer(buffer: Uint8Array | Buffer | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
