@@ -662,7 +662,7 @@ test('supported files types are listed alphabetically', async t => {
 
 test('corrupt MKV throws', async t => {
 	const filePath = path.join(__dirname, 'fixture/fixture-corrupt.mkv');
-	await t.throwsAsync(fileTypeFromFile(filePath), {message: /out of range/});
+	await t.throwsAsync(fileTypeFromFile(filePath), {message: /End-Of-Stream/});
 });
 
 // Create a custom detector for the just made up "unicorn" file type

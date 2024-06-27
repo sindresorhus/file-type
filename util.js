@@ -1,3 +1,5 @@
+import {StringType} from 'token-types';
+
 export function stringToBytes(string) {
 	return [...string].map(character => character.charCodeAt(0)); // eslint-disable-line unicorn/prefer-code-point
 }
@@ -5,12 +7,12 @@ export function stringToBytes(string) {
 /**
 Checks whether the TAR checksum is valid.
 
-@param {Buffer} buffer - The TAR header `[offset ... offset + 512]`.
+@param {Uint8Array} arrayBuffer - The TAR header `[offset ... offset + 512]`.
 @param {number} offset - TAR header offset.
 @returns {boolean} `true` if the TAR checksum is valid, otherwise `false`.
 */
-export function tarHeaderChecksumMatches(buffer, offset = 0) {
-	const readSum = Number.parseInt(buffer.toString('utf8', 148, 154).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+export function tarHeaderChecksumMatches(arrayBuffer, offset = 0) {
+	const readSum = Number.parseInt(new StringType(6).get(arrayBuffer, 148).replace(/\0.*$/, '').trim(), 8); // Read sum in header
 	if (Number.isNaN(readSum)) {
 		return false;
 	}
@@ -18,11 +20,11 @@ export function tarHeaderChecksumMatches(buffer, offset = 0) {
 	let sum = 8 * 0x20; // Initialize signed bit sum
 
 	for (let index = offset; index < offset + 148; index++) {
-		sum += buffer[index];
+		sum += arrayBuffer[index];
 	}
 
 	for (let index = offset + 156; index < offset + 512; index++) {
-		sum += buffer[index];
+		sum += arrayBuffer[index];
 	}
 
 	return readSum === sum;
