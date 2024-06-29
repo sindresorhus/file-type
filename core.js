@@ -1,6 +1,6 @@
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
-import {findSequence, readUIntBE} from 'uint8array-extras';
+import {indexOf, getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -474,7 +474,7 @@ export class FileTypeParser {
 						while (nextHeaderIndex < 0 && (tokenizer.position < tokenizer.fileInfo.size)) {
 							await tokenizer.peekBuffer(this.buffer, {mayBeLess: true});
 
-							nextHeaderIndex = findSequence(this.buffer, new Uint8Array([0x50, 0x4B, 0x03, 0x04]));
+							nextHeaderIndex = indexOf(this.buffer, new Uint8Array([0x50, 0x4B, 0x03, 0x04]));
 
 							// Move position to the next header if found, skip the whole buffer otherwise
 							await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : this.buffer.length);
@@ -713,7 +713,7 @@ export class FileTypeParser {
 				await tokenizer.readBuffer(buffer, {mayBeLess: true});
 
 				// Check if this is an Adobe Illustrator file
-				if (findSequence(buffer, new TextEncoder().encode('AIPrivateData')) >= 0) {
+				if (indexOf(buffer, new TextEncoder().encode('AIPrivateData')) >= 0) {
 					return {
 						ext: 'ai',
 						mime: 'application/postscript',
@@ -791,8 +791,8 @@ export class FileTypeParser {
 				const lengthView = new DataView(lengthField.buffer, lengthField.length - nrLength, nrLength);
 
 				return {
-					id: readUIntBE(idView),
-					len: readUIntBE(lengthView),
+					id: getUintBE(idView),
+					len: getUintBE(lengthView),
 				};
 			}
 
