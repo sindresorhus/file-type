@@ -1,5 +1,4 @@
 import process from 'node:process';
-import {Buffer} from 'node:buffer';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';
@@ -8,6 +7,7 @@ import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
 import * as strtok3 from 'strtok3/core';
+import {areUint8ArraysEqual} from 'uint8array-extras';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
@@ -331,12 +331,23 @@ async function testFileFromStream(t, ext, name) {
 }
 
 async function loadEntireFile(readable) {
-	const buffer = [];
+	const chunks = [];
+	let totalLength = 0;
+
 	for await (const chunk of readable) {
-		buffer.push(Buffer.from(chunk));
+		chunks.push(chunk);
+		totalLength += chunk.length;
 	}
 
-	return Buffer.concat(buffer);
+	const entireFile = new Uint8Array(totalLength);
+
+	let offset = 0;
+	for (const chunk of chunks) {
+		entireFile.set(new Uint8Array(chunk), offset);
+		offset += chunk.length;
+	}
+
+	return entireFile;
 }
 
 async function testStream(t, ext, name) {
@@ -348,7 +359,7 @@ async function testStream(t, ext, name) {
 
 	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
 
-	t.true(bufferA.equals(bufferB));
+	t.true(areUint8ArraysEqual(bufferA, bufferB));
 }
 
 let i = 0;
@@ -387,7 +398,7 @@ test('.fileTypeStream() method - empty stream', async t => {
 });
 
 test('.fileTypeStream() method - short stream', async t => {
-	const bufferA = Buffer.from([0, 1, 0, 1]);
+	const bufferA = new Uint8Array([0, 1, 0, 1]);
 	class MyStream extends stream.Readable {
 		_read() {
 			this.push(bufferA);
@@ -449,8 +460,6 @@ test('validate the input argument type', async t => {
 	await t.throwsAsync(fileTypeFromBuffer('x'), {
 		message: /Expected the `input` argument to be of type `Uint8Array`/,
 	});
-
-	await t.notThrowsAsync(fileTypeFromBuffer(Buffer.from('x')));
 
 	await t.notThrowsAsync(fileTypeFromBuffer(new Uint8Array()));
 
@@ -620,12 +629,12 @@ test('odd file sizes', async t => {
 	const oddFileSizes = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 255, 256, 257, 511, 512, 513];
 
 	for (const size of oddFileSizes) {
-		const buffer = Buffer.alloc(size);
+		const buffer = new Uint8Array(size);
 		await t.notThrowsAsync(fileTypeFromBuffer(buffer), `fromBuffer: File size: ${size} bytes`);
 	}
 
 	for (const size of oddFileSizes) {
-		const buffer = Buffer.alloc(size);
+		const buffer = new Uint8Array(size);
 		const stream = new BufferedStream(buffer);
 		await t.notThrowsAsync(fileTypeFromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
@@ -668,7 +677,7 @@ test('corrupt MKV throws', async t => {
 // Create a custom detector for the just made up "unicorn" file type
 const unicornDetector = async tokenizer => {
 	const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
-	const buffer = Buffer.alloc(7);
+	const buffer = new Uint8Array(7);
 	await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
 	if (unicornHeader.every((value, index) => value === buffer[index])) {
 		return {ext: 'unicorn', mime: 'application/unicorn'};
@@ -680,7 +689,7 @@ const unicornDetector = async tokenizer => {
 const mockPngDetector = _tokenizer => ({ext: 'mockPng', mime: 'image/mockPng'});
 
 const tokenizerPositionChanger = tokenizer => {
-	const buffer = Buffer.alloc(1);
+	const buffer = new Uint8Array(1);
 	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
 };
 
