@@ -1,3 +1,7 @@
+/**
+ * Node.js specific entry point
+ */
+
 import * as strtok3 from 'strtok3';
 import {FileTypeParser} from './core.js';
 

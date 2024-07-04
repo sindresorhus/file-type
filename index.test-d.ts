@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {expectType} from 'tsd';
 import {
 	type FileTypeResult as FileTypeResultBrowser,
-} from './browser.js';
+} from './core.js';
 import {
 	fileTypeFromBlob,
 	fileTypeFromBuffer,
