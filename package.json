@@ -212,7 +212,7 @@
 	"dependencies": {
 		"readable-web-to-node-stream": "^3.0.2",
 		"strtok3": "^7.0.0",
-		"token-types": "^5.0.1",
+		"token-types": "^6.0.0",
 		"uint8array-extras": "^1.2.0"
 	},
 	"devDependencies": {
