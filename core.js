@@ -1,6 +1,6 @@
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
-import {indexOf, getUintBE} from 'uint8array-extras';
+import {includes, indexOf, getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -713,7 +713,7 @@ export class FileTypeParser {
 				await tokenizer.readBuffer(buffer, {mayBeLess: true});
 
 				// Check if this is an Adobe Illustrator file
-				if (indexOf(buffer, new TextEncoder().encode('AIPrivateData')) >= 0) {
+				if (includes(buffer, new TextEncoder().encode('AIPrivateData'))) {
 					return {
 						ext: 'ai',
 						mime: 'application/postscript',
