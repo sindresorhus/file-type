@@ -1,6 +1,6 @@
 # file-type
 
-> Detect the file type of a Buffer/Uint8Array/ArrayBuffer
+> Detect the file type of a Uint8Array/ArrayBuffer
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -31,7 +31,7 @@ console.log(await fileTypeFromFile('Unicorn.png'));
 //=> {ext: 'png', mime: 'image/png'}
 ```
 
-Determine file type from a Buffer, which may be a portion of the beginning of a file:
+Determine file type from a Uint8Array/ArrayBuffer, which may be a portion of the beginning of a file:
 
 ```js
 import {fileTypeFromBuffer} from 'file-type';
@@ -107,7 +107,7 @@ console.log(fileType);
 
 ### fileTypeFromBuffer(buffer)
 
-Detect the file type of a `Buffer`, `Uint8Array`, or `ArrayBuffer`.
+Detect the file type of a `Uint8Array`, or `ArrayBuffer`.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -122,7 +122,7 @@ Or `undefined` when there is no match.
 
 #### buffer
 
-Type: `Buffer | Uint8Array | ArrayBuffer`
+Type: `Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 
@@ -335,7 +335,7 @@ const customDetectors = [
 	async tokenizer => {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
 
-		const buffer = Buffer.alloc(7);
+		const buffer = new Uint8Array(7);
 		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
 
 		if (unicornHeader.every((value, index) => value === buffer[index])) {
@@ -346,7 +346,7 @@ const customDetectors = [
 	},
 ];
 
-const buffer = Buffer.from('UNICORN');
+const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);

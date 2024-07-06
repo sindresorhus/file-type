@@ -1,6 +1,6 @@
-import {Buffer} from 'node:buffer';
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
+import {includes, indexOf, getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -75,7 +75,7 @@ export class FileTypeParser {
 
 	async fromBuffer(input) {
 		if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
-			throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`Buffer\` or \`ArrayBuffer\`, got \`${typeof input}\``);
+			throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`ArrayBuffer\`, got \`${typeof input}\``);
 		}
 
 		const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -116,7 +116,7 @@ export class FileTypeParser {
 						const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
 
 						// Read the input stream and detect the filetype
-						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? Buffer.alloc(0);
+						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? new Uint8Array(0);
 						try {
 							pass.fileType = await this.fromBuffer(chunk);
 						} catch (error) {
@@ -145,7 +145,7 @@ export class FileTypeParser {
 	}
 
 	async parse(tokenizer) {
-		this.buffer = Buffer.alloc(minimumBytes);
+		this.buffer = new Uint8Array(minimumBytes);
 
 		// Keep reading until EOF if the file size is unknown.
 		if (tokenizer.fileInfo.size === undefined) {
@@ -372,12 +372,14 @@ export class FileTypeParser {
 				while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
 					await tokenizer.readBuffer(this.buffer, {length: 30});
 
+					const view = new DataView(this.buffer.buffer);
+
 					// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
 					const zipHeader = {
-						compressedSize: this.buffer.readUInt32LE(18),
-						uncompressedSize: this.buffer.readUInt32LE(22),
-						filenameLength: this.buffer.readUInt16LE(26),
-						extraFieldLength: this.buffer.readUInt16LE(28),
+						compressedSize: view.getUint32(18, true),
+						uncompressedSize: view.getUint32(22, true),
+						filenameLength: view.getUint16(26, true),
+						extraFieldLength: view.getUint16(28, true),
 					};
 
 					zipHeader.filename = await tokenizer.readToken(new Token.StringType(zipHeader.filenameLength, 'utf-8'));
@@ -472,7 +474,8 @@ export class FileTypeParser {
 						while (nextHeaderIndex < 0 && (tokenizer.position < tokenizer.fileInfo.size)) {
 							await tokenizer.peekBuffer(this.buffer, {mayBeLess: true});
 
-							nextHeaderIndex = this.buffer.indexOf('504B0304', 0, 'hex');
+							nextHeaderIndex = indexOf(this.buffer, new Uint8Array([0x50, 0x4B, 0x03, 0x04]));
+
 							// Move position to the next header if found, skip the whole buffer otherwise
 							await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : this.buffer.length);
 						}
@@ -495,7 +498,7 @@ export class FileTypeParser {
 		if (this.checkString('OggS')) {
 			// This is an OGG container
 			await tokenizer.ignore(28);
-			const type = Buffer.alloc(8);
+			const type = new Uint8Array(8);
 			await tokenizer.readBuffer(type);
 
 			// Needs to be before `ogg` check
@@ -576,7 +579,7 @@ export class FileTypeParser {
 		) {
 			// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
 			// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
-			const brandMajor = this.buffer.toString('binary', 8, 12).replace('\0', ' ').trim();
+			const brandMajor = new Token.StringType(4, 'latin1').get(this.buffer, 8).replace('\0', ' ').trim();
 			switch (brandMajor) {
 				case 'avif':
 				case 'avis':
@@ -706,11 +709,11 @@ export class FileTypeParser {
 			try {
 				await tokenizer.ignore(1350);
 				const maxBufferSize = 10 * 1024 * 1024;
-				const buffer = Buffer.alloc(Math.min(maxBufferSize, tokenizer.fileInfo.size));
+				const buffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size));
 				await tokenizer.readBuffer(buffer, {mayBeLess: true});
 
 				// Check if this is an Adobe Illustrator file
-				if (buffer.includes(Buffer.from('AIPrivateData'))) {
+				if (includes(buffer, new TextEncoder().encode('AIPrivateData'))) {
 					return {
 						ext: 'ai',
 						mime: 'application/postscript',
@@ -765,27 +768,31 @@ export class FileTypeParser {
 			async function readField() {
 				const msb = await tokenizer.peekNumber(Token.UINT8);
 				let mask = 0x80;
-				let ic = 0; // 0 = A, 1 = B, 2 = C, 3
-				// = D
+				let ic = 0; // 0 = A, 1 = B, 2 = C, 3 = D
 
 				while ((msb & mask) === 0 && mask !== 0) {
 					++ic;
 					mask >>= 1;
 				}
 
-				const id = Buffer.alloc(ic + 1);
+				const id = new Uint8Array(ic + 1);
 				await tokenizer.readBuffer(id);
 				return id;
 			}
 
 			async function readElement() {
-				const id = await readField();
+				const idField = await readField();
 				const lengthField = await readField();
+
 				lengthField[0] ^= 0x80 >> (lengthField.length - 1);
 				const nrLength = Math.min(6, lengthField.length); // JavaScript can max read 6 bytes integer
+
+				const idView = new DataView(idField.buffer);
+				const lengthView = new DataView(lengthField.buffer, lengthField.length - nrLength, nrLength);
+
 				return {
-					id: id.readUIntBE(0, id.length),
-					len: lengthField.readUIntBE(lengthField.length - nrLength, nrLength),
+					id: getUintBE(idView),
+					len: getUintBE(lengthView),
 				};
 			}
 
@@ -793,7 +800,7 @@ export class FileTypeParser {
 				while (children > 0) {
 					const element = await readElement();
 					if (element.id === 0x42_82) {
-						const rawValue = await tokenizer.readToken(new Token.StringType(element.len, 'utf-8'));
+						const rawValue = await tokenizer.readToken(new Token.StringType(element.len));
 						return rawValue.replaceAll(/\00.*$/g, ''); // Return DocType
 					}
 
@@ -1059,7 +1066,7 @@ export class FileTypeParser {
 		}
 
 		if (this.checkString('AC')) {
-			const version = this.buffer.toString('binary', 2, 6);
+			const version = new Token.StringType(4, 'latin1').get(this.buffer, 2);
 			if (version.match('^d*') && version >= 1000 && version <= 1050) {
 				return {
 					ext: 'dwg',
@@ -1126,7 +1133,7 @@ export class FileTypeParser {
 			async function readChunkHeader() {
 				return {
 					length: await tokenizer.readToken(Token.INT32_BE),
-					type: await tokenizer.readToken(new Token.StringType(4, 'binary')),
+					type: await tokenizer.readToken(new Token.StringType(4, 'latin1')),
 				};
 			}
 
@@ -1213,7 +1220,7 @@ export class FileTypeParser {
 		// ASF_Header_Object first 80 bytes
 		if (this.check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
 			async function readHeader() {
-				const guid = Buffer.alloc(16);
+				const guid = new Uint8Array(16);
 				await tokenizer.readBuffer(guid);
 				return {
 					id: guid,
@@ -1228,7 +1235,7 @@ export class FileTypeParser {
 				let payload = header.size - 24;
 				if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
 					// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
-					const typeId = Buffer.alloc(16);
+					const typeId = new Uint8Array(16);
 					payload -= await tokenizer.readBuffer(typeId);
 
 					if (_check(typeId, [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
@@ -1432,10 +1439,11 @@ export class FileTypeParser {
 		}
 
 		if (this.check([0x04, 0x00, 0x00, 0x00]) && this.buffer.length >= 16) { // Rough & quick check Pickle/ASAR
-			const jsonSize = this.buffer.readUInt32LE(12);
+			const jsonSize = new DataView(this.buffer.buffer).getUint32(12, true);
+
 			if (jsonSize > 12 && this.buffer.length >= jsonSize + 16) {
 				try {
-					const header = this.buffer.slice(16, jsonSize + 16).toString();
+					const header = new TextDecoder().decode(this.buffer.slice(16, jsonSize + 16));
 					const json = JSON.parse(header);
 					// Check if Pickle is ASAR
 					if (json.files) { // Final check, assuring Pickle/ASAR format
