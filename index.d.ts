@@ -1,6 +1,6 @@
 /**
- * Typings for Node.js specific entry point
- */
+Typings for Node.js specific entry point.
+*/
 
 import type {Readable as NodeReadableStream} from 'node:stream';
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
