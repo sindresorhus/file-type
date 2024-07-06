@@ -1,6 +1,6 @@
 /**
- * Typings for primary entry point, Node.js specific typings can be found in index.d.ts
- */
+Typings for primary entry point, Node.js specific typings can be found in index.d.ts
+*/
 
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
 import type {Readable as NodeReadableStream} from 'node:stream';
