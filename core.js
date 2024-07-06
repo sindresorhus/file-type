@@ -1,6 +1,6 @@
 /**
- * Primary entry point, Node.js specific entry point is index.js
- */
+Primary entry point, Node.js specific entry point is index.js
+*/
 
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
