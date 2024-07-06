@@ -1,6 +1,6 @@
 /**
- * Node.js specific entry point
- */
+Node.js specific entry point.
+*/
 
 import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import * as strtok3 from 'strtok3';
