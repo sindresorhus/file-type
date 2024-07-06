@@ -9,7 +9,7 @@ import {FileTypeParser} from './core.js';
 
 export declare class NodeFileTypeParser extends FileTypeParser {
 	/**
-	@param stream Node.js Stream readable or Web API StreamReadable
+	@param stream - Node.js `stream.Readable` or Web API `ReadableStream`.
 	*/
 	fromStream(stream: WebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 }
