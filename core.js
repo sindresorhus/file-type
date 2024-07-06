@@ -2,7 +2,6 @@
  * Primary entry point, Node.js specific entry point is index.js
  */
 
-import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
 import {includes, indexOf, getUintBE} from 'uint8array-extras';
@@ -97,7 +96,7 @@ export class FileTypeParser {
 	}
 
 	async fromStream(stream) {
-		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream) : strtok3.fromStream(stream));
+		const tokenizer = await strtok3.fromWebStream(stream);
 		try {
 			return await this.fromTokenizer(tokenizer);
 		} finally {

@@ -2,8 +2,8 @@
  * Typings for primary entry point, Node.js specific typings can be found in index.d.ts
  */
 
-import type {Readable as NodeReadableStream} from 'node:stream';
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
+import type {Readable as NodeReadableStream} from 'node:stream';
 import type {ITokenizer} from 'strtok3';
 
 export type FileExtension =
@@ -323,7 +323,7 @@ export type FileTypeResult = {
 	readonly mime: MimeType;
 };
 
-export type ReadableStreamWithFileType = NodeReadableStream & {
+export type ReadableStreamWithFileType = WebReadableStream & {
 	readonly fileType?: FileTypeResult;
 };
 
@@ -347,7 +347,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 @param stream - A Node.js Readable stream or Web API Readable Stream representing file data. The Web Readable stream **must be a byte stream**.
 @returns The detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: NodeReadableStream | WebReadableStream): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: WebReadableStream): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -425,7 +425,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(readableStream: WebReadableStream<Uint8Array>, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
@@ -516,7 +516,7 @@ export declare class FileTypeParser {
 	/**
 	Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
-	fromStream(stream: NodeReadableStream | WebReadableStream): Promise<FileTypeResult | undefined>;
+	fromStream(stream: NodeReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
 	Works the same way as {@link fileTypeFromTokenizer}, additionally taking into account custom detectors (if any were provided to the constructor).

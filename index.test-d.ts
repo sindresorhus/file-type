@@ -1,4 +1,5 @@
 import {createReadStream} from 'node:fs';
+import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import {expectType} from 'tsd';
 import {
 	type FileTypeResult as FileTypeResultBrowser,
@@ -54,8 +55,8 @@ expectType<ReadonlySet<FileExtension>>(supportedExtensions);
 
 expectType<ReadonlySet<MimeType>>(supportedMimeTypes);
 
-const readableStream = createReadStream('file.png');
-const streamWithFileType = fileTypeStream(readableStream);
+const webStream = new WebReadableStream<Uint8Array>();
+const streamWithFileType = fileTypeStream(webStream);
 expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 (async () => {
 	const {fileType} = await streamWithFileType;
@@ -63,4 +64,4 @@ expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 })();
 
 // Browser
-expectType<Promise<FileTypeResultBrowser | undefined>>(fileTypeFromBlob(new Blob()));
+expectType<Promise<FileTypeResultBrowser | undefined>>(fileTypeFromBlob(new Blob([])));
