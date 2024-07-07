@@ -6,9 +6,9 @@ import type {ReadableStream as WebReadableStream} from 'node:stream/web';
 import type {ITokenizer} from 'strtok3';
 
 /**
- * Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream
- * Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/60377
- */
+Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream.
+Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/60377
+*/
 export type AnyWebReadableStream<G> = WebReadableStream<G> | ReadableStream<G>;
 
 export type FileExtension =
