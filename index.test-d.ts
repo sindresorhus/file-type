@@ -55,8 +55,8 @@ expectType<ReadonlySet<FileExtension>>(supportedExtensions);
 
 expectType<ReadonlySet<MimeType>>(supportedMimeTypes);
 
-const webStream = new WebReadableStream<Uint8Array>();
-const streamWithFileType = fileTypeStream(webStream);
+const readableStream = createReadStream('file.png');
+const streamWithFileType = fileTypeStream(readableStream);
 expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 (async () => {
 	const {fileType} = await streamWithFileType;

@@ -12,7 +12,7 @@ import {
 } from './util.js';
 import {extensions, mimeTypes} from './supported.js';
 
-const minimumBytes = 4100; // A fair amount of file-types are detectable within this range.
+export const reasonableDetectionSizeInBytes = 4100; // A fair amount of file-types are detectable within this range.
 
 export async function fileTypeFromStream(stream) {
 	return new FileTypeParser().fromStream(stream);
@@ -104,41 +104,6 @@ export class FileTypeParser {
 		}
 	}
 
-	async toDetectionStream(readableStream, options = {}) {
-		const {default: stream} = await import('node:stream');
-		const {sampleSize = minimumBytes} = options;
-
-		return new Promise((resolve, reject) => {
-			readableStream.on('error', reject);
-
-			readableStream.once('readable', () => {
-				(async () => {
-					try {
-						// Set up output stream
-						const pass = new stream.PassThrough();
-						const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
-
-						// Read the input stream and detect the filetype
-						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? new Uint8Array(0);
-						try {
-							pass.fileType = await this.fromBuffer(chunk);
-						} catch (error) {
-							if (error instanceof strtok3.EndOfStreamError) {
-								pass.fileType = undefined;
-							} else {
-								reject(error);
-							}
-						}
-
-						resolve(outputStream);
-					} catch (error) {
-						reject(error);
-					}
-				})();
-			});
-		});
-	}
-
 	check(header, options) {
 		return _check(this.buffer, header, options);
 	}
@@ -148,7 +113,7 @@ export class FileTypeParser {
 	}
 
 	async parse(tokenizer) {
-		this.buffer = new Uint8Array(minimumBytes);
+		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Keep reading until EOF if the file size is unknown.
 		if (tokenizer.fileInfo.size === undefined) {
@@ -1691,10 +1656,6 @@ export class FileTypeParser {
 			};
 		}
 	}
-}
-
-export async function fileTypeStream(readableStream, options = {}) {
-	return new FileTypeParser().toDetectionStream(readableStream, options);
 }
 
 export const supportedExtensions = new Set(extensions);
