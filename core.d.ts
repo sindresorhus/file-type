@@ -1,5 +1,15 @@
-import type {Readable as ReadableStream} from 'node:stream';
+/**
+Typings for primary entry point, Node.js specific typings can be found in index.d.ts
+*/
+
+import type {ReadableStream as WebReadableStream} from 'node:stream/web';
 import type {ITokenizer} from 'strtok3';
+
+/**
+Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream.
+Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/60377
+*/
+export type AnyWebReadableStream<G> = WebReadableStream<G> | ReadableStream<G>;
 
 export type FileExtension =
 	| 'jpg'
@@ -318,10 +328,6 @@ export type FileTypeResult = {
 	readonly mime: MimeType;
 };
 
-export type ReadableStreamWithFileType = ReadableStream & {
-	readonly fileType?: FileTypeResult;
-};
-
 /**
 Detect the file type of a `Uint8Array`, or `ArrayBuffer`.
 
@@ -339,10 +345,10 @@ Detect the file type of a Node.js [readable stream](https://nodejs.org/api/strea
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-@param stream - A readable stream representing file data.
+@param stream - A Node.js Readable stream or Web API Readable Stream representing file data. The Web Readable stream **must be a byte stream**.
 @returns The detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -390,37 +396,6 @@ export type StreamOptions = {
 	*/
 	readonly sampleSize?: number;
 };
-
-/**
-Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
-
-This method can be handy to put in between a stream, but it comes with a price.
-Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type.
-The sample size impacts the file detection resolution.
-A smaller sample size will result in lower probability of the best file type detection.
-
-**Note:** This method is only available when using Node.js.
-**Note:** Requires Node.js 14 or later.
-
-@param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
-
-@example
-```
-import got from 'got';
-import {fileTypeStream} from 'file-type';
-
-const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
-
-const stream1 = got.stream(url);
-const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
-
-if (stream2.fileType?.mime === 'image/jpeg') {
-	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
-}
-```
-*/
-export function fileTypeStream(readableStream: ReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 
 /**
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
@@ -509,11 +484,6 @@ export declare class FileTypeParser {
 	fromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 	/**
-	Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	*/
-	fromStream(stream: ReadableStream): Promise<FileTypeResult | undefined>;
-
-	/**
 	Works the same way as {@link fileTypeFromTokenizer}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
 	fromTokenizer(tokenizer: ITokenizer): Promise<FileTypeResult | undefined>;
@@ -522,9 +492,4 @@ export declare class FileTypeParser {
 	Works the same way as {@link fileTypeFromBlob}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
 	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
-
-	/**
-	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	*/
-	toDetectionStream(readableStream: ReadableStream, options?: StreamOptions): Promise<FileTypeResult | undefined>;
 }

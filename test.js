@@ -10,13 +10,13 @@ import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {
 	fileTypeFromBuffer,
-	fileTypeFromStream,
+	fileTypeFromStream as fileTypeNodeFromStream,
 	fileTypeFromFile,
 	fileTypeFromBlob,
-	FileTypeParser,
 	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
+	NodeFileTypeParser,
 } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +24,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const missingTests = new Set([
 	'mpc',
 ]);
+
+const [nodeMajorVersion] = process.versions.node.split('.').map(Number);
+const nodeVersionSupportingByeBlobStream = 20;
 
 const types = [...supportedExtensions].filter(ext => !missingTests.has(ext));
 
@@ -320,10 +323,10 @@ async function testFalsePositive(t, ext, name) {
 	t.is(await fileTypeFromBuffer(chunk.buffer), undefined);
 }
 
-async function testFileFromStream(t, ext, name) {
+async function testFileNodeFromStream(t, ext, name) {
 	const filename = `${(name ?? 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', filename);
-	const fileType = await fileTypeFromStream(fs.createReadStream(file));
+	const fileType = await fileTypeNodeFromStream(fs.createReadStream(file));
 
 	t.truthy(fileType, `identify ${filename}`);
 	t.is(fileType.ext, ext, 'fileType.ext');
@@ -362,6 +365,10 @@ async function testStream(t, ext, name) {
 	t.true(areUint8ArraysEqual(bufferA, bufferB));
 }
 
+test('Test suite must be able to detect Node.js major version', t => {
+	t.is(typeof nodeMajorVersion, 'number', 'Detected Node.js major version should be a number');
+});
+
 let i = 0;
 for (const type of types) {
 	if (Object.prototype.hasOwnProperty.call(names, type)) {
@@ -371,8 +378,12 @@ for (const type of types) {
 
 			_test(`${name}.${type} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, type, name);
 			_test(`${name}.${type} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, type, name);
-			_test(`${name}.${type} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, type, name);
-			_test(`${name}.${type} ${i++} .fileTypeFromStream() method - same fileType`, testFileFromStream, type, name);
+			if (nodeMajorVersion >= nodeVersionSupportingByeBlobStream) {
+				// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
+				_test(`${name}.${type} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, type, name);
+			}
+
+			_test(`${name}.${type} ${i++} .fileTypeFromStream() Node.js method - same fileType`, testFileNodeFromStream, type, name);
 			test(`${name}.${type} ${i++} .fileTypeStream() - identical streams`, testStream, type, name);
 		}
 	} else {
@@ -381,7 +392,7 @@ for (const type of types) {
 
 		_test(`${type} ${i++} .fileTypeFromFile()`, testFromFile, type);
 		_test(`${type} ${i++} .fileTypeFromBuffer()`, testFromBuffer, type);
-		_test(`${type} ${i++} .fileTypeFromStream()`, testFileFromStream, type);
+		_test(`${type} ${i++} .fileTypeFromStream() Node.js`, testFileNodeFromStream, type);
 		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStream, type);
 	}
 
@@ -636,7 +647,7 @@ test('odd file sizes', async t => {
 	for (const size of oddFileSizes) {
 		const buffer = new Uint8Array(size);
 		const stream = new BufferedStream(buffer);
-		await t.notThrowsAsync(fileTypeFromStream(stream), `fromStream: File size: ${size} bytes`);
+		await t.notThrowsAsync(fileTypeNodeFromStream(stream), `fromStream: File size: ${size} bytes`);
 	}
 });
 
@@ -693,48 +704,52 @@ const tokenizerPositionChanger = tokenizer => {
 	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
 };
 
-test('fileTypeFromBlob should detect custom file type "unicorn" using custom detectors', async t => {
-	// Set up the "unicorn" file content
-	const header = 'UNICORN FILE\n';
-	const blob = new Blob([header]);
+if (nodeMajorVersion >= nodeVersionSupportingByeBlobStream) {
+	// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
 
-	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	test('fileTypeFromBlob should detect custom file type "unicorn" using custom detectors', async t => {
+		// Set up the "unicorn" file content
+		const header = 'UNICORN FILE\n';
+		const blob = new Blob([header]);
 
-	const result = await parser.fromBlob(blob);
-	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
-});
+		const customDetectors = [unicornDetector];
+		const parser = new NodeFileTypeParser({customDetectors});
 
-test('fileTypeFromBlob should keep detecting default file types when no custom detector matches', async t => {
-	const file = path.join(__dirname, 'fixture', 'fixture.png');
-	const chunk = fs.readFileSync(file);
-	const blob = new Blob([chunk]);
+		const result = await parser.fromBlob(blob);
+		t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
+	});
 
-	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	test('fileTypeFromBlob should keep detecting default file types when no custom detector matches', async t => {
+		const file = path.join(__dirname, 'fixture', 'fixture.png');
+		const chunk = fs.readFileSync(file);
+		const blob = new Blob([chunk]);
 
-	const result = await parser.fromBlob(blob);
-	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
-});
+		const customDetectors = [unicornDetector];
+		const parser = new NodeFileTypeParser({customDetectors});
 
-test('fileTypeFromBlob should allow overriding default file type detectors', async t => {
-	const file = path.join(__dirname, 'fixture', 'fixture.png');
-	const chunk = fs.readFileSync(file);
-	const blob = new Blob([chunk]);
+		const result = await parser.fromBlob(blob);
+		t.deepEqual(result, {ext: 'png', mime: 'image/png'});
+	});
 
-	const customDetectors = [mockPngDetector];
-	const parser = new FileTypeParser({customDetectors});
+	test('fileTypeFromBlob should allow overriding default file type detectors', async t => {
+		const file = path.join(__dirname, 'fixture', 'fixture.png');
+		const chunk = fs.readFileSync(file);
+		const blob = new Blob([chunk]);
 
-	const result = await parser.fromBlob(blob);
-	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
-});
+		const customDetectors = [mockPngDetector];
+		const parser = new NodeFileTypeParser({customDetectors});
+
+		const result = await parser.fromBlob(blob);
+		t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
+	});
+}
 
 test('fileTypeFromBuffer should detect custom file type "unicorn" using custom detectors', async t => {
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
 	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
@@ -745,7 +760,7 @@ test('fileTypeFromBuffer should keep detecting default file types when no custom
 	const uint8ArrayContent = fs.readFileSync(file);
 
 	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
@@ -756,7 +771,7 @@ test('fileTypeFromBuffer should allow overriding default file type detectors', a
 	const uint8ArrayContent = fs.readFileSync(file);
 
 	const customDetectors = [mockPngDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromBuffer(uint8ArrayContent);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
@@ -771,7 +786,7 @@ test('fileTypeFromStream should detect custom file type "unicorn" using custom d
 	const readableStream = new CustomReadableStream();
 
 	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'unicorn', mime: 'application/unicorn'});
@@ -782,7 +797,7 @@ test('fileTypeFromStream should keep detecting default file types when no custom
 	const readableStream = fs.createReadStream(file);
 
 	const customDetectors = [unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'png', mime: 'image/png'});
@@ -793,7 +808,7 @@ test('fileTypeFromStream should allow overriding default file type detectors', a
 	const readableStream = fs.createReadStream(file);
 
 	const customDetectors = [mockPngDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromStream(readableStream);
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
@@ -832,7 +847,7 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 
 	// Include the unicormDetector here to verify it's not used after the tokenizer.position changed
 	const customDetectors = [tokenizerPositionChanger, unicornDetector];
-	const parser = new FileTypeParser({customDetectors});
+	const parser = new NodeFileTypeParser({customDetectors});
 
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.is(result, undefined);

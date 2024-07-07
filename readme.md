@@ -147,7 +147,7 @@ The file path to parse.
 
 ### fileTypeFromStream(stream)
 
-Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Detect the file type of a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) or a [Web API ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -167,6 +167,8 @@ A readable stream representing file data.
 ### fileTypeFromBlob(blob)
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+
+It will **stream** the underlying Blob, and required a [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **require Node.js ≥ 20**.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 

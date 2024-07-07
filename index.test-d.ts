@@ -2,7 +2,7 @@ import {createReadStream} from 'node:fs';
 import {expectType} from 'tsd';
 import {
 	type FileTypeResult as FileTypeResultBrowser,
-} from './browser.js';
+} from './core.js';
 import {
 	fileTypeFromBlob,
 	fileTypeFromBuffer,
@@ -63,4 +63,4 @@ expectType<Promise<ReadableStreamWithFileType>>(streamWithFileType);
 })();
 
 // Browser
-expectType<Promise<FileTypeResultBrowser | undefined>>(fileTypeFromBlob(new Blob()));
+expectType<Promise<FileTypeResultBrowser | undefined>>(fileTypeFromBlob(new Blob([])));

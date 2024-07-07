@@ -14,7 +14,7 @@
 	"exports": {
 		".": {
 			"node": "./index.js",
-			"default": "./browser.js"
+			"default": "./core.js"
 		},
 		"./core": "./core.js"
 	},
@@ -28,8 +28,6 @@
 	"files": [
 		"index.js",
 		"index.d.ts",
-		"browser.js",
-		"browser.d.ts",
 		"core.js",
 		"core.d.ts",
 		"supported.js",
@@ -210,7 +208,6 @@
 		"fbx"
 	],
 	"dependencies": {
-		"readable-web-to-node-stream": "^3.0.2",
 		"strtok3": "^7.1.0",
 		"token-types": "^6.0.0",
 		"uint8array-extras": "^1.3.0"
