@@ -3,8 +3,7 @@ Typings for Node.js specific entry point.
 */
 
 import type {Readable as NodeReadableStream} from 'node:stream';
-import type {ReadableStream as WebReadableStream} from 'node:stream/web';
-import type {FileTypeResult, StreamOptions} from './core.js';
+import type {FileTypeResult, StreamOptions, AnyWebReadableStream} from './core.js';
 import {FileTypeParser} from './core.js';
 
 export type ReadableStreamWithFileType = NodeReadableStream & {
@@ -15,7 +14,7 @@ export declare class NodeFileTypeParser extends FileTypeParser {
 	/**
 	@param stream - Node.js `stream.Readable` or Web API `ReadableStream`.
 	*/
-	fromStream(stream: WebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
+	fromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
@@ -33,7 +32,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 */
 export function fileTypeFromFile(path: string): Promise<FileTypeResult | undefined>;
 
-export function fileTypeFromStream(stream: WebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
 /**
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
@@ -47,7 +46,8 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
+@param options - Maybe used to override the default sample-size.
+ @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
 ```

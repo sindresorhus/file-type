@@ -1,5 +1,4 @@
 import {createReadStream} from 'node:fs';
-import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import {expectType} from 'tsd';
 import {
 	type FileTypeResult as FileTypeResultBrowser,

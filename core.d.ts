@@ -5,6 +5,12 @@ Typings for primary entry point, Node.js specific typings can be found in index.
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
 import type {ITokenizer} from 'strtok3';
 
+/**
+ * Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream
+ * Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/60377
+ */
+export type AnyWebReadableStream<G> = WebReadableStream<G> | ReadableStream<G>;
+
 export type FileExtension =
 	| 'jpg'
 	| 'png'
@@ -342,7 +348,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 @param stream - A Node.js Readable stream or Web API Readable Stream representing file data. The Web Readable stream **must be a byte stream**.
 @returns The detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: WebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
