@@ -18,7 +18,7 @@ export declare class NodeFileTypeParser extends FileTypeParser {
 
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 */
+	*/
 	toDetectionStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 }
 
