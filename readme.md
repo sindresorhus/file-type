@@ -128,6 +128,9 @@ A buffer representing file data. It works best if the buffer contains the entire
 
 ### fileTypeFromFile(filePath)
 
+This method can only be used if the JavaScript engine is Node.js.
+To read from a [File](https://developer.mozilla.org/docs/Web/API/File), please see [fileTypeFromBlob(blob)](#filetypefromblobblob).
+
 Detect the file type of a file path.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
@@ -147,7 +150,9 @@ The file path to parse.
 
 ### fileTypeFromStream(stream)
 
-Detect the file type of a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) or a [Web API ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+Detect the file type of a [Web API ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+If, and only if the engine used is Node.js, this may also be a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Support for Node.js streams maybe dropped in the future, when Node.js streams can be converted to Web streams (see [toWeb()](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -166,11 +171,12 @@ A readable stream representing file data.
 
 ### fileTypeFromBlob(blob)
 
-Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+Detect the file type of a [Blob](https://developer.mozilla.org/docs/Web/API/Blob),
+and therefor it can also be used for a [File](https://developer.mozilla.org/docs/Web/API/File).
 
 It will **stream** the underlying Blob, and required a [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **require Node.js ≥ 20**.
 
-The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the blob.
 
 Returns a `Promise` for an object with the detected file type:
 
