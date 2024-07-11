@@ -11,8 +11,8 @@ export type ReadableStreamWithFileType = NodeReadableStream & {
 };
 
 /**
- * Extending `FileTypeParser` with Node.js engine specific functions
- */
+Extending `FileTypeParser` with Node.js engine specific functions.
+*/
 export declare class NodeFileTypeParser extends FileTypeParser {
 	/**
 	@param stream - Node.js `stream.Readable` or Web API `ReadableStream`.
