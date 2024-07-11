@@ -476,6 +476,9 @@ export declare class TokenizerPositionError extends Error {
 export declare class FileTypeParser {
 	detectors: Iterable<Detector>;
 
+	/**
+	 @param options -  `options.customDetectors`: list of custom detectors
+	 */
 	constructor(options?: {customDetectors?: Iterable<Detector>});
 
 	/**

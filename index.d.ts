@@ -3,7 +3,7 @@ Typings for Node.js specific entry point.
 */
 
 import type {Readable as NodeReadableStream} from 'node:stream';
-import type {FileTypeResult, StreamOptions, AnyWebReadableStream} from './core.js';
+import type {FileTypeResult, StreamOptions, AnyWebReadableStream, Detector} from './core.js';
 import {FileTypeParser} from './core.js';
 
 export type ReadableStreamWithFileType = NodeReadableStream & {
@@ -17,6 +17,11 @@ export declare class NodeFileTypeParser extends FileTypeParser {
 	fromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
 	/**
+   @param path - String with file path
+	 */
+	fromFile(path: string): Promise<FileTypeResult | undefined>;
+
+	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
 	toDetectionStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
@@ -28,9 +33,10 @@ Detect the file type of a file path.
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 @param path
+@param options -  `options.customDetectors`: list of custom detectors
 @returns The detected file type and MIME type or `undefined` when there is no match.
 */
-export function fileTypeFromFile(path: string): Promise<FileTypeResult | undefined>;
+export function fileTypeFromFile(path: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
 
 export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
