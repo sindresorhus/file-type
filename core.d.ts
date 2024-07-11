@@ -341,13 +341,13 @@ If file access is available, it is recommended to use `.fromFile()` instead.
 export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer): Promise<FileTypeResult | undefined>;
 
 /**
-Detect the file type of a Node.js [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Detect the file type of a [Web ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-@param stream - A Node.js Readable stream or Web API Readable Stream representing file data. The Web Readable stream **must be a byte stream**.
-@returns The detected file type, or `undefined` when there is no match.
-*/
+@param stream A [Web ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
+@returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
+ */
 export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
 
 /**

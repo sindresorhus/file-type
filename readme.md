@@ -127,11 +127,10 @@ Type: `Uint8Array | ArrayBuffer`
 A buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 
 ### fileTypeFromFile(filePath)
-
-This method can only be used if the JavaScript engine is Node.js.
-To read from a [File](https://developer.mozilla.org/docs/Web/API/File), please see [fileTypeFromBlob(blob)](#filetypefromblobblob).
-
 Detect the file type of a file path.
+
+This is for Node.js only.
+To read from a [File](https://developer.mozilla.org/docs/Web/API/File), please see [fileTypeFromBlob(blob)](#filetypefromblobblob).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -150,9 +149,9 @@ The file path to parse.
 
 ### fileTypeFromStream(stream)
 
-Detect the file type of a [Web API ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-If, and only if the engine used is Node.js, this may also be a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
-Support for Node.js streams maybe dropped in the future, when Node.js streams can be converted to Web streams (see [toWeb()](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
+Detect the file type of a [Web ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+If the engine is Node.js, this may also be a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [toWeb()](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -322,6 +321,7 @@ Returns a `Set<string>` of supported MIME types.
 A custom detector is a function that allows specifying custom detection mechanisms.
 
 An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
+In Node.js you should use `NodeFileTypeParser`, extending `FileTypeParser`, providing access to Node.js specific functions.
 
 The detectors are called before the default detections in the provided order.
 
@@ -337,7 +337,7 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
 
 ```js
-import {FileTypeParser} from 'file-type';
+import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
 
 const customDetectors = [
 	async tokenizer => {
@@ -355,7 +355,7 @@ const customDetectors = [
 ];
 
 const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
-const parser = new FileTypeParser({customDetectors});
+const parser = new FileTypeParser({customDetectors}); // `NodeFileTypeParser({customDetectors})` in Node.js
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```
