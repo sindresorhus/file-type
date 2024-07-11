@@ -16,6 +16,15 @@ export class NodeFileTypeParser extends FileTypeParser {
 		}
 	}
 
+	async fromFile(path) {
+		const tokenizer = await strtok3.fromFile(path);
+		try {
+			return await super.fromTokenizer(tokenizer);
+		} finally {
+			await tokenizer.close();
+		}
+	}
+
 	async toDetectionStream(readableStream, options = {}) {
 		const {default: stream} = await import('node:stream');
 		const {sampleSize = reasonableDetectionSizeInBytes} = options;
@@ -53,13 +62,7 @@ export class NodeFileTypeParser extends FileTypeParser {
 }
 
 export async function fileTypeFromFile(path, fileTypeOptions) {
-	const tokenizer = await strtok3.fromFile(path);
-	try {
-		const parser = new FileTypeParser(fileTypeOptions);
-		return await parser.fromTokenizer(tokenizer);
-	} finally {
-		await tokenizer.close();
-	}
+	return (new NodeFileTypeParser(fileTypeOptions)).fromFile(path, fileTypeOptions);
 }
 
 export async function fileTypeFromStream(stream, fileTypeOptions) {
