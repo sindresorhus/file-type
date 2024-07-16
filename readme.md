@@ -174,7 +174,7 @@ A readable stream representing file data.
 
 ### fileTypeFromBlob(blob)
 
-Detect the file type of a [Blob](https://developer.mozilla.org/docs/Web/API/Blob),
+Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Blob),
 [!TIP]
 > A [`File` object](https://developer.mozilla.org/docs/Web/API/File) is a `Blob` and can be passed in here.
 
