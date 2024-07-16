@@ -15,7 +15,7 @@ Extending `FileTypeParser` with Node.js engine specific functions.
 */
 export declare class NodeFileTypeParser extends FileTypeParser {
 	/**
-	@param stream - Node.js `stream.Readable` or Web `ReadableStream`.
+	@param stream - Node.js `stream.Readable` or web `ReadableStream`.
 	*/
 	fromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
