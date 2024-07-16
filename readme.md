@@ -327,7 +327,7 @@ Returns a `Set<string>` of supported MIME types.
 A custom detector is a function that allows specifying custom detection mechanisms.
 
 An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
-In Node.js you should use `NodeFileTypeParser`, extending `FileTypeParser`, providing access to Node.js specific functions.
+In Node.js, you should use `NodeFileTypeParser`, which extends `FileTypeParser` and provides access to Node.js specific functions.
 
 The detectors are called before the default detections in the provided order.
 
