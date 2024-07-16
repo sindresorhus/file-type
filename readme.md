@@ -14,7 +14,7 @@ We accept contributions for commonly used modern file formats, not historical or
 npm install file-type
 ```
 
-**This package is a ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).**
+**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).**
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
@@ -149,8 +149,8 @@ The file path to parse.
 
 ### fileTypeFromStream(stream)
 
-Detect the file type of a [Web ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-If the engine is Node.js, this may also be a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+Detect the file type of a [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+If the engine is Node.js, this may also be a [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [toWeb()](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
@@ -171,7 +171,8 @@ A readable stream representing file data.
 ### fileTypeFromBlob(blob)
 
 Detect the file type of a [Blob](https://developer.mozilla.org/docs/Web/API/Blob),
-and therefor it can also be used for a [File](https://developer.mozilla.org/docs/Web/API/File).
+[!TIP]
+> A [`File` object](https://developer.mozilla.org/docs/Web/API/File) is a `Blob` and can be passed in here.
 
 It will **stream** the underlying Blob, and required a [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **require Node.js ≥ 20**.
 

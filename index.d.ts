@@ -42,7 +42,7 @@ export function fileTypeFromFile(filePath: string, options?: {customDetectors?: 
 
 /**
 Detect the file type of a [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
-If the engine is Node.js, this may also be a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+If the engine is Node.js, this may also be a [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
 Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [toWeb()](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
