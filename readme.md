@@ -14,7 +14,7 @@ We accept contributions for commonly used modern file formats, not historical or
 npm install file-type
 ```
 
-**This package is a ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).**
+**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).**
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
@@ -130,6 +130,10 @@ A buffer representing file data. It works best if the buffer contains the entire
 
 Detect the file type of a file path.
 
+This is for Node.js only.
+
+To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob).
+
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 Returns a `Promise` for an object with the detected file type:
@@ -147,7 +151,11 @@ The file path to parse.
 
 ### fileTypeFromStream(stream)
 
-Detect the file type of a [Node.js readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) or a [Web API ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+
+If the engine is Node.js, this may also be a [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+
+Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [`toWeb()`](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -166,11 +174,14 @@ A readable stream representing file data.
 
 ### fileTypeFromBlob(blob)
 
-Detect the file type of a [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Blob),
+
+[!TIP]
+> A [`File` object](https://developer.mozilla.org/docs/Web/API/File) is a `Blob` and can be passed in here.
 
 It will **stream** the underlying Blob, and required a [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **require Node.js ≥ 20**.
 
-The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the blob.
 
 Returns a `Promise` for an object with the detected file type:
 
@@ -316,6 +327,7 @@ Returns a `Set<string>` of supported MIME types.
 A custom detector is a function that allows specifying custom detection mechanisms.
 
 An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
+In Node.js, you should use `NodeFileTypeParser`, which extends `FileTypeParser` and provides access to Node.js specific functions.
 
 The detectors are called before the default detections in the provided order.
 
@@ -331,7 +343,7 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
 
 ```js
-import {FileTypeParser} from 'file-type';
+import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
 
 const customDetectors = [
 	async tokenizer => {
@@ -349,7 +361,7 @@ const customDetectors = [
 ];
 
 const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
-const parser = new FileTypeParser({customDetectors});
+const parser = new FileTypeParser({customDetectors}); // `NodeFileTypeParser({customDetectors})` in Node.js
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```

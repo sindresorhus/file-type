@@ -10,9 +10,12 @@ export type ReadableStreamWithFileType = NodeReadableStream & {
 	readonly fileType?: FileTypeResult;
 };
 
+/**
+Extending `FileTypeParser` with Node.js engine specific functions.
+*/
 export declare class NodeFileTypeParser extends FileTypeParser {
 	/**
-	@param stream - Node.js `stream.Readable` or Web API `ReadableStream`.
+	@param stream - Node.js `stream.Readable` or web `ReadableStream`.
 	*/
 	fromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
@@ -29,10 +32,28 @@ Detect the file type of a file path.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the file.
 
+This is for Node.js only.
+
+To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see `fileTypeFromBlob()`.
+
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
 @returns The detected file type and MIME type or `undefined` when there is no match.
 */
 export function fileTypeFromFile(filePath: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
 
+/**
+Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+
+If the engine is Node.js, this may also be a [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
+
+Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [`toWeb()`](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
+
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+
+@param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable) streaming a file to examine.
+@returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
+*/
 export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
 
 /**
