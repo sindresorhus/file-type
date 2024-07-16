@@ -345,7 +345,7 @@ Detect the file type of a [Web `ReadableStream`](https://developer.mozilla.org/e
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-@param stream A [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
+@param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
 @returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
 */
 export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
