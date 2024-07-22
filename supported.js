@@ -151,6 +151,7 @@ export const extensions = [
 	'avro',
 	'icc',
 	'fbx',
+	'vsdx',
 ];
 
 export const mimeTypes = [
@@ -301,4 +302,5 @@ export const mimeTypes = [
 	'application/avro',
 	'application/vnd.iccprofile',
 	'application/x.autodesk.fbx', // Invented by us
+	'application/vnd.visio',
 ];
