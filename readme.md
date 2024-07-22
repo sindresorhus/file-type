@@ -444,7 +444,7 @@ console.log(fileType);
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR) - Joint Photographic Experts Group extended range
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL and OpenGL ES textures
 - [`lnk`](https://en.wikipedia.org/wiki/Shortcut_%28computing%29#Microsoft_Windows) - Microsoft Windows file shortcut
-- [`lz`](https://en.wikipedia.org/wikihttps://en.wikipedia.org/wiki/Microsoft_Visiovsdx/Lzip) - Archive file
+- [`lz`](https://en.wikipedia.org/wiki/Lzip) - Archive file
 - [`lzh`](https://en.wikipedia.org/wiki/LHA_(file_format)) - LZH archive
 - [`m4a`](https://en.wikipedia.org/wiki/M4A) - Audio-only MPEG-4 files
 - [`m4b`](https://en.wikipedia.org/wiki/M4B) - Audiobook and podcast MPEG-4 files, which also contain metadata including chapter markers, images, and hyperlinks
