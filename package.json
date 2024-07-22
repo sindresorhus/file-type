@@ -205,7 +205,8 @@
 		"ace",
 		"avro",
 		"icc",
-		"fbx"
+		"fbx",
+		"vsdx"
 	],
 	"dependencies": {
 		"strtok3": "^8.0.0",

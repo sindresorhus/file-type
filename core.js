@@ -381,6 +381,11 @@ export class FileTypeParser {
 									ext: 'xlsx',
 									mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 								};
+							case 'visio':
+								return {
+									ext: 'vsdx',
+									mime: 'application/vnd.visio',
+								};
 							default:
 								break;
 						}

@@ -505,6 +505,7 @@ console.log(fileType);
 - [`ttf`](https://en.wikipedia.org/wiki/TrueType) - TrueType font
 - [`vcf`](https://en.wikipedia.org/wiki/VCard) - vCard
 - [`voc`](https://wiki.multimedia.cx/index.php/Creative_Voice) - Creative Voice File
+- [`vsdx`](https://en.wikipedia.org/wiki/Microsoft_Visio) - Microsoft Visio File
 - [`wasm`](https://en.wikipedia.org/wiki/WebAssembly) - WebAssembly intermediate compiled format
 - [`wav`](https://en.wikipedia.org/wiki/WAV) - Waveform Audio file
 - [`webm`](https://en.wikipedia.org/wiki/WebM) - Web video file

@@ -255,6 +255,10 @@ const names = {
 		'fixture-bin',
 		'fixture-ascii',
 	],
+	vsdx: [
+		'fixture-vsdx',
+		'fixture-vstx',
+	],
 };
 
 // Define an entry here only if the file type has potential

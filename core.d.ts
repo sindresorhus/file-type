@@ -164,6 +164,7 @@ export type FileExtension =
 	| 'avro'
 	| 'icc'
 	| 'fbx'
+	| 'vsdx'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -314,6 +315,7 @@ export type MimeType =
 	| 'application/avro'
 	| 'application/vnd.iccprofile'
 	| 'application/x.autodesk.fbx'
+	| 'application/vnd.visio'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {
