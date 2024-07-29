@@ -3,7 +3,7 @@ Typings for Node.js specific entry point.
 */
 
 import type {Readable as NodeReadableStream} from 'node:stream';
-import type {FileTypeResult, StreamOptions, AnyWebReadableStream, Detector} from './core.js';
+import type {FileTypeResult, StreamOptions, AnyWebReadableStream, Detector, AnyWebReadableByteStreamWithFileType} from './core.js';
 import {FileTypeParser} from './core.js';
 
 export type ReadableStreamWithFileType = NodeReadableStream & {
@@ -27,6 +27,7 @@ export declare class NodeFileTypeParser extends FileTypeParser {
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
 	toDetectionStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }
 
 /**
@@ -70,10 +71,10 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@param options - Maybe used to override the default sample-size.
-@returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
+@param options - Maybe used to override the default sample-size.with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
+@returns A `Promise` which resolves to the original readable stream argument, but
 ```
 import got from 'got';
 import {fileTypeStream} from 'file-type';
@@ -89,5 +90,6 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 ```
  */
 export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export * from './core.js';

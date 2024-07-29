@@ -51,6 +51,10 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	return new FileTypeParser().fromTokenizer(tokenizer);
 }
 
+export async function stream(webStream) {
+	return new FileTypeParser().toDetectionStream(webStream);
+}
+
 export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
@@ -102,6 +106,50 @@ export class FileTypeParser {
 		} finally {
 			await tokenizer.close();
 		}
+	}
+
+	async toDetectionStream(webStream, options = {}) {
+		const {sampleSize = reasonableDetectionSizeInBytes} = options;
+
+		// Initialize a reader from the web stream
+		const reader = webStream.getReader({mode: 'byob'});
+		const pass = new TransformStream();
+		const writer = pass.writable.getWriter();
+		let detectedFileType;
+
+		// Read the first chunk for file type detection
+		const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
+		if (done || !chunk) {
+			detectedFileType = undefined;
+		} else {
+			try {
+				detectedFileType = await this.fromBuffer(chunk.slice(0, sampleSize));
+			} catch (error) {
+				if (error instanceof strtok3.EndOfStreamError) {
+					detectedFileType = undefined;
+				} else {
+					throw error;
+				}
+			}
+		}
+
+		// Write the initial chunk into the pass-through stream
+		writer.write(chunk);
+
+		// Forward remaining data from the reader to the writer
+		(async function pump() {
+			const {value, done} = await reader.read(new Uint8Array(512 * 1024));
+			if (done) {
+				return writer.close();
+			}
+
+			await writer.write(value);
+			return pump();
+		})();
+
+		// Attach the detected file type to the output stream
+		pass.readable.fileType = detectedFileType;
+		return pass.readable;
 	}
 
 	check(header, options) {
