@@ -13,10 +13,19 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"node": "./index.js",
-			"default": "./core.js"
+			"node": {
+				"types": "./index.d.ts",
+				"import": "./index.js"
+			},
+			"default": {
+				"types": "./core.d.ts",
+				"import": "./core.js"
+			}
 		},
-		"./core": "./core.js"
+		"./core": {
+			"types": "./core.d.ts",
+			"import": "./core.js"
+		}
 	},
 	"sideEffects": false,
 	"engines": {
