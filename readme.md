@@ -274,8 +274,7 @@ Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-**Note:** When using Node.js, a stream Readable maybe provided as well.
-**Note:** Require[readme.md](readme.md)s Node.js 14 or later.
+**Note:** When using Node.js, a `stream.Readable` may be provided as well.
 
 #### readableStream
 
