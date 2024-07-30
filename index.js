@@ -70,7 +70,7 @@ export async function fileTypeFromStream(stream, fileTypeOptions) {
 }
 
 export async function fileTypeStream(readableStream, options = {}) {
-	return new NodeFileTypeParser().toDetectionStream(readableStream, options);
+	return new NodeFileTypeParser(options).toDetectionStream(readableStream, options);
 }
 
 export {fileTypeFromTokenizer, fileTypeFromBuffer, fileTypeFromBlob, FileTypeParser, supportedMimeTypes, supportedExtensions} from './core.js';
