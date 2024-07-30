@@ -265,7 +265,7 @@ Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
 
 A file source implementing the [tokenizer interface](https://github.com/Borewit/strtok3#tokenizer).
 
-### fileTypeStream(readableStream, options?)
+### fileTypeStream(webStream, options?)
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
@@ -274,8 +274,8 @@ Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-**Note:** This method is only available when using Node.js.
-**Note:** Requires Node.js 14 or later.
+**Note:** When using Node.js, a stream Readable maybe provided as well.
+**Note:** Require[readme.md](readme.md)s Node.js 14 or later.
 
 #### readableStream
 
