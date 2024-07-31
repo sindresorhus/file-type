@@ -480,20 +480,10 @@ export type AnyWebReadableByteStreamWithFileType = AnyWebReadableStream<Uint8Arr
 };
 
 /**
-	Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
+Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
-	This method can be handy to put in between a stream, but it comes with a price.
-	Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type.
-	The sample size impacts the file detection resolution.
-	A smaller sample size will result in lower probability of the best file type detection.
-
-	**Note:** This method is only available when using Node.js.
-	**Note:** Requires Node.js 14 or later.
-
-	@param webStream - A Web Stream
-	@param options - Maybe used to override the default sample-size.
-	@returns A `Promise` which resolves to the original web stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
- */
+This method can be handy to put in a stream pipeline, but it comes with a price. Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type. The sample size impacts the file detection resolution. A smaller sample size will result in lower probability of the best file type detection.
+*/
 export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export declare class FileTypeParser {
@@ -518,6 +508,6 @@ export declare class FileTypeParser {
 
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
-	 */
+	*/
 	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }
