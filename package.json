@@ -1,7 +1,7 @@
 {
 	"name": "file-type",
 	"version": "19.3.0",
-	"description": "Detect the file type of a Uint8Array/ArrayBuffer",
+	"description": "Detect the file type of a file, stream, or data",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
 	"funding": "https://github.com/sindresorhus/file-type?sponsor=1",

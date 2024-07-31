@@ -1,6 +1,8 @@
-# file-type
+<h1 align="center" title="file-type">
+	<img src="media/logo.jpg" alt="file-type logo">
+</h1>
 
-> Detect the file type of a Uint8Array/ArrayBuffer
+> Detect the file type of a file, stream, or data
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
