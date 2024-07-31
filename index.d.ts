@@ -71,7 +71,7 @@ A smaller sample size will result in lower probability of the best file type det
 **Note:** Requires Node.js 14 or later.
 
 @param readableStream - A [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) containing a file to examine.
-@param options - Maybe used to override the default sample-size.with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
+@param options - May be used to override the default sample size with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 @example
 @returns A `Promise` which resolves to the original readable stream argument, but
