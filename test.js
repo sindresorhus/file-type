@@ -9,6 +9,7 @@ import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
+import {getStreamAsArrayBuffer} from 'get-stream';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream as fileTypeNodeFromStream,
@@ -338,24 +339,8 @@ async function testFileNodeFromStream(t, ext, name) {
 	t.is(typeof fileType.mime, 'string', 'fileType.mime');
 }
 
-async function loadEntireFileFromNodeReadable(readable) {
-	const chunks = [];
-	let totalLength = 0;
-
-	for await (const chunk of readable) {
-		chunks.push(chunk);
-		totalLength += chunk.length;
-	}
-
-	const entireFile = new Uint8Array(totalLength);
-
-	let offset = 0;
-	for (const chunk of chunks) {
-		entireFile.set(new Uint8Array(chunk), offset);
-		offset += chunk.length;
-	}
-
-	return entireFile;
+async function getStreamAsUint8Array(stream) {
+	return new Uint8Array(await getStreamAsArrayBuffer(stream));
 }
 
 async function testStreamWithNodeStream(t, ext, name) {
@@ -365,37 +350,9 @@ async function testStreamWithNodeStream(t, ext, name) {
 	const readableStream = await fileTypeStream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
 
-	const [bufferA, bufferB] = await Promise.all([loadEntireFileFromNodeReadable(readableStream), loadEntireFileFromNodeReadable(fileStream)]);
+	const [bufferA, bufferB] = await Promise.all([getStreamAsUint8Array(readableStream), getStreamAsUint8Array(fileStream)]);
 
 	t.true(areUint8ArraysEqual(bufferA, bufferB));
-}
-
-async function loadEntireFileFromWebStream(webStream) {
-	const reader = webStream.getReader();
-	const chunks = [];
-	let totalLength = 0;
-	let bytesRead = 0;
-
-	do {
-		const {done, value} = await reader.read();
-		if (done) {
-			break;
-		}
-
-		chunks.push(value);
-		bytesRead = value.byteLength;
-		totalLength += bytesRead;
-	} while (bytesRead > 0);
-
-	// Concatenate all chunks into a single Uint8Array
-	const entireFile = new Uint8Array(totalLength);
-	let offset = 0;
-	for (const chunk of chunks) {
-		entireFile.set(chunk, offset);
-		offset += chunk.byteLength;
-	}
-
-	return entireFile;
 }
 
 async function testStreamWithWebStream(t, ext, name) {
@@ -406,7 +363,7 @@ async function testStreamWithWebStream(t, ext, name) {
 	// Create a Blob from the buffer
 	const blob = new Blob([fileBuffer]);
 	const webStream = await fileTypeStream(blob.stream());
-	const webStreamResult = await loadEntireFileFromWebStream(webStream);
+	const webStreamResult = await getStreamAsUint8Array(webStream);
 	t.true(areUint8ArraysEqual(fileBuffer, webStreamResult));
 }
 
@@ -469,7 +426,7 @@ test('.fileTypeStream() method - short stream', async t => {
 	t.is(newStream.fileType, undefined);
 
 	// Test usability of returned stream
-	const bufferB = await loadEntireFileFromNodeReadable(newStream);
+	const bufferB = await getStreamAsUint8Array(newStream);
 	t.deepEqual(bufferA, bufferB);
 });
 
