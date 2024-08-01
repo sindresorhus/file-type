@@ -133,19 +133,27 @@ export class FileTypeParser {
 			}
 		}
 
-		// Write the initial chunk into the pass-through stream
-		writer.write(chunk);
+		try {
+			// Write the initial chunk into the pass-through stream
+			writer.write(chunk);
+		} catch (error) {
+			reader.cancel(error); // Cancel the reader on error
+			throw new Error(`Stream handling failed: ${error.message}`);
+		}
 
 		// Forward remaining data from the reader to the writer
 		(async function pump() {
-			// Read a 512 kB chunk, where the chunk size is an instinctively chosen value
-			const {value, done} = await reader.read(new Uint8Array(512 * 1024));
+			const {value, done} = await reader.read(new Uint8Array(512 * 1024)).catch(readError => {
+				writer.abort(readError); // Abort writing on error
+			});
 			if (done) {
 				return writer.close();
 			}
 
-			await writer.write(value);
-			return pump();
+			await writer.write(value).catch(writeError => {
+				reader.cancel(writeError); // Cancel the reader on error
+			});
+			return pump(); // Recursion for continuous reading
 		})();
 
 		// Attach the detected file type to the output stream
