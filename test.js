@@ -891,7 +891,7 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
-	// Include the unicormDetector here to verify it's not used after the tokenizer.position changed
+	// Include the unicornDetector here to verify it's not used after the tokenizer.position changed
 	const customDetectors = [tokenizerPositionChanger, unicornDetector];
 	const parser = new NodeFileTypeParser({customDetectors});
 
