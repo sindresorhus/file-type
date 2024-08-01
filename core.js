@@ -138,6 +138,7 @@ export class FileTypeParser {
 
 		// Forward remaining data from the reader to the writer
 		(async function pump() {
+			// Read a 512 kB chunk, where the chunk size is an instinctively chosen value
 			const {value, done} = await reader.read(new Uint8Array(512 * 1024));
 			if (done) {
 				return writer.close();
