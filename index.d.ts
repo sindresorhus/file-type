@@ -60,20 +60,17 @@ export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | No
 /**
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
-This method  can be handy to put in between a stream, but it comes with a price.
+This method can be handy to put in between a stream, but it comes with a price.
 Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type.
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-**Note:** This method is only available when using Node.js.
-**Note:** Requires Node.js 14 or later.
-
-@param readableStream - A [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-or [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream), streaming a file to examine.
+@param readableStream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable), streaming a file to examine.
 @param options - May be used to override the default sample size.
 @returns A `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
+
 @example
- ```
+```
 import got from 'got';
 import {fileTypeStream} from 'file-type';
 
@@ -86,7 +83,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
 }
 ```
- */
+*/
 export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
 export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
