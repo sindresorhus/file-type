@@ -3,6 +3,7 @@ Node.js specific entry point.
 */
 
 import {ReadableStream as WebReadableStream} from 'node:stream/web';
+import {pipeline, PassThrough} from 'node:stream';
 import * as strtok3 from 'strtok3';
 import {FileTypeParser, reasonableDetectionSizeInBytes} from './core.js';
 
@@ -26,7 +27,10 @@ export class NodeFileTypeParser extends FileTypeParser {
 	}
 
 	async toDetectionStream(readableStream, options = {}) {
-		const {default: stream} = await import('node:stream');
+		if (readableStream instanceof WebReadableStream) {
+			return super.toDetectionStream(readableStream, options);
+		}
+
 		const {sampleSize = reasonableDetectionSizeInBytes} = options;
 
 		return new Promise((resolve, reject) => {
@@ -36,8 +40,8 @@ export class NodeFileTypeParser extends FileTypeParser {
 				(async () => {
 					try {
 						// Set up output stream
-						const pass = new stream.PassThrough();
-						const outputStream = stream.pipeline ? stream.pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
+						const pass = new PassThrough();
+						const outputStream = pipeline ? pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
 
 						// Read the input stream and detect the filetype
 						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? new Uint8Array(0);

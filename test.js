@@ -2,12 +2,14 @@ import process from 'node:process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';
+import {readFile} from 'node:fs/promises';
 import stream from 'node:stream';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
+import {getStreamAsArrayBuffer} from 'get-stream';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream as fileTypeNodeFromStream,
@@ -26,7 +28,7 @@ const missingTests = new Set([
 ]);
 
 const [nodeMajorVersion] = process.versions.node.split('.').map(Number);
-const nodeVersionSupportingByeBlobStream = 20;
+const nodeVersionSupportingByteBlobStream = 20;
 
 const types = [...supportedExtensions].filter(ext => !missingTests.has(ext));
 
@@ -337,36 +339,32 @@ async function testFileNodeFromStream(t, ext, name) {
 	t.is(typeof fileType.mime, 'string', 'fileType.mime');
 }
 
-async function loadEntireFile(readable) {
-	const chunks = [];
-	let totalLength = 0;
-
-	for await (const chunk of readable) {
-		chunks.push(chunk);
-		totalLength += chunk.length;
-	}
-
-	const entireFile = new Uint8Array(totalLength);
-
-	let offset = 0;
-	for (const chunk of chunks) {
-		entireFile.set(new Uint8Array(chunk), offset);
-		offset += chunk.length;
-	}
-
-	return entireFile;
+async function getStreamAsUint8Array(stream) {
+	return new Uint8Array(await getStreamAsArrayBuffer(stream));
 }
 
-async function testStream(t, ext, name) {
+async function testStreamWithNodeStream(t, ext, name) {
 	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await fileTypeStream(fs.createReadStream(file));
 	const fileStream = fs.createReadStream(file);
 
-	const [bufferA, bufferB] = await Promise.all([loadEntireFile(readableStream), loadEntireFile(fileStream)]);
+	const [bufferA, bufferB] = await Promise.all([getStreamAsUint8Array(readableStream), getStreamAsUint8Array(fileStream)]);
 
 	t.true(areUint8ArraysEqual(bufferA, bufferB));
+}
+
+async function testStreamWithWebStream(t, ext, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+	const file = path.join(__dirname, 'fixture', fixtureName);
+	// Read the file into a buffer
+	const fileBuffer = await readFile(file);
+	// Create a Blob from the buffer
+	const blob = new Blob([fileBuffer]);
+	const webStream = await fileTypeStream(blob.stream());
+	const webStreamResult = await getStreamAsUint8Array(webStream);
+	t.true(areUint8ArraysEqual(fileBuffer, webStreamResult));
 }
 
 test('Test suite must be able to detect Node.js major version', t => {
@@ -382,13 +380,14 @@ for (const type of types) {
 
 			_test(`${name}.${type} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, type, name);
 			_test(`${name}.${type} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, type, name);
-			if (nodeMajorVersion >= nodeVersionSupportingByeBlobStream) {
+			if (nodeMajorVersion >= nodeVersionSupportingByteBlobStream) {
 				// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
 				_test(`${name}.${type} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, type, name);
+				test(`${name}.${type} ${i++} .fileTypeStream() - identical Web Streams`, testStreamWithWebStream, type, name);
 			}
 
 			_test(`${name}.${type} ${i++} .fileTypeFromStream() Node.js method - same fileType`, testFileNodeFromStream, type, name);
-			test(`${name}.${type} ${i++} .fileTypeStream() - identical streams`, testStream, type, name);
+			_test(`${name}.${type} ${i++} .fileTypeStream() - identical Node.js Readable streams`, testStreamWithNodeStream, type, name);
 		}
 	} else {
 		const fixtureName = `fixture.${type}`;
@@ -397,7 +396,7 @@ for (const type of types) {
 		_test(`${type} ${i++} .fileTypeFromFile()`, testFromFile, type);
 		_test(`${type} ${i++} .fileTypeFromBuffer()`, testFromBuffer, type);
 		_test(`${type} ${i++} .fileTypeFromStream() Node.js`, testFileNodeFromStream, type);
-		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStream, type);
+		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStreamWithNodeStream, type);
 	}
 
 	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
@@ -427,7 +426,7 @@ test('.fileTypeStream() method - short stream', async t => {
 	t.is(newStream.fileType, undefined);
 
 	// Test usability of returned stream
-	const bufferB = await loadEntireFile(newStream);
+	const bufferB = await getStreamAsUint8Array(newStream);
 	t.deepEqual(bufferA, bufferB);
 });
 
@@ -708,7 +707,7 @@ const tokenizerPositionChanger = tokenizer => {
 	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
 };
 
-if (nodeMajorVersion >= nodeVersionSupportingByeBlobStream) {
+if (nodeMajorVersion >= nodeVersionSupportingByteBlobStream) {
 	// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
 
 	test('fileTypeFromBlob should detect custom file type "unicorn" using custom detectors', async t => {
@@ -849,7 +848,7 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const header = 'UNICORN FILE\n';
 	const uint8ArrayContent = new TextEncoder().encode(header);
 
-	// Include the unicormDetector here to verify it's not used after the tokenizer.position changed
+	// Include the unicornDetector here to verify it's not used after the tokenizer.position changed
 	const customDetectors = [tokenizerPositionChanger, unicornDetector];
 	const parser = new NodeFileTypeParser({customDetectors});
 

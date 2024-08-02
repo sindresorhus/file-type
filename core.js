@@ -51,6 +51,10 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	return new FileTypeParser().fromTokenizer(tokenizer);
 }
 
+export async function fileTypeStream(webStream) {
+	return new FileTypeParser().toDetectionStream(webStream);
+}
+
 export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
@@ -102,6 +106,51 @@ export class FileTypeParser {
 		} finally {
 			await tokenizer.close();
 		}
+	}
+
+	async toDetectionStream(stream, options) {
+		const {sampleSize = reasonableDetectionSizeInBytes} = options;
+		let detectedFileType;
+		let firstChunk;
+
+		const reader = stream.getReader({mode: 'byob'});
+		try {
+			// Read the first chunk from the stream
+			const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
+			firstChunk = chunk;
+			if (!done && chunk) {
+				try {
+					// Attempt to detect the file type from the chunk
+					detectedFileType = await this.fromBuffer(chunk.slice(0, sampleSize));
+				} catch (error) {
+					if (!(error instanceof strtok3.EndOfStreamError)) {
+						throw error; // Re-throw non-EndOfStreamError
+					}
+
+					detectedFileType = undefined;
+				}
+			}
+
+			firstChunk = chunk;
+		} finally {
+			reader.releaseLock(); // Ensure the reader is released
+		}
+
+		// Create a new ReadableStream to manage locking issues
+		const transformStream = new TransformStream({
+			async start(controller) {
+				controller.enqueue(firstChunk); // Enqueue the initial chunk
+			},
+			transform(chunk, controller) {
+				// Pass through the chunks without modification
+				controller.enqueue(chunk);
+			},
+		});
+
+		const newStream = stream.pipeThrough(transformStream);
+		newStream.fileType = detectedFileType;
+
+		return newStream;
 	}
 
 	check(header, options) {
