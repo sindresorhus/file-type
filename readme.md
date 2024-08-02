@@ -167,10 +167,8 @@ Returns a `Promise` for an object with the detected file type:
 Or `undefined` when there is no match.
 
 #### stream
-Streaming a file to examine.
 
-Type: [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-or [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
+Type: [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
 
 A readable stream representing file data.
 
