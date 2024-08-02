@@ -111,42 +111,37 @@ export class FileTypeParser {
 	async toDetectionStream(stream, options) {
 		const {sampleSize = reasonableDetectionSizeInBytes} = options;
 		let detectedFileType;
-		let firstChunk = null;
+		let firstChunk;
+
+		const reader = stream.getReader({mode: 'byob'});
+		try {
+			// Read the first chunk from the stream
+			const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
+			firstChunk = chunk;
+			if (!done && chunk) {
+				try {
+					// Attempt to detect the file type from the chunk
+					detectedFileType = await this.fromBuffer(chunk.slice(0, sampleSize));
+				} catch (error) {
+					if (!(error instanceof strtok3.EndOfStreamError)) {
+						throw error; // Re-throw non-EndOfStreamError
+					}
+
+					detectedFileType = undefined;
+				}
+			}
+
+			firstChunk = chunk;
+		} finally {
+			reader.releaseLock(); // Ensure the reader is released
+		}
 
 		// Create a new ReadableStream to manage locking issues
 		const transformStream = new TransformStream({
 			async start(controller) {
-				const reader = stream.getReader({mode: 'byob'});
-				try {
-					// Read the first chunk from the stream
-					const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
-					firstChunk = chunk;
-					if (!done && chunk) {
-						try {
-							// Attempt to detect the file type from the chunk
-							detectedFileType = await this.fromBuffer(chunk.slice(0, sampleSize));
-						} catch (error) {
-							if (!(error instanceof strtok3.EndOfStreamError)) {
-								throw error; // Re-throw non-EndOfStreamError
-							}
-
-							detectedFileType = undefined;
-						}
-					}
-
-					firstChunk = chunk;
-				} catch (error) {
-					controller.error(error); // Handle errors during start
-				} finally {
-					reader.releaseLock(); // Ensure the reader is released
-				}
+				controller.enqueue(firstChunk); // Enqueue the initial chunk
 			},
 			transform(chunk, controller) {
-				if (firstChunk) {
-					firstChunk = null;
-					controller.enqueue(firstChunk); // Enqueue the initial chunk
-				}
-
 				// Pass through the chunks without modification
 				controller.enqueue(chunk);
 			},
