@@ -111,6 +111,7 @@ export class FileTypeParser {
 	async toDetectionStream(stream, options) {
 		const {sampleSize = reasonableDetectionSizeInBytes} = options;
 		let detectedFileType;
+		let firstChunk = null;
 
 		// Create a new ReadableStream to manage locking issues
 		const transformStream = new TransformStream({
@@ -119,6 +120,7 @@ export class FileTypeParser {
 				try {
 					// Read the first chunk from the stream
 					const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
+					firstChunk = chunk;
 					if (!done && chunk) {
 						try {
 							// Attempt to detect the file type from the chunk
@@ -132,7 +134,7 @@ export class FileTypeParser {
 						}
 					}
 
-					controller.enqueue(chunk); // Enqueue the initial chunk
+					firstChunk = chunk;
 				} catch (error) {
 					controller.error(error); // Handle errors during start
 				} finally {
@@ -140,15 +142,20 @@ export class FileTypeParser {
 				}
 			},
 			transform(chunk, controller) {
+				if (firstChunk) {
+					firstChunk = null;
+					controller.enqueue(firstChunk); // Enqueue the initial chunk
+				}
+
 				// Pass through the chunks without modification
 				controller.enqueue(chunk);
 			},
 		});
 
-		const finalStream = stream.pipeThrough(transformStream);
-		finalStream.fileType = detectedFileType;
+		const newStream = stream.pipeThrough(transformStream);
+		newStream.fileType = detectedFileType;
 
-		return finalStream;
+		return newStream;
 	}
 
 	check(header, options) {
