@@ -3,7 +3,7 @@ Typings for primary entry point, Node.js specific typings can be found in index.
 */
 
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
-import type {ITokenizer} from 'strtok3';
+import type {ITokenizer, AnyWebByteStream} from 'strtok3';
 
 /**
 Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream.
@@ -350,7 +350,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 @param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
 @returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebByteStream): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
