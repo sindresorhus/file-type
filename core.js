@@ -51,8 +51,8 @@ export async function fileTypeFromTokenizer(tokenizer) {
 	return new FileTypeParser().fromTokenizer(tokenizer);
 }
 
-export async function fileTypeStream(webStream) {
-	return new FileTypeParser().toDetectionStream(webStream);
+export async function fileTypeStream(webStream, options) {
+	return new FileTypeParser(options).toDetectionStream(webStream, options);
 }
 
 export class FileTypeParser {
