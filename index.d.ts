@@ -3,6 +3,7 @@ Typings for Node.js specific entry point.
 */
 
 import type {Readable as NodeReadableStream} from 'node:stream';
+import type {AnyWebByteStream} from 'strtok3';
 import type {FileTypeResult, StreamOptions, AnyWebReadableStream, Detector, AnyWebReadableByteStreamWithFileType} from './core.js';
 import {FileTypeParser} from './core.js';
 
@@ -85,6 +86,6 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 ```
 */
 export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
-export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+export function fileTypeStream(webStream: AnyWebByteStream, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export * from './core.js';
