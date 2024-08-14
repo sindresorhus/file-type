@@ -1,6 +1,6 @@
 {
 	"name": "file-type",
-	"version": "19.4.0",
+	"version": "19.4.1",
 	"description": "Detect the file type of a file, stream, or data",
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
