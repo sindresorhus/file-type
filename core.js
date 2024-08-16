@@ -1141,13 +1141,8 @@ export class FileTypeParser {
 
 		if (
 			this.checkString('WEBVTT')
-			&& (
-				this.check([0x00], {offset: 6})		// EOF
-				|| this.check([0x0A], {offset: 6})	// LF
-				|| this.check([0x0D], {offset: 6})	// CR
-				|| this.check([0x09], {offset: 6})	// Tab
-				|| this.check([0x20], {offset: 6})	// Space
-			)
+			// One of EOF, LF/CRLF, tab, or space must directly follow "WEBVTT" per the spec
+			&& (['\0', '\n', '\r\n', '\t', ' '].some(whitespace => this.checkString(whitespace, {offset: 6})))
 		) {
 			return {
 				ext: 'vtt',
