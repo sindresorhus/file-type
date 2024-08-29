@@ -1139,18 +1139,32 @@ export class FileTypeParser {
 			}
 		}
 
-		if (
-			this.checkString('WEBVTT')
-			&&	(
-				// EOF
-				tokenizer.fileInfo.size === 6
-				// One of LF/CRLF, tab, or space
-				|| (['\n', '\r\n', '\t', ' '].some(whitespace => this.checkString(whitespace, {offset: 6}))))
-		) {
-			return {
-				ext: 'vtt',
-				mime: 'text/vtt',
-			};
+		if (this.checkString('WEBVTT')) {
+			await tokenizer.ignore(6);
+			let isValidWebVTT = false;
+
+			// Try-catch to handle valid edge case of "WEBVTT<EOF>"
+			try {
+				// The WebVTT standard says that the first line should be "WEBVTT" followed by a single ASCII whitespace character
+				const whitespaceToken = await tokenizer.readToken(new Token.StringType(1, 'ascii'));
+				// Must be one of LF/CRLF, tab, or space
+				isValidWebVTT = whitespaceToken === '\n'
+					|| whitespaceToken === '\r\n'
+					|| whitespaceToken === '\t'
+					|| whitespaceToken === ' ';
+			} catch (error) {
+				// EOF reached, only contents must have been "WEBVTT"
+				if (error instanceof strtok3.EndOfStreamError) {
+					isValidWebVTT = true;
+				}
+			}
+
+			if (isValidWebVTT) {
+				return {
+					ext: 'vtt',
+					mime: 'text/vtt',
+				};
+			}
 		}
 
 		// -- 8-byte signatures --
