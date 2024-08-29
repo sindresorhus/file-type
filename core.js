@@ -1143,7 +1143,7 @@ export class FileTypeParser {
 			this.checkString('WEBVTT')
 			&&	(
 				// EOF
-				this.tokenizer.fileInfo.size === 6
+				tokenizer.fileInfo.size === 6
 				// One of LF/CRLF, tab, or space
 				|| (['\n', '\r\n', '\t', ' '].some(whitespace => this.checkString(whitespace, {offset: 6}))))
 		) {
