@@ -460,6 +460,26 @@ test('.fileTypeStream() method - sampleSize option', async t => {
 	t.is(stream.fileType.mime, 'video/ogg');
 });
 
+test('.fileTypeFromStream() method - be able to abort operation', async t => {
+	const bufferA = new Uint8Array([0, 1, 0, 1]);
+	class MyStream extends stream.Readable {
+		_read() {
+			setTimeout(() => {
+				this.push(bufferA);
+				this.push(null);
+			}, 500);
+		}
+	}
+
+	const shortStream = new MyStream();
+	const abortController = new AbortController();
+	const parser = new NodeFileTypeParser({abortSignal: abortController.signal});
+	const promiseFileType = parser.fromStream(shortStream);
+	abortController.abort(); // Abort asynchronous operation: reading from shortStream
+	const error = await t.throwsAsync(promiseFileType);
+	t.is(error.message, 'Stream closed');
+});
+
 test('supportedExtensions.has', t => {
 	t.true(supportedExtensions.has('jpg'));
 	t.false(supportedExtensions.has('blah'));

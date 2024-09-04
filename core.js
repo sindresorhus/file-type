@@ -58,7 +58,9 @@ export async function fileTypeStream(webStream, options) {
 export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
-
+		this.tokenizerOptions = {
+			abortSignal: options?.abortSignal,
+		};
 		this.fromTokenizer = this.fromTokenizer.bind(this);
 		this.fromBuffer = this.fromBuffer.bind(this);
 		this.parse = this.parse.bind(this);
@@ -92,7 +94,7 @@ export class FileTypeParser {
 			return;
 		}
 
-		return this.fromTokenizer(strtok3.fromBuffer(buffer));
+		return this.fromTokenizer(strtok3.fromBuffer(buffer, this.tokenizerOptions));
 	}
 
 	async fromBlob(blob) {
@@ -100,7 +102,7 @@ export class FileTypeParser {
 	}
 
 	async fromStream(stream) {
-		const tokenizer = await strtok3.fromWebStream(stream);
+		const tokenizer = await strtok3.fromWebStream(stream, this.tokenizerOptions);
 		try {
 			return await this.fromTokenizer(tokenizer);
 		} finally {

@@ -367,6 +367,22 @@ const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```
 
+## Abort signal
+
+Some asynchronous operations can be aborted by passing the [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) interface to the `FileTypeParser` constructor.
+
+```js
+import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
+
+const abortController = new AbortController()
+
+const parser = new FileTypeParser({abortSignal: abortController.signal});
+
+const promise = parser.fromStream(blob.stream());
+
+abortController.abort(); // Abort file-type reading from the Blob stream.
+```
+
 ## Supported file types
 
 - [`3g2`](https://en.wikipedia.org/wiki/3GP_and_3G2#3G2) - Multimedia container format defined by the 3GPP2 for 3G CDMA2000 multimedia services
