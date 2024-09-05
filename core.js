@@ -1142,10 +1142,8 @@ export class FileTypeParser {
 		if (
 			this.checkString('WEBVTT')
 			&&	(
-				// EOF
-				tokenizer.fileInfo.size === 6
-				// One of LF/CRLF, tab, or space
-				|| (['\n', '\r\n', '\t', ' '].some(whitespace => this.checkString(whitespace, {offset: 6}))))
+				// One of LF, CR, tab, space, or end of file must follow "WEBVTT" per the spec (see `fixture/fixture-vtt-*.vtt` for examples). Note that `\0` is technically the null character (there is no such thing as an EOF character). However, checking for `\0` gives us the same result as checking for the end of the stream.
+				(['\n', '\r', '\t', ' ', '\0'].some(char7 => this.checkString(char7, {offset: 6}))))
 		) {
 			return {
 				ext: 'vtt',
