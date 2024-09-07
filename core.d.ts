@@ -165,6 +165,7 @@ export type FileExtension =
 	| 'icc'
 	| 'fbx'
 	| 'vsdx'
+	| 'vtt'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -270,6 +271,7 @@ export type MimeType =
 	| 'audio/x-musepack'
 	| 'text/calendar'
 	| 'text/vcard'
+	| 'text/vtt'
 	| 'model/gltf-binary'
 	| 'application/vnd.tcpdump.pcap'
 	| 'audio/x-dsf' // Non-standard

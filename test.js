@@ -261,6 +261,12 @@ const names = {
 		'fixture-vsdx',
 		'fixture-vstx',
 	],
+	vtt: [
+		'fixture-vtt-linebreak',
+		'fixture-vtt-space',
+		'fixture-vtt-tab',
+		'fixture-vtt-eof',
+	],
 };
 
 // Define an entry here only if the file type has potential

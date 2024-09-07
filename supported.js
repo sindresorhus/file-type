@@ -152,6 +152,7 @@ export const extensions = [
 	'icc',
 	'fbx',
 	'vsdx',
+	'vtt',
 ];
 
 export const mimeTypes = [
@@ -257,6 +258,7 @@ export const mimeTypes = [
 	'audio/x-musepack',
 	'text/calendar',
 	'text/vcard',
+	'text/vtt',
 	'model/gltf-binary',
 	'application/vnd.tcpdump.pcap',
 	'audio/x-dsf', // Non-standard

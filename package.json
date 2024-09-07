@@ -215,7 +215,8 @@
 		"avro",
 		"icc",
 		"fbx",
-		"vsdx"
+		"vsdx",
+		"vtt"
 	],
 	"dependencies": {
 		"get-stream": "^9.0.1",

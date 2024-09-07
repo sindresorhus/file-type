@@ -1139,6 +1139,18 @@ export class FileTypeParser {
 			}
 		}
 
+		if (
+			this.checkString('WEBVTT')
+			&&	(
+				// One of LF, CR, tab, space, or end of file must follow "WEBVTT" per the spec (see `fixture/fixture-vtt-*.vtt` for examples). Note that `\0` is technically the null character (there is no such thing as an EOF character). However, checking for `\0` gives us the same result as checking for the end of the stream.
+				(['\n', '\r', '\t', ' ', '\0'].some(char7 => this.checkString(char7, {offset: 6}))))
+		) {
+			return {
+				ext: 'vtt',
+				mime: 'text/vtt',
+			};
+		}
+
 		// -- 8-byte signatures --
 
 		if (this.check([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {
