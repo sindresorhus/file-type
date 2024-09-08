@@ -59,7 +59,7 @@ export class FileTypeParser {
 	constructor(options) {
 		this.detectors = options?.customDetectors;
 		this.tokenizerOptions = {
-			abortSignal: options?.abortSignal,
+			abortSignal: options?.signal,
 		};
 		this.fromTokenizer = this.fromTokenizer.bind(this);
 		this.fromBuffer = this.fromBuffer.bind(this);

@@ -473,7 +473,7 @@ test('.fileTypeFromStream() method - be able to abort operation', async t => {
 
 	const shortStream = new MyStream();
 	const abortController = new AbortController();
-	const parser = new NodeFileTypeParser({abortSignal: abortController.signal});
+	const parser = new NodeFileTypeParser({signal: abortController.signal});
 	const promiseFileType = parser.fromStream(shortStream);
 	abortController.abort(); // Abort asynchronous operation: reading from shortStream
 	const error = await t.throwsAsync(promiseFileType);
