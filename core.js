@@ -1129,16 +1129,6 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('**ACE', {offset: 7})) {
-			await tokenizer.peekBuffer(this.buffer, {length: 14, mayBeLess: true});
-			if (this.checkString('**', {offset: 12})) {
-				return {
-					ext: 'ace',
-					mime: 'application/x-ace-compressed',
-				};
-			}
-		}
-
 		if (
 			this.checkString('WEBVTT')
 			&&	(
@@ -1429,6 +1419,14 @@ export class FileTypeParser {
 			return {
 				ext: 'icc',
 				mime: 'application/vnd.iccprofile',
+			};
+		}
+
+		// ACE: requires 14 bytes in the buffer
+		if (this.checkString('**ACE', {offset: 7}) && this.checkString('**', {offset: 12})) {
+			return {
+				ext: 'ace',
+				mime: 'application/x-ace-compressed',
 			};
 		}
 
