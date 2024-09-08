@@ -369,7 +369,7 @@ console.log(fileType);
 
 ## Abort signal
 
-Some asynchronous operations can be aborted by passing the [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) interface to the `FileTypeParser` constructor.
+Some async operations can be aborted by passing an [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) to the `FileTypeParser` constructor.
 
 ```js
 import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
