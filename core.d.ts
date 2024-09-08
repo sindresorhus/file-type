@@ -491,7 +491,7 @@ export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, opti
 export declare class FileTypeParser {
 	detectors: Iterable<Detector>;
 
-	constructor(options?: {customDetectors?: Iterable<Detector>});
+	constructor(options?: {customDetectors?: Iterable<Detector>; signal: AbortSignal});
 
 	/**
 	Works the same way as {@link fileTypeFromBuffer}, additionally taking into account custom detectors (if any were provided to the constructor).

@@ -9,7 +9,7 @@ import {FileTypeParser, reasonableDetectionSizeInBytes} from './core.js';
 
 export class NodeFileTypeParser extends FileTypeParser {
 	async fromStream(stream) {
-		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream) : strtok3.fromStream(stream));
+		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.tokenizerOptions) : strtok3.fromStream(stream, this.tokenizerOptions));
 		try {
 			return super.fromTokenizer(tokenizer);
 		} finally {
