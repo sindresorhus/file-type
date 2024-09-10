@@ -1,0 +1,26 @@
+name: Bug Report
+description: Use this template to report bugs or issues.
+body:
+  - type: checkboxes
+    attributes:
+      label: Existing Issue Check
+      description: Please search for existing issues to avoid duplicates.
+      options:
+        - label: "I have searched the existing issues and could not find any related to my problem."
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: ESM (ECMAScript Module) Requirement Acknowledgment
+      description: File-type is an ECMAScript Module (ESM) only. CommonJS is **not** supported.
+      options:
+        - label: "My project is an ESM project, and my `package.json` contains the following entry: `\"type\": \"module\"`."
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: File-Type Scope Acknowledgment
+      description: File-type is designed to detect well-known **binary**-based file types only.
+      options:
+        - label: "I understand that file-type detects binary file types and not text or other formats."
+          required: true
