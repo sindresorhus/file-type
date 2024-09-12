@@ -1,0 +1,23 @@
+name: Suggest an improvement or new feature
+description: ———
+labels: enhancement
+body:
+  - type: textarea
+    attributes:
+      label: Description
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Existing Issue Check
+      description: Please search for existing issues to avoid duplicates.
+      options:
+        - label: 'I have searched the existing issues and could not find any related to my problem.'
+          required: true
+  - type: checkboxes
+    attributes:
+      label: File-Type Scope Acknowledgment
+      description: This package is designed to detect well-known **binary**-based file types only.
+      options:
+        - label: 'I understand that file-type detects binary file types and not text or other formats.'
+          required: true
