@@ -1699,11 +1699,18 @@ export class FileTypeParser {
 					};
 				}
 
-				if (ifdOffset >= 8 && (this.check([0x1C, 0x00, 0xFE, 0x00], {offset: 8}) || this.check([0x1F, 0x00, 0x0B, 0x00], {offset: 8}))) {
-					return {
-						ext: 'nef',
-						mime: 'image/x-nikon-nef',
-					};
+				if (ifdOffset >= 8) {
+					const someId1 = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 8);
+					const someId2 = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 10);
+
+					if (
+						(someId1 === 0x1C && someId2 === 0xFE)
+						|| (someId1 === 0x1F && someId2 === 0x0B)) {
+						return {
+							ext: 'nef',
+							mime: 'image/x-nikon-nef',
+						};
+					}
 				}
 			}
 
