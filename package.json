@@ -216,7 +216,8 @@
 		"icc",
 		"fbx",
 		"vsdx",
-		"vtt"
+		"vtt",
+		"apk"
 	],
 	"dependencies": {
 		"get-stream": "^9.0.1",

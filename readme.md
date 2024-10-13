@@ -398,6 +398,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`alias`](https://en.wikipedia.org/wiki/Alias_%28Mac_OS%29) - macOS Alias file
 - [`amr`](https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec) - Adaptive Multi-Rate audio codec
 - [`ape`](https://en.wikipedia.org/wiki/Monkey%27s_Audio) - Monkey's Audio
+- [`apk`](https://en.wikipedia.org/wiki/Apk_(file_format)) - Android package format
 - [`apng`](https://en.wikipedia.org/wiki/APNG) - Animated Portable Network Graphics
 - [`ar`](https://en.wikipedia.org/wiki/Ar_(Unix)) - Archive file
 - [`arj`](https://en.wikipedia.org/wiki/ARJ) - Archive file

@@ -153,6 +153,7 @@ export const extensions = [
 	'fbx',
 	'vsdx',
 	'vtt',
+	'apk',
 ];
 
 export const mimeTypes = [
@@ -305,4 +306,5 @@ export const mimeTypes = [
 	'application/vnd.iccprofile',
 	'application/x.autodesk.fbx', // Invented by us
 	'application/vnd.visio',
+	'application/vnd.android.package-archive',
 ];
