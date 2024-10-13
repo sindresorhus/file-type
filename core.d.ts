@@ -213,9 +213,9 @@ export type MimeType =
 	| 'video/3gpp'
 	| 'audio/mpeg'
 	| 'audio/mp4' // RFC 4337
-	| 'audio/opus'
 	| 'video/ogg'
 	| 'audio/ogg'
+	| 'audio/ogg; codecs=opus'
 	| 'application/ogg'
 	| 'audio/x-flac'
 	| 'audio/ape'
