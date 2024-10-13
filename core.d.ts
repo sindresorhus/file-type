@@ -166,6 +166,7 @@ export type FileExtension =
 	| 'fbx'
 	| 'vsdx'
 	| 'vtt'
+	| 'apk'
 	; // eslint-disable-line semi-style
 
 export type MimeType =
@@ -318,6 +319,7 @@ export type MimeType =
 	| 'application/vnd.iccprofile'
 	| 'application/x.autodesk.fbx'
 	| 'application/vnd.visio'
+	| 'application/vnd.android.package-archive'
 	; // eslint-disable-line semi-style
 
 export type FileTypeResult = {

@@ -404,6 +404,13 @@ export class FileTypeParser {
 					zipHeader.filename = await tokenizer.readToken(new Token.StringType(zipHeader.filenameLength, 'utf-8'));
 					await tokenizer.ignore(zipHeader.extraFieldLength);
 
+					if (/classes\d*\.dex/.test(zipHeader.filename)) {
+						return {
+							ext: 'apk',
+							mime: 'application/vnd.android.package-archive',
+						};
+					}
+
 					// Assumes signed `.xpi` from addons.mozilla.org
 					if (zipHeader.filename === 'META-INF/mozilla.rsa') {
 						return {
