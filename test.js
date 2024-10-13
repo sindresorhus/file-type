@@ -369,7 +369,9 @@ async function testStreamWithWebStream(t, ext, name) {
 	// Create a Blob from the buffer
 	const blob = new Blob([fileBuffer]);
 	const webStream = await fileTypeStream(blob.stream());
+	t.false(webStream.locked);
 	const webStreamResult = await getStreamAsUint8Array(webStream);
+	t.false(webStream.locked, 'Ensure web-stream is released');
 	t.true(areUint8ArraysEqual(fileBuffer, webStreamResult));
 }
 
