@@ -529,7 +529,7 @@ export class FileTypeParser {
 			if (_check(type, [0x4F, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64])) {
 				return {
 					ext: 'opus',
-					mime: 'audio/opus',
+					mime: 'audio/ogg; codecs=opus',
 				};
 			}
 
