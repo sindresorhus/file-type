@@ -363,6 +363,7 @@ Returns a set of supported MIME types.
 - [`eot`](https://en.wikipedia.org/wiki/Embedded_OpenType) - Embedded OpenType font
 - [`ttf`](https://en.wikipedia.org/wiki/TrueType) - TrueType font
 - [`otf`](https://en.wikipedia.org/wiki/OpenType) - OpenType font
+- [`ttc`](https://en.wikipedia.org/wiki/TrueType#TrueType_Collection) - TrueType Collection font
 - [`ico`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Windows icon file
 - [`flv`](https://en.wikipedia.org/wiki/Flash_Video) - Flash video
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
