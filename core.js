@@ -821,6 +821,13 @@ async function _fromTokenizer(tokenizer) {
 		};
 	}
 
+	if (checkString('ttcf')) {
+		return {
+			ext: 'ttc',
+			mime: 'font/ttc'
+		};
+	}
+
 	if (checkString('#!AMR')) {
 		return {
 			ext: 'amr',
