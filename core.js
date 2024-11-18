@@ -456,6 +456,13 @@ export class FileTypeParser {
 						};
 					}
 
+					if (zipHeader.filename.startsWith('ppt/')) {
+						return {
+							ext: 'pptx',
+							mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+						};
+					}
+
 					if (zipHeader.filename.startsWith('3D/') && zipHeader.filename.endsWith('.model')) {
 						return {
 							ext: '3mf',
