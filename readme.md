@@ -206,7 +206,7 @@ console.log(await fileTypeFromBlob(blob));
 
 > [!WARNING]
 > This method depends on [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **requires Node.js ≥ 20**
-> and [may not be available in all modern browser](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader#browser_compatibility).
+> and [may not be available in all modern browsers](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader#browser_compatibility).
 
 To work around this limitation, you can use an alternative approach to read and process the `Blob` without relying on streaming:
 
