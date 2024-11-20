@@ -183,7 +183,6 @@ Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Bl
 
 It will **stream** the underlying Blob.
 
-
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the blob.
 
 Returns a `Promise` for an object with the detected file type:
@@ -206,16 +205,17 @@ console.log(await fileTypeFromBlob(blob));
 ```
 
 > [!WARNING]
-> This method depends on [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **require Node.js ≥ 20**
+> This method depends on [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **requires Node.js ≥ 20**
 > and [may not be available in all modern browser](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader#browser_compatibility).
 
-To work around this limitation, you can use an alternative approach to read and process the Blob without relying on streaming:
+To work around this limitation, you can use an alternative approach to read and process the `Blob` without relying on streaming:
+
 ```js
 import {fileTypeFromBuffer} from 'file-type';
 
 async function readFromBlobWithoutStreaming(blob) {
-  const buffer = await blob.arrayBuffer();
-  return fileTypeFromBuffer(buffer);
+	const buffer = await blob.arrayBuffer();
+	return fileTypeFromBuffer(buffer);
 }
 ```
 
