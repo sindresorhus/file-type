@@ -13,8 +13,6 @@ import {
 	supportedMimeTypes,
 	type FileTypeResult,
 	type ReadableStreamWithFileType,
-	type FileExtension,
-	type MimeType,
 } from './index.js';
 
 expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new Uint8Array([0xFF, 0xD8, 0xFF])));
@@ -23,8 +21,8 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 (async () => {
 	const result = await fileTypeFromBuffer(new Uint8Array([0xFF, 0xD8, 0xFF]));
 	if (result !== undefined) {
-		expectType<FileExtension>(result.ext);
-		expectType<MimeType>(result.mime);
+		expectType<string>(result.ext);
+		expectType<string>(result.mime);
 	}
 })();
 
@@ -33,8 +31,8 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 
 	const result = await fileTypeFromFile('myFile');
 	if (result !== undefined) {
-		expectType<FileExtension>(result.ext);
-		expectType<MimeType>(result.mime);
+		expectType<string>(result.ext);
+		expectType<string>(result.mime);
 	}
 })();
 
@@ -45,14 +43,14 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 
 	const result = await fileTypeFromStream(stream);
 	if (result !== undefined) {
-		expectType<FileExtension>(result.ext);
-		expectType<MimeType>(result.mime);
+		expectType<string>(result.ext);
+		expectType<string>(result.mime);
 	}
 })();
 
-expectType<ReadonlySet<FileExtension>>(supportedExtensions);
+expectType<ReadonlySet<string>>(supportedExtensions);
 
-expectType<ReadonlySet<MimeType>>(supportedMimeTypes);
+expectType<ReadonlySet<string>>(supportedMimeTypes);
 
 const readableStream = createReadStream('file.png');
 const streamWithFileType = fileTypeStream(readableStream);

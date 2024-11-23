@@ -523,27 +523,6 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		};
 	}
 
-	// File: core.d.ts
-	function readIndexDTS() {
-		const core = fs.readFileSync('core.d.ts', {encoding: 'utf8'});
-		const matches = core.match(/(?<=\|\s')(.*)(?=')/g);
-		const extArray = [];
-		const mimeArray = [];
-
-		for (const match of matches) {
-			if (match.includes('/')) {
-				mimeArray.push(match);
-			} else {
-				extArray.push(match);
-			}
-		}
-
-		return {
-			extArray,
-			mimeArray,
-		};
-	}
-
 	// File: package.json
 	function readPackageJSON() {
 		const packageJson = fs.readFileSync('package.json', {encoding: 'utf8'});
@@ -626,11 +605,10 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 
 	// Get the base truth of extensions and mimes supported from core.js
-	const {exts, mimes} = readIndexJS();
+	const {exts} = readIndexJS();
 
 	// Validate all extensions
 	const filesWithExtensions = {
-		'core.d.ts': readIndexDTS().extArray,
 		'supported.js': [...supportedExtensions],
 		'package.json': readPackageJSON(),
 		'readme.md': readReadmeMD(),
@@ -640,19 +618,6 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		if (filesWithExtensions[fileName]) {
 			const foundExtensions = filesWithExtensions[fileName];
 			validate(foundExtensions, exts, fileName, 'extensions');
-		}
-	}
-
-	// Validate all mimes
-	const filesWithMimeTypes = {
-		'core.d.ts': readIndexDTS().mimeArray,
-		'supported.js': [...supportedMimeTypes],
-	};
-
-	for (const fileName in filesWithMimeTypes) {
-		if (filesWithMimeTypes[fileName]) {
-			const foundMimeTypes = filesWithMimeTypes[fileName];
-			validate(foundMimeTypes, mimes, fileName, 'mimes');
 		}
 	}
 });
