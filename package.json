@@ -220,7 +220,8 @@
 		"apk"
 	],
 	"dependencies": {
-		"strtok3": "^10.0.0",
+		"@tokenizer/inflate": "^0.2.6",
+		"strtok3": "^10.0.1",
 		"token-types": "^6.0.0",
 		"uint8array-extras": "^1.3.0"
 	},

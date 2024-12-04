@@ -279,7 +279,7 @@ const falsePositives = {
 
 // Known failing fixture
 const failingFixture = new Set([
-	'fixture-password-protected',
+	'fixture-password-protected', // .xls, Excel / MS-OSHARED / Compound-File-Binary-Format
 ]);
 
 async function checkBufferLike(t, type, bufferLike) {

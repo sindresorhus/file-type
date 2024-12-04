@@ -4,7 +4,8 @@ Primary entry point, Node.js specific entry point is index.js
 
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
-import {includes, indexOf, getUintBE} from 'uint8array-extras';
+import {ZipHandler} from '@tokenizer/inflate';
+import {includes, getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -24,6 +25,57 @@ export async function fileTypeFromBuffer(input) {
 
 export async function fileTypeFromBlob(blob) {
 	return new FileTypeParser().fromBlob(blob);
+}
+
+function getFileTypeFromMimeType(mimeType) {
+	switch (mimeType) {
+		case 'application/epub+zip':
+			return {
+				ext: 'epub',
+				mime: 'application/epub+zip',
+			};
+		case 'application/vnd.oasis.opendocument.text':
+			return {
+				ext: 'odt',
+				mime: 'application/vnd.oasis.opendocument.text',
+			};
+		case 'application/vnd.oasis.opendocument.spreadsheet':
+			return {
+				ext: 'ods',
+				mime: 'application/vnd.oasis.opendocument.spreadsheet',
+			};
+		case 'application/vnd.oasis.opendocument.presentation':
+			return {
+				ext: 'odp',
+				mime: 'application/vnd.oasis.opendocument.presentation',
+			};
+		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+			return {
+				ext: 'xlsx',
+				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			};
+		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+			return {
+				ext: 'docx',
+				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			};
+		case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+			return {
+				ext: 'pptx',
+				mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			};
+		case 'application/vnd.ms-visio.drawing':
+			return {
+				ext: 'vsdx',
+				mime: 'application/vnd.visio',
+			};
+		case 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml':
+			return {
+				ext: '3mf',
+				mime: 'model/3mf',
+			};
+		default:
+	}
 }
 
 function _check(buffer, headers, options) {
@@ -387,140 +439,61 @@ export class FileTypeParser {
 		// Zip-based file formats
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
-			try {
-				while (tokenizer.position + 30 < tokenizer.fileInfo.size) {
-					await tokenizer.readBuffer(this.buffer, {length: 30});
-
-					const view = new DataView(this.buffer.buffer);
-
-					// https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
-					const zipHeader = {
-						compressedSize: view.getUint32(18, true),
-						uncompressedSize: view.getUint32(22, true),
-						filenameLength: view.getUint16(26, true),
-						extraFieldLength: view.getUint16(28, true),
-					};
-
-					zipHeader.filename = await tokenizer.readToken(new Token.StringType(zipHeader.filenameLength, 'utf-8'));
-					await tokenizer.ignore(zipHeader.extraFieldLength);
-
-					if (/classes\d*\.dex/.test(zipHeader.filename)) {
-						return {
-							ext: 'apk',
-							mime: 'application/vnd.android.package-archive',
-						};
-					}
-
-					// Assumes signed `.xpi` from addons.mozilla.org
-					if (zipHeader.filename === 'META-INF/mozilla.rsa') {
-						return {
+			let fileType;
+			await new ZipHandler(tokenizer).unzip(zipHeader => {
+				switch (zipHeader.filename) {
+					case 'META-INF/mozilla.rsa':
+						fileType = {
 							ext: 'xpi',
 							mime: 'application/x-xpinstall',
 						};
-					}
-
-					if (zipHeader.filename.endsWith('.rels') || zipHeader.filename.endsWith('.xml')) {
-						const type = zipHeader.filename.split('/')[0];
-						switch (type) {
-							case '_rels':
-								break;
-							case 'word':
-								return {
-									ext: 'docx',
-									mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-								};
-							case 'ppt':
-								return {
-									ext: 'pptx',
-									mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-								};
-							case 'xl':
-								return {
-									ext: 'xlsx',
-									mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-								};
-							case 'visio':
-								return {
-									ext: 'vsdx',
-									mime: 'application/vnd.visio',
-								};
-							default:
-								break;
-						}
-					}
-
-					if (zipHeader.filename.startsWith('xl/')) {
 						return {
-							ext: 'xlsx',
-							mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+							stop: true,
 						};
-					}
-
-					if (zipHeader.filename.startsWith('3D/') && zipHeader.filename.endsWith('.model')) {
+					case 'mimetype':
 						return {
-							ext: '3mf',
-							mime: 'model/3mf',
+							async handler(fileData) {
+								// Use TextDecoder to decode the UTF-8 encoded data
+								const mimeType = new TextDecoder('utf-8').decode(fileData).trim();
+								fileType = getFileTypeFromMimeType(mimeType);
+							},
+							stop: true,
 						};
-					}
 
-					// The docx, xlsx and pptx file types extend the Office Open XML file format:
-					// https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
-					// We look for:
-					// - one entry named '[Content_Types].xml' or '_rels/.rels',
-					// - one entry indicating specific type of file.
-					// MS Office, OpenOffice and LibreOffice may put the parts in different order, so the check should not rely on it.
-					if (zipHeader.filename === 'mimetype' && zipHeader.compressedSize === zipHeader.uncompressedSize) {
-						let mimeType = await tokenizer.readToken(new Token.StringType(zipHeader.compressedSize, 'utf-8'));
-						mimeType = mimeType.trim();
-
-						switch (mimeType) {
-							case 'application/epub+zip':
-								return {
-									ext: 'epub',
-									mime: 'application/epub+zip',
-								};
-							case 'application/vnd.oasis.opendocument.text':
-								return {
-									ext: 'odt',
-									mime: 'application/vnd.oasis.opendocument.text',
-								};
-							case 'application/vnd.oasis.opendocument.spreadsheet':
-								return {
-									ext: 'ods',
-									mime: 'application/vnd.oasis.opendocument.spreadsheet',
-								};
-							case 'application/vnd.oasis.opendocument.presentation':
-								return {
-									ext: 'odp',
-									mime: 'application/vnd.oasis.opendocument.presentation',
-								};
-							default:
+					case '[Content_Types].xml':
+						return {
+							async handler(fileData) {
+								// Use TextDecoder to decode the UTF-8 encoded data
+								let xmlContent = new TextDecoder('utf-8').decode(fileData);
+								const endPos = xmlContent.indexOf('.main+xml"');
+								if (endPos >= 0) {
+									xmlContent = xmlContent.slice(0, Math.max(0, endPos));
+									const firstPos = xmlContent.lastIndexOf('"');
+									const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
+									fileType = getFileTypeFromMimeType(mimeType);
+								} else {
+									const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
+									if (xmlContent.includes(`ContentType="${mimeType}"`)) {
+										fileType = getFileTypeFromMimeType(mimeType);
+									}
+								}
+							},
+							stop: true,
+						};
+					default:
+						if (/classes\d*\.dex/.test(zipHeader.filename)) {
+							fileType = {
+								ext: 'apk',
+								mime: 'application/vnd.android.package-archive',
+							};
+							return {stop: true};
 						}
-					}
 
-					// Try to find next header manually when current one is corrupted
-					if (zipHeader.compressedSize === 0) {
-						let nextHeaderIndex = -1;
-
-						while (nextHeaderIndex < 0 && (tokenizer.position < tokenizer.fileInfo.size)) {
-							await tokenizer.peekBuffer(this.buffer, {mayBeLess: true});
-
-							nextHeaderIndex = indexOf(this.buffer, new Uint8Array([0x50, 0x4B, 0x03, 0x04]));
-
-							// Move position to the next header if found, skip the whole buffer otherwise
-							await tokenizer.ignore(nextHeaderIndex >= 0 ? nextHeaderIndex : this.buffer.length);
-						}
-					} else {
-						await tokenizer.ignore(zipHeader.compressedSize);
-					}
+						return {};
 				}
-			} catch (error) {
-				if (!(error instanceof strtok3.EndOfStreamError)) {
-					throw error;
-				}
-			}
+			});
 
-			return {
+			return fileType ?? {
 				ext: 'zip',
 				mime: 'application/zip',
 			};
