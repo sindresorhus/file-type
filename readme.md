@@ -15,42 +15,14 @@ We accept contributions for commonly used modern file formats, not historical or
 ```sh
 npm install file-type
 ```
-
-> [!IMPORTANT]
-> This package is a **pure** ESM package, which means it can only be imported as an ESM module.
-> [Learn more about ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+For TypeScript + CommonJS, see [`load-esm`](https://github.com/Borewit/load-esm)**
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
-### Importing in a CommonJS project
-
-We recommend updating your project to ESM for better compatibility and future-proofing.
-However, if you need to use file-type in a CommonJS project, you can do so as follows:
-
-```js
-(async () => {
-	// Dynamically import the file-type ESM module
-	const { fileTypeFromFile } = await import('file-type');
-})();
-```
-#### CommonJS in TypeScript Projects
-In CommonJS TypeScript projects, using `await import` may not work as expected because the TypeScript compiler transpiles `import()` to `require()`,
-which is incompatible with ESM.
-
-To work around this, you can use a utility like [load-esm](https://github.com/Borewit/load-esm),
-which facilitates dynamic ESM imports in TypeScript CommonJS environments:
-
-```js
-import { loadModule } from 'load-esm';
-(async () => {
-	// Dynamically import the file-type ESM module
-	const { fileTypeFromFile } = await loadModule('file-type');
-})();
-```
-
 ## Usage
 
-#### Node.js
+### Node.js
 
 Determine file type from a file:
 
@@ -119,7 +91,7 @@ const write = fs.createWriteStream(`decrypted.${streamWithFileType.fileType.ext}
 streamWithFileType.pipe(write);
 ```
 
-#### Browser
+### Browser
 
 ```js
 import {fileTypeFromStream} from 'file-type';
