@@ -217,7 +217,8 @@
 		"fbx",
 		"vsdx",
 		"vtt",
-		"apk"
+		"apk",
+		"drc"
 	],
 	"dependencies": {
 		"strtok3": "^10.0.0",

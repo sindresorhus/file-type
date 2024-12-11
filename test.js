@@ -54,6 +54,9 @@ const names = {
 	dng: [
 		'fixture-Leica-M10',
 	],
+	drc: [
+		'fixture-cube_pc',
+	],
 	epub: [
 		'fixture',
 		'fixture-crlf',
