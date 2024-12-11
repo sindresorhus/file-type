@@ -16,13 +16,13 @@ We accept contributions for commonly used modern file formats, not historical or
 npm install file-type
 ```
 
-**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).**
+**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c). For TypeScript + CommonJS, see [`load-esm`](https://github.com/Borewit/load-esm).**
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
 ## Usage
 
-#### Node.js
+### Node.js
 
 Determine file type from a file:
 
@@ -91,7 +91,7 @@ const write = fs.createWriteStream(`decrypted.${streamWithFileType.fileType.ext}
 streamWithFileType.pipe(write);
 ```
 
-#### Browser
+### Browser
 
 ```js
 import {fileTypeFromStream} from 'file-type';
