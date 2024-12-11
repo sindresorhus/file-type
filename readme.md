@@ -15,8 +15,8 @@ We accept contributions for commonly used modern file formats, not historical or
 ```sh
 npm install file-type
 ```
-**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
-For TypeScript + CommonJS, see [`load-esm`](https://github.com/Borewit/load-esm)**
+
+**This package is an ESM package. Your project needs to be ESM too. [Read more](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c). For TypeScript + CommonJS, see [`load-esm`](https://github.com/Borewit/load-esm).**
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
