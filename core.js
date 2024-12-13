@@ -1056,6 +1056,13 @@ export class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('DRACO')) {
+			return {
+				ext: 'drc',
+				mime: 'application/vnd.google.draco', // Invented by us
+			};
+		}
+
 		// -- 6-byte signatures --
 
 		if (this.check([0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])) {

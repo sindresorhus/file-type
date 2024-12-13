@@ -154,6 +154,7 @@ export const extensions = [
 	'vsdx',
 	'vtt',
 	'apk',
+	'drc',
 ];
 
 export const mimeTypes = [
@@ -307,4 +308,5 @@ export const mimeTypes = [
 	'application/x.autodesk.fbx', // Invented by us
 	'application/vnd.visio',
 	'application/vnd.android.package-archive',
+	'application/vnd.google.draco', // Invented by us
 ];
