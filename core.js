@@ -598,68 +598,6 @@ export class FileTypeParser {
 			};
 		}
 
-		//
-
-		// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
-		// It's not required to be first, but it's recommended to be. Almost all ISO base media files start with `ftyp` box.
-		// `ftyp` box must contain a brand major identifier, which must consist of ISO 8859-1 printable characters.
-		// Here we check for 8859-1 printable characters (for simplicity, it's a mask which also catches one non-printable character).
-		if (
-			this.checkString('ftyp', {offset: 4})
-			&& (this.buffer[8] & 0x60) !== 0x00 // Brand major, first character ASCII?
-		) {
-			// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
-			// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
-			const brandMajor = new Token.StringType(4, 'latin1').get(this.buffer, 8).replace('\0', ' ').trim();
-			switch (brandMajor) {
-				case 'avif':
-				case 'avis':
-					return {ext: 'avif', mime: 'image/avif'};
-				case 'mif1':
-					return {ext: 'heic', mime: 'image/heif'};
-				case 'msf1':
-					return {ext: 'heic', mime: 'image/heif-sequence'};
-				case 'heic':
-				case 'heix':
-					return {ext: 'heic', mime: 'image/heic'};
-				case 'hevc':
-				case 'hevx':
-					return {ext: 'heic', mime: 'image/heic-sequence'};
-				case 'qt':
-					return {ext: 'mov', mime: 'video/quicktime'};
-				case 'M4V':
-				case 'M4VH':
-				case 'M4VP':
-					return {ext: 'm4v', mime: 'video/x-m4v'};
-				case 'M4P':
-					return {ext: 'm4p', mime: 'video/mp4'};
-				case 'M4B':
-					return {ext: 'm4b', mime: 'audio/mp4'};
-				case 'M4A':
-					return {ext: 'm4a', mime: 'audio/x-m4a'};
-				case 'F4V':
-					return {ext: 'f4v', mime: 'video/mp4'};
-				case 'F4P':
-					return {ext: 'f4p', mime: 'video/mp4'};
-				case 'F4A':
-					return {ext: 'f4a', mime: 'audio/mp4'};
-				case 'F4B':
-					return {ext: 'f4b', mime: 'audio/mp4'};
-				case 'crx':
-					return {ext: 'cr3', mime: 'image/x-canon-cr3'};
-				default:
-					if (brandMajor.startsWith('3g')) {
-						if (brandMajor.startsWith('3g2')) {
-							return {ext: '3g2', mime: 'video/3gpp2'};
-						}
-
-						return {ext: '3gp', mime: 'video/3gpp'};
-					}
-
-					return {ext: 'mp4', mime: 'video/mp4'};
-			}
-		}
-
 		if (this.checkString('MThd')) {
 			return {
 				ext: 'mid',
@@ -1246,6 +1184,66 @@ export class FileTypeParser {
 				ext: 'xcf',
 				mime: 'image/x-xcf',
 			};
+		}
+
+		// File Type Box (https://en.wikipedia.org/wiki/ISO_base_media_file_format)
+		// It's not required to be first, but it's recommended to be. Almost all ISO base media files start with `ftyp` box.
+		// `ftyp` box must contain a brand major identifier, which must consist of ISO 8859-1 printable characters.
+		// Here we check for 8859-1 printable characters (for simplicity, it's a mask which also catches one non-printable character).
+		if (
+			this.checkString('ftyp', {offset: 4})
+			&& (this.buffer[8] & 0x60) !== 0x00 // Brand major, first character ASCII?
+		) {
+			// They all can have MIME `video/mp4` except `application/mp4` special-case which is hard to detect.
+			// For some cases, we're specific, everything else falls to `video/mp4` with `mp4` extension.
+			const brandMajor = new Token.StringType(4, 'latin1').get(this.buffer, 8).replace('\0', ' ').trim();
+			switch (brandMajor) {
+				case 'avif':
+				case 'avis':
+					return {ext: 'avif', mime: 'image/avif'};
+				case 'mif1':
+					return {ext: 'heic', mime: 'image/heif'};
+				case 'msf1':
+					return {ext: 'heic', mime: 'image/heif-sequence'};
+				case 'heic':
+				case 'heix':
+					return {ext: 'heic', mime: 'image/heic'};
+				case 'hevc':
+				case 'hevx':
+					return {ext: 'heic', mime: 'image/heic-sequence'};
+				case 'qt':
+					return {ext: 'mov', mime: 'video/quicktime'};
+				case 'M4V':
+				case 'M4VH':
+				case 'M4VP':
+					return {ext: 'm4v', mime: 'video/x-m4v'};
+				case 'M4P':
+					return {ext: 'm4p', mime: 'video/mp4'};
+				case 'M4B':
+					return {ext: 'm4b', mime: 'audio/mp4'};
+				case 'M4A':
+					return {ext: 'm4a', mime: 'audio/x-m4a'};
+				case 'F4V':
+					return {ext: 'f4v', mime: 'video/mp4'};
+				case 'F4P':
+					return {ext: 'f4p', mime: 'video/mp4'};
+				case 'F4A':
+					return {ext: 'f4a', mime: 'audio/mp4'};
+				case 'F4B':
+					return {ext: 'f4b', mime: 'audio/mp4'};
+				case 'crx':
+					return {ext: 'cr3', mime: 'image/x-canon-cr3'};
+				default:
+					if (brandMajor.startsWith('3g')) {
+						if (brandMajor.startsWith('3g2')) {
+							return {ext: '3g2', mime: 'video/3gpp2'};
+						}
+
+						return {ext: '3gp', mime: 'video/3gpp'};
+					}
+
+					return {ext: 'mp4', mime: 'video/mp4'};
+			}
 		}
 
 		// -- 12-byte signatures --
