@@ -270,6 +270,9 @@ const names = {
 		'fixture-vtt-tab',
 		'fixture-vtt-eof',
 	],
+	lz4: [
+		'fixture',
+	],
 };
 
 // Define an entry here only if the file type has potential

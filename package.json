@@ -218,7 +218,8 @@
 		"vsdx",
 		"vtt",
 		"apk",
-		"drc"
+		"drc",
+		"lz4"
 	],
 	"dependencies": {
 		"strtok3": "^10.0.0",

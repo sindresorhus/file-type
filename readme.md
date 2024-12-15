@@ -479,6 +479,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL and OpenGL ES textures
 - [`lnk`](https://en.wikipedia.org/wiki/Shortcut_%28computing%29#Microsoft_Windows) - Microsoft Windows file shortcut
 - [`lz`](https://en.wikipedia.org/wiki/Lzip) - Archive file
+- [`lz4`](https://en.wikipedia.org/wiki/LZ4_(compression_algorithm)) - Compressed archive created by one of a variety of LZ4 compression utilities
 - [`lzh`](https://en.wikipedia.org/wiki/LHA_(file_format)) - LZH archive
 - [`m4a`](https://en.wikipedia.org/wiki/M4A) - Audio-only MPEG-4 files
 - [`m4b`](https://en.wikipedia.org/wiki/M4B) - Audiobook and podcast MPEG-4 files, which also contain metadata including chapter markers, images, and hyperlinks

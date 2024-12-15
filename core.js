@@ -966,6 +966,13 @@ export class FileTypeParser {
 			};
 		}
 
+		if (this.check([0x04, 0x22, 0x4D, 0x18])) {
+			return {
+				ext: 'lz4',
+				mime: 'application/x-lz4', // Invented by us
+			};
+		}
+
 		// -- 5-byte signatures --
 
 		if (this.check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
