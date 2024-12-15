@@ -344,7 +344,9 @@ A custom detector is a function that allows specifying custom detection mechanis
 
 An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
 
-The detectors are called before the default detections in the provided order.
+Detectors can be added via the constructor options, or by adding it directly to `FileTypeParser.detectors`.
+
+The detectors provided via the constructor options, are called before the default detectors are called.
 
 Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing `FileTypeResult` detections.
 
@@ -360,23 +362,22 @@ Example detector array which can be extended and provided to each public method 
 ```js
 import {FileTypeParser} from 'file-type';
 
-const customDetectors = [
-	async tokenizer => {
-		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
+const customDetector = async tokenizer => {
+	const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
 
-		const buffer = new Uint8Array(7);
-		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+	const buffer = new Uint8Array(7);
+	await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
 
-		if (unicornHeader.every((value, index) => value === buffer[index])) {
-			return {ext: 'unicorn', mime: 'application/unicorn'};
-		}
+	if (unicornHeader.every((value, index) => value === buffer[index])) {
+		return {ext: 'unicorn', mime: 'application/unicorn'};
+	}
 
-		return undefined;
-	},
-];
+	return undefined;
+};
 
 const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
-const parser = new FileTypeParser({customDetectors});
+const parser = new FileTypeParser();
+parser.detectors.unshift(customDetector); // Make customDetector the first detector
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```

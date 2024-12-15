@@ -109,19 +109,18 @@ export async function fileTypeStream(webStream, options) {
 
 export class FileTypeParser {
 	constructor(options) {
-		this.detectors = options?.customDetectors;
+		this.detectors = options?.customDetectors ?? [];
 		this.tokenizerOptions = {
 			abortSignal: options?.signal,
 		};
-		this.fromTokenizer = this.fromTokenizer.bind(this);
-		this.fromBuffer = this.fromBuffer.bind(this);
-		this.parse = this.parse.bind(this);
+		this.detectors.push(this.parse); // Assign core file-type detector
 	}
 
 	async fromTokenizer(tokenizer) {
 		const initialPosition = tokenizer.position;
 
-		for (const detector of this.detectors || []) {
+		// Iterate through all file-type detectors
+		for (const detector of this.detectors) {
 			const fileType = await detector(tokenizer);
 			if (fileType) {
 				return fileType;
@@ -131,8 +130,6 @@ export class FileTypeParser {
 				return undefined; // Cannot proceed scanning of the tokenizer is at an arbitrary position
 			}
 		}
-
-		return this.parse(tokenizer);
 	}
 
 	async fromBuffer(input) {
@@ -215,7 +212,7 @@ export class FileTypeParser {
 		return this.check(stringToBytes(header), options);
 	}
 
-	async parse(tokenizer) {
+	parse = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Keep reading until EOF if the file size is unknown.
@@ -1647,7 +1644,7 @@ export class FileTypeParser {
 				};
 			}
 		}
-	}
+	};
 
 	async readTiffTag(bigEndian) {
 		const tagId = await this.tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);

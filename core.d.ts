@@ -180,7 +180,10 @@ This method can be handy to put in a stream pipeline, but it comes with a price.
 export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export declare class FileTypeParser {
-	detectors: Iterable<Detector>;
+	/**
+	File-type detectors
+	 */
+	readonly detectors: Detector[];
 
 	constructor(options?: {customDetectors?: Iterable<Detector>; signal?: AbortSignal});
 
