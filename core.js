@@ -109,11 +109,10 @@ export async function fileTypeStream(webStream, options) {
 
 export class FileTypeParser {
 	constructor(options) {
-		this.detectors = options?.customDetectors ?? [];
+		this.detectors = [...(options?.customDetectors ?? []), this.parse];
 		this.tokenizerOptions = {
 			abortSignal: options?.signal,
 		};
-		this.detectors.push(this.parse); // Assign core file-type detector
 	}
 
 	async fromTokenizer(tokenizer) {
