@@ -9,6 +9,7 @@ If you're adding support for a new file type, please follow the below steps:
 	- Signature with shorter sample size (counted from offset 0 until the last required byte position) will be executed first.
 	- Only the initial determination for the file type counts for the sequence.
 	- Existing signatures requiring same sample length (same *signature group*) will be tested prior to your new detections. Yours will be last. (rational: common formats first).
+- Unsafe detection (higher risk false positive detection) will be performed after safe detections, they should be added to `detectUnsafe()`
 - Add the file extension to the `Supported file types` section of the readme in alphabetical order, in the format ```- [`<extension>`](URL) - Format name```, for example, ```- [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics```
 - Add the file extension to the `keywords` array in the `package.json` file.
 - Run `$ npm test` to ensure the tests pass.

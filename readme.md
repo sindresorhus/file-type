@@ -364,8 +364,9 @@ Below is an example of a custom detector array. This can be passed to the `FileT
 ```js
 import {FileTypeParser} from 'file-type';
 
-const customDetectors = [
-	async tokenizer => {
+const unicornDetector = {
+	id: 'unicorn',
+  	async detect(tokenizer) {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" in ASCII decimal
 
 		const buffer = new Uint8Array(unicornHeader.length);
@@ -375,11 +376,11 @@ const customDetectors = [
 		}
 
 		return undefined;
-	},
-];
+	}
+}
 
 const buffer = new Uint8Array([85, 78, 73, 67, 79, 82, 78]);
-const parser = new FileTypeParser({customDetectors});
+const parser = new FileTypeParser({customDetectors: [unicornDetector]});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType); // {ext: 'unicorn', mime: 'application/unicorn'}
 ```

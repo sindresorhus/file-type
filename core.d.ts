@@ -162,7 +162,10 @@ console.log(fileType); // {ext: 'unicorn', mime: 'application/unicorn'}
 @param fileType - The file type detected by standard or previous custom detectors, or `undefined` if no match is found.
 @returns The detected file type, or `undefined` if no match is found.
 */
-export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
+export type Detector = {
+	id: string;
+	detect: (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
+};
 
 export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
