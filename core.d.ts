@@ -187,7 +187,7 @@ export declare class FileTypeParser {
 	File-type detectors, initialized with a single entry holding the build in detector function.
 	The array is used to iterate over all detectors, as long as the function returns `undefined`.
 	*/
-	readonly detectors: Detector[];
+	detectors: Detector[];
 
 	constructor(options?: {customDetectors?: Iterable<Detector>; signal?: AbortSignal});
 
