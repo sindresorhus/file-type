@@ -5,9 +5,9 @@ Node.js specific entry point.
 import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import {pipeline, PassThrough, Readable} from 'node:stream';
 import * as strtok3 from 'strtok3';
-import {FileTypeParser, reasonableDetectionSizeInBytes} from './core.js';
+import {FileTypeParser as DefaultFileTypeParser, reasonableDetectionSizeInBytes} from './core.js';
 
-export class NodeFileTypeParser extends FileTypeParser {
+export class FileTypeParser extends DefaultFileTypeParser {
 	async fromStream(stream) {
 		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.tokenizerOptions) : strtok3.fromStream(stream, this.tokenizerOptions));
 		try {
@@ -66,15 +66,15 @@ export class NodeFileTypeParser extends FileTypeParser {
 }
 
 export async function fileTypeFromFile(path, fileTypeOptions) {
-	return (new NodeFileTypeParser(fileTypeOptions)).fromFile(path, fileTypeOptions);
+	return (new FileTypeParser(fileTypeOptions)).fromFile(path, fileTypeOptions);
 }
 
 export async function fileTypeFromStream(stream, fileTypeOptions) {
-	return (new NodeFileTypeParser(fileTypeOptions)).fromStream(stream);
+	return (new FileTypeParser(fileTypeOptions)).fromStream(stream);
 }
 
 export async function fileTypeStream(readableStream, options = {}) {
-	return new NodeFileTypeParser(options).toDetectionStream(readableStream, options);
+	return new FileTypeParser(options).toDetectionStream(readableStream, options);
 }
 
-export {fileTypeFromTokenizer, fileTypeFromBuffer, fileTypeFromBlob, FileTypeParser, supportedMimeTypes, supportedExtensions} from './core.js';
+export {fileTypeFromTokenizer, fileTypeFromBuffer, fileTypeFromBlob, supportedMimeTypes, supportedExtensions} from './core.js';

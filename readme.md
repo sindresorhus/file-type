@@ -343,7 +343,6 @@ Returns a `Set<string>` of supported MIME types.
 A custom detector is a function that allows specifying custom detection mechanisms.
 
 An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
-In Node.js, you should use `NodeFileTypeParser`, which extends `FileTypeParser` and provides access to Node.js specific functions.
 
 The detectors are called before the default detections in the provided order.
 
@@ -359,7 +358,7 @@ If the detector returns `undefined`, there are 2 possible scenarios:
 Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
 
 ```js
-import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
+import {FileTypeParser} from 'file-type';
 
 const customDetectors = [
 	async tokenizer => {
@@ -377,7 +376,7 @@ const customDetectors = [
 ];
 
 const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
-const parser = new FileTypeParser({customDetectors}); // `NodeFileTypeParser({customDetectors})` in Node.js
+const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType);
 ```
@@ -387,7 +386,7 @@ console.log(fileType);
 Some async operations can be aborted by passing an [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) to the `FileTypeParser` constructor.
 
 ```js
-import {FileTypeParser} from 'file-type'; // or `NodeFileTypeParser` in Node.js
+import {FileTypeParser} from 'file-type';
 
 const abortController = new AbortController()
 
