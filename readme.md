@@ -342,9 +342,7 @@ Returns a `Set<string>` of supported MIME types.
 
 A custom detector is a function that allows specifying custom detection mechanisms.
 
-An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
-
-Detectors can be added via the constructor options, or by adding it directly to `FileTypeParser.detectors`.
+Detectors can be added via the constructor options, or by adding it directly to `FileTypeParser#detectors`.
 
 The detectors provided via the constructor options, are called before the default detectors are called.
 

@@ -114,12 +114,9 @@ console.log(await fileTypeFromBlob(blob));
 export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
 
 /**
-A custom detector is a function that allows specifying custom detection mechanisms.
+A custom file type detector.
 
-An array of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
-In Node.js, you should use `NodeFileTypeParser`, which extends `FileTypeParser` and provides access to Node.js specific functions.
-
-Detectors can be added via the constructor options, or by adding it directly to `FileTypeParser.detectors`.
+Detectors can be added via the constructor options, or by adding it directly to `FileTypeParser#detectors`.
 
 The detectors provided via the constructor options, are called before the default detectors are called.
 
@@ -184,8 +181,9 @@ export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, opti
 
 export declare class FileTypeParser {
 	/**
-	File-type detectors, initialized with a single entry holding the build in detector function.
-	The array is used to iterate over all detectors, as long as the function returns `undefined`.
+	File type detectors.
+
+	Initialized with a single entry holding the built-in detector function.
 	*/
 	detectors: Detector[];
 
