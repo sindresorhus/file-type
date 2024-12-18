@@ -118,6 +118,16 @@ A custom file type detector.
 
 Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 
+### Example adding a detector
+
+```js
+import {FileTypeParser} from 'file-type';
+import {detectXml} from '@file-type/xml'; // Third party detector for XML formats
+
+const parser = new FileTypeParser({customDetectors: [detectXml]});
+const fileType = await parser.fromFile('sample.kml');
+console.log(fileType);
+```
 Detectors provided through the constructor options are executed before the default detectors.
 
 Custom detectors allow for:
@@ -131,7 +141,7 @@ If a detector returns `undefined`, the following rules apply:
 1. **No Tokenizer Interaction**: If the detector does not modify the tokenizer's position, the next detector in the sequence is executed.
 2. **Tokenizer Interaction**: If the detector modifies the tokenizer's position (`tokenizer.position` is advanced), no further detectors are executed. In this case, the file type remains `undefined`, as subsequent detectors cannot evaluate the content. This is an exceptional scenario, as it prevents any other detectors from determining the file type.
 
-### Example usage
+### Example writing a custom detector
 
 Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
 
