@@ -116,13 +116,27 @@ export declare function fileTypeFromBlob(blob: Blob): Promise<FileTypeResult | u
 /**
 A custom file type detector.
 
+Custom file type detectors are plugins designed to extend the default detection capabilities.
+They allow support for uncommon file types, non-binary formats, or customized detection behavior.
+
+Detectors can be added via the constructor options or by modifying `FileTypeParser#detectors` directly.
+Detectors provided through the constructor are executed before the default ones.
+
 Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 
-Detectors provided through the constructor options are executed before the default detectors.
+### Example adding a detector
 
-Custom detectors allow for:
-- Introducing new `FileTypeResult` entries.
-- Modifying the detection behavior of existing `FileTypeResult` types.
+```js
+import {FileTypeParser} from 'file-type';
+import {detectXml} from '@file-type/xml';
+
+const parser = new FileTypeParser({customDetectors: [detectXml]});
+const fileType = await parser.fromFile('sample.kml');
+console.log(fileType);
+```
+
+### Available-third party file-type detectors
+* [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as: GLM, KML, MusicXML, RSS, SVG, XHTML
 
 ### Detector execution flow
 
@@ -131,7 +145,7 @@ If a detector returns `undefined`, the following rules apply:
 1. **No Tokenizer Interaction**: If the detector does not modify the tokenizer's position, the next detector in the sequence is executed.
 2. **Tokenizer Interaction**: If the detector modifies the tokenizer's position (`tokenizer.position` is advanced), no further detectors are executed. In this case, the file type remains `undefined`, as subsequent detectors cannot evaluate the content. This is an exceptional scenario, as it prevents any other detectors from determining the file type.
 
-### Example usage
+### Example writing a custom detector
 
 Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
 
