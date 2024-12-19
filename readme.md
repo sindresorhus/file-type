@@ -350,13 +350,15 @@ Custom detectors allow for:
 - Introducing new `FileTypeResult` entries.
 - Modifying the detection behavior of existing `FileTypeResult` types.
 
-### Detector Execution Flow
+### Detector execution flow
+
 If a detector returns `undefined`, the following rules apply:
 
 1. **No Tokenizer Interaction**: If the detector does not modify the tokenizer's position, the next detector in the sequence is executed.
 2. **Tokenizer Interaction**: If the detector modifies the tokenizer's position (`tokenizer.position` is advanced), no further detectors are executed. In this case, the file type remains `undefined`, as subsequent detectors cannot evaluate the content. This is an exceptional scenario, as it prevents any other detectors from determining the file type.
 
-### Example Usage
+### Example usage
+
 Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
 
 ```js
