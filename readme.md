@@ -340,33 +340,36 @@ Returns a `Set<string>` of supported MIME types.
 
 ## Custom detectors
 
-A custom detector is a function that allows specifying custom detection mechanisms.
+A custom file type detector.
 
-An iterable of detectors can be provided via the `fileTypeOptions` argument for the `FileTypeParser` constructor.
+Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 
-The detectors are called before the default detections in the provided order.
+Detectors provided through the constructor options are executed before the default detectors.
 
-Custom detectors can be used to add new `FileTypeResults` or to modify return behaviour of existing `FileTypeResult` detections.
+Custom detectors allow for:
+- Introducing new `FileTypeResult` entries.
+- Modifying the detection behavior of existing `FileTypeResult` types.
 
-If the detector returns `undefined`, there are 2 possible scenarios:
+### Detector execution flow
 
-1. The detector has not read from the tokenizer, it will be proceeded with the next available detector.
-2. The detector has read from the tokenizer (`tokenizer.position` has been increased).
-	In that case no further detectors will be executed and the final conclusion is that file-type returns undefined.
-	Note that this an exceptional scenario, as the detector takes the opportunity from any other detector to determine the file type.
+If a detector returns `undefined`, the following rules apply:
 
-Example detector array which can be extended and provided to each public method via the `fileTypeOptions` argument:
+1. **No Tokenizer Interaction**: If the detector does not modify the tokenizer's position, the next detector in the sequence is executed.
+2. **Tokenizer Interaction**: If the detector modifies the tokenizer's position (`tokenizer.position` is advanced), no further detectors are executed. In this case, the file type remains `undefined`, as subsequent detectors cannot evaluate the content. This is an exceptional scenario, as it prevents any other detectors from determining the file type.
+
+### Example usage
+
+Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
 
 ```js
 import {FileTypeParser} from 'file-type';
 
 const customDetectors = [
 	async tokenizer => {
-		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // 'UNICORN' as decimal string
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" in ASCII decimal
 
-		const buffer = new Uint8Array(7);
+		const buffer = new Uint8Array(unicornHeader.length);
 		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
-
 		if (unicornHeader.every((value, index) => value === buffer[index])) {
 			return {ext: 'unicorn', mime: 'application/unicorn'};
 		}
@@ -375,10 +378,19 @@ const customDetectors = [
 	},
 ];
 
-const buffer = new Uint8Array(new TextEncoder().encode('UNICORN'));
+const buffer = new Uint8Array([85, 78, 73, 67, 79, 82, 78]);
 const parser = new FileTypeParser({customDetectors});
 const fileType = await parser.fromBuffer(buffer);
-console.log(fileType);
+console.log(fileType); // {ext: 'unicorn', mime: 'application/unicorn'}
+```
+
+```ts
+/**
+@param tokenizer - The [tokenizer](https://github.com/Borewit/strtok3#tokenizer) used to read file content.
+@param fileType - The file type detected by standard or previous custom detectors, or `undefined` if no match is found.
+@returns The detected file type, or `undefined` if no match is found.
+*/
+export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
 ```
 
 ## Abort signal
