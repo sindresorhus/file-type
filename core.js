@@ -59,6 +59,11 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'docx',
 				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 			};
+		case 'application/vnd.openxmlformats-officedocument.presentationml.template':
+			return {
+				ext: 'potx',
+				mime: 'application/vnd.openxmlformats-officedocument.presentationml.template',
+			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 			return {
 				ext: 'pptx',

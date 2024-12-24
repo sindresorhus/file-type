@@ -219,7 +219,8 @@
 		"vtt",
 		"apk",
 		"drc",
-		"lz4"
+		"lz4",
+		"potx"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",

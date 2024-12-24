@@ -529,7 +529,8 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics
-- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Powerpoint document
+- [`potx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint template
+- [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft PowerPoint document
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
 - [`pst`](https://en.wikipedia.org/wiki/Personal_Storage_Table) - Personal Storage Table file
