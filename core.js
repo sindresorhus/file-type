@@ -59,6 +59,11 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'xltx',
 				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
 			};
+		case 'application/vnd.ms-excel.template.macroEnabled':
+			return {
+				ext: 'xltm',
+				mime: 'application/vnd.ms-excel.template.macroenabled.12',
+			};
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 			return {
 				ext: 'docx',

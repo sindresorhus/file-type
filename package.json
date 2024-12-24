@@ -222,7 +222,8 @@
 		"lz4",
 		"potx",
 		"xltx",
-		"dotx"
+		"dotx",
+		"xltm"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",
