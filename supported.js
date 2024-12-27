@@ -158,6 +158,7 @@ export const extensions = [
 	'lz4',
 	'potx',
 	'xltx',
+	'dotx',
 ];
 
 export const mimeTypes = [
@@ -315,4 +316,5 @@ export const mimeTypes = [
 	'application/x-lz4', // Invented by us
 	'application/vnd.openxmlformats-officedocument.presentationml.template',
 	'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+	'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
 ];
