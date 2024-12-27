@@ -156,6 +156,7 @@ export const extensions = [
 	'apk',
 	'drc',
 	'lz4',
+	'potx',
 ];
 
 export const mimeTypes = [
@@ -311,4 +312,5 @@ export const mimeTypes = [
 	'application/vnd.android.package-archive',
 	'application/vnd.google.draco', // Invented by us
 	'application/x-lz4', // Invented by us
+	'application/vnd.openxmlformats-officedocument.presentationml.template',
 ];
