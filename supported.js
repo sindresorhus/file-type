@@ -157,6 +157,7 @@ export const extensions = [
 	'drc',
 	'lz4',
 	'potx',
+	'xltx',
 ];
 
 export const mimeTypes = [
@@ -313,4 +314,5 @@ export const mimeTypes = [
 	'application/vnd.google.draco', // Invented by us
 	'application/x-lz4', // Invented by us
 	'application/vnd.openxmlformats-officedocument.presentationml.template',
+	'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
 ];
