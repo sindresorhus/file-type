@@ -220,7 +220,8 @@
 		"apk",
 		"drc",
 		"lz4",
-		"potx"
+		"potx",
+		"xltx"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",

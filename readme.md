@@ -563,6 +563,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`xcf`](https://en.wikipedia.org/wiki/XCF_(file_format)) - eXperimental Computing Facility
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Excel document
+- [`xltx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Excel template
 - [`xm`](https://wiki.openmpt.org/Manual:_Module_formats#The_FastTracker_2_format_.28.xm.29) - Audio module format: FastTracker 2
 - [`xml`](https://en.wikipedia.org/wiki/XML) - eXtensible Markup Language
 - [`xpi`](https://en.wikipedia.org/wiki/XPInstall) - XPInstall file
