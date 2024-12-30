@@ -453,6 +453,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
 - [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word document
+- [`dotx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Word template
 - [`drc`](https://en.wikipedia.org/wiki/Zstandard) - Google's Draco 3D Data Compression
 - [`dsf`](https://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf) - Sony DSD Stream File (DSF)
 - [`dwg`](https://en.wikipedia.org/wiki/.dwg) - Autodesk CAD file
