@@ -159,6 +159,7 @@ export const extensions = [
 	'potx',
 	'xltx',
 	'dotx',
+	'xltm',
 ];
 
 export const mimeTypes = [
@@ -317,4 +318,5 @@ export const mimeTypes = [
 	'application/vnd.openxmlformats-officedocument.presentationml.template',
 	'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
 	'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+	'application/vnd.ms-excel.template.macroenabled.12',
 ];
