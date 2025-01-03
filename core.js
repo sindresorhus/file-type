@@ -130,8 +130,8 @@ export async function fileTypeStream(webStream, options) {
 export class FileTypeParser {
 	constructor(options) {
 		this.detectors = [...(options?.customDetectors ?? []),
-			{id: 'core.safe', detect: this.detectCore},
-			{id: 'core.unsafe', detect: this.detectUnsafe}];
+			{id: 'core', detect: this.detectConfident},
+			{id: 'core.imprecise', detect: this.detectImprecise}];
 		this.tokenizerOptions = {
 			abortSignal: options?.signal,
 		};
@@ -233,7 +233,8 @@ export class FileTypeParser {
 		return this.check(stringToBytes(header), options);
 	}
 
-	detectCore = async tokenizer => {
+	// Detections with a high degree of certainty in identifying the correct file type
+	detectConfident = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Keep reading until EOF if the file size is unknown.
@@ -323,7 +324,7 @@ export class FileTypeParser {
 		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
 			// Strip off UTF-8-BOM
 			this.tokenizer.ignore(3);
-			return this.detectCore(tokenizer);
+			return this.detectConfident(tokenizer);
 		}
 
 		if (this.check([0x47, 0x49, 0x46])) {
@@ -1590,7 +1591,8 @@ export class FileTypeParser {
 		}
 	};
 
-	detectUnsafe = async tokenizer => {
+	// Detections with limited supporting data, resulting in a higher likelihood of false positives
+	detectImprecise = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Read initial sample size of 8 bytes

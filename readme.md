@@ -365,7 +365,7 @@ Below is an example of a custom detector array. This can be passed to the `FileT
 import {FileTypeParser} from 'file-type';
 
 const unicornDetector = {
-	id: 'unicorn',
+	id: 'unicorn', // May be used to recognize the detector in the detector list
   	async detect(tokenizer) {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" in ASCII decimal
 
