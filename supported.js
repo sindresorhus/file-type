@@ -160,6 +160,11 @@ export const extensions = [
 	'xltx',
 	'dotx',
 	'xltm',
+	'ott',
+	'ots',
+	'otp',
+	'odg',
+	'otg',
 ];
 
 export const mimeTypes = [
@@ -319,4 +324,9 @@ export const mimeTypes = [
 	'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
 	'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
 	'application/vnd.ms-excel.template.macroenabled.12',
+	'application/vnd.oasis.opendocument.text-template',
+	'application/vnd.oasis.opendocument.spreadsheet-template',
+	'application/vnd.oasis.opendocument.presentation-template',
+	'application/vnd.oasis.opendocument.graphics',
+	'application/vnd.oasis.opendocument.graphics-template',
 ];

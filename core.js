@@ -39,15 +39,40 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'odt',
 				mime: 'application/vnd.oasis.opendocument.text',
 			};
+		case 'application/vnd.oasis.opendocument.text-template':
+			return {
+				ext: 'ott',
+				mime: 'application/vnd.oasis.opendocument.text-template',
+			};
 		case 'application/vnd.oasis.opendocument.spreadsheet':
 			return {
 				ext: 'ods',
 				mime: 'application/vnd.oasis.opendocument.spreadsheet',
 			};
+		case 'application/vnd.oasis.opendocument.spreadsheet-template':
+			return {
+				ext: 'ots',
+				mime: 'application/vnd.oasis.opendocument.spreadsheet-template',
+			};
 		case 'application/vnd.oasis.opendocument.presentation':
 			return {
 				ext: 'odp',
 				mime: 'application/vnd.oasis.opendocument.presentation',
+			};
+		case 'application/vnd.oasis.opendocument.presentation-template':
+			return {
+				ext: 'otp',
+				mime: 'application/vnd.oasis.opendocument.presentation-template',
+			};
+		case 'application/vnd.oasis.opendocument.graphics':
+			return {
+				ext: 'odg',
+				mime: 'application/vnd.oasis.opendocument.graphics',
+			};
+		case 'application/vnd.oasis.opendocument.graphics-template':
+			return {
+				ext: 'otg',
+				mime: 'application/vnd.oasis.opendocument.graphics-template',
 			};
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 			return {
