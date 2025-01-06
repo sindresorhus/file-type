@@ -514,6 +514,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format) - Material Exchange Format
 - [`nef`](https://www.nikonusa.com/en/learn-and-explore/a/products-and-innovation/nikon-electronic-format-nef.html) - Nikon Electronic Format image file
 - [`nes`](https://fileinfo.com/extension/nes) - Nintendo NES ROM
+- [`odg`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for drawing
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
 - [`odt`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for word processing
@@ -525,6 +526,10 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`opus`](https://en.wikipedia.org/wiki/Opus_(audio_format)) - Audio file
 - [`orf`](https://en.wikipedia.org/wiki/ORF_format) - Olympus Raw image file
 - [`otf`](https://en.wikipedia.org/wiki/OpenType) - OpenType font
+- [`otg`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for drawing
+- [`otp`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for presentations
+- [`ots`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for spreadsheets
+- [`ott`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for word processing
 - [`parquet`](https://en.wikipedia.org/wiki/Apache_Parquet) - Apache Parquet
 - [`pcap`](https://wiki.wireshark.org/Development/LibpcapFileFormat) - Libpcap File Format
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format

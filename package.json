@@ -223,7 +223,12 @@
 		"potx",
 		"xltx",
 		"dotx",
-		"xltm"
+		"xltm",
+		"ots",
+		"odg",
+		"otg",
+		"otp",
+		"ott"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",
