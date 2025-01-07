@@ -6,8 +6,8 @@ If you're adding support for a new file type, please follow the below steps:
 - Add the file's MIME type to the `types` array in `supported.js`.
 - Add the file type detection logic to the `core.js` file
 - Determine the appropriate detection confidence category:
-    - `detectConfident()`: Detections with a high degree of certainty in identifying the correct file type
-    - `detectImprecise()`: Detections with limited supporting data, resulting in a higher likelihood of false positives
+	- `detectConfident()`: Detections with a high degree of certainty in identifying the correct file type
+	- `detectImprecise()`: Detections with limited supporting data, resulting in a higher likelihood of false positives
 - Respect the sequence:
 	- Signature with shorter sample size (counted from offset 0 until the last required byte position) will be executed first.
 	- Only the initial determination for the file type counts for the sequence.
