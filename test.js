@@ -688,22 +688,31 @@ test('corrupt MKV throws', async t => {
 });
 
 // Create a custom detector for the just made up "unicorn" file type
-const unicornDetector = async tokenizer => {
-	const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
-	const buffer = new Uint8Array(7);
-	await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
-	if (unicornHeader.every((value, index) => value === buffer[index])) {
-		return {ext: 'unicorn', mime: 'application/unicorn'};
-	}
+const unicornDetector = {
+	id: 'mock.unicorn',
+	async detect(tokenizer) {
+		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" as decimal string
+		const buffer = new Uint8Array(7);
+		await tokenizer.peekBuffer(buffer, {length: unicornHeader.length, mayBeLess: true});
+		if (unicornHeader.every((value, index) => value === buffer[index])) {
+			return {ext: 'unicorn', mime: 'application/unicorn'};
+		}
 
-	return undefined;
+		return undefined;
+	},
 };
 
-const mockPngDetector = _tokenizer => ({ext: 'mockPng', mime: 'image/mockPng'});
+const mockPngDetector = {
+	id: 'mock.png',
+	detect: () => ({ext: 'mockPng', mime: 'image/mockPng'}),
+};
 
-const tokenizerPositionChanger = tokenizer => {
-	const buffer = new Uint8Array(1);
-	tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
+const tokenizerPositionChanger = {
+	id: 'mock.dirtyTokenizer',
+	detect(tokenizer) {
+		const buffer = new Uint8Array(1);
+		tokenizer.readBuffer(buffer, {length: 1, mayBeLess: true});
+	},
 };
 
 if (nodeMajorVersion >= nodeVersionSupportingByteBlobStream) {

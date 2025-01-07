@@ -154,7 +154,9 @@ export async function fileTypeStream(webStream, options) {
 
 export class FileTypeParser {
 	constructor(options) {
-		this.detectors = [...(options?.customDetectors ?? []), this.parse];
+		this.detectors = [...(options?.customDetectors ?? []),
+			{id: 'core', detect: this.detectConfident},
+			{id: 'core.imprecise', detect: this.detectImprecise}];
 		this.tokenizerOptions = {
 			abortSignal: options?.signal,
 		};
@@ -165,7 +167,7 @@ export class FileTypeParser {
 
 		// Iterate through all file-type detectors
 		for (const detector of this.detectors) {
-			const fileType = await detector(tokenizer);
+			const fileType = await detector.detect(tokenizer);
 			if (fileType) {
 				return fileType;
 			}
@@ -256,7 +258,8 @@ export class FileTypeParser {
 		return this.check(stringToBytes(header), options);
 	}
 
-	parse = async tokenizer => {
+	// Detections with a high degree of certainty in identifying the correct file type
+	detectConfident = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Keep reading until EOF if the file size is unknown.
@@ -346,7 +349,7 @@ export class FileTypeParser {
 		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
 			// Strip off UTF-8-BOM
 			this.tokenizer.ignore(3);
-			return this.parse(tokenizer);
+			return this.detectConfident(tokenizer);
 		}
 
 		if (this.check([0x47, 0x49, 0x46])) {
@@ -1406,39 +1409,6 @@ export class FileTypeParser {
 			return undefined; // Some unknown text based format
 		}
 
-		// -- Unsafe signatures --
-
-		if (
-			this.check([0x0, 0x0, 0x1, 0xBA])
-			|| this.check([0x0, 0x0, 0x1, 0xB3])
-		) {
-			return {
-				ext: 'mpg',
-				mime: 'video/mpeg',
-			};
-		}
-
-		if (this.check([0x00, 0x01, 0x00, 0x00, 0x00])) {
-			return {
-				ext: 'ttf',
-				mime: 'font/ttf',
-			};
-		}
-
-		if (this.check([0x00, 0x00, 0x01, 0x00])) {
-			return {
-				ext: 'ico',
-				mime: 'image/x-icon',
-			};
-		}
-
-		if (this.check([0x00, 0x00, 0x02, 0x00])) {
-			return {
-				ext: 'cur',
-				mime: 'image/x-icon',
-			};
-		}
-
 		if (this.check([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1])) {
 			// Detected Microsoft Compound File Binary File (MS-CFB) Format.
 			return {
@@ -1642,6 +1612,45 @@ export class FileTypeParser {
 			return {
 				ext: 'pgp',
 				mime: 'application/pgp-encrypted',
+			};
+		}
+	};
+
+	// Detections with limited supporting data, resulting in a higher likelihood of false positives
+	detectImprecise = async tokenizer => {
+		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
+
+		// Read initial sample size of 8 bytes
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(8, tokenizer.fileInfo.size), mayBeLess: true});
+
+		if (
+			this.check([0x0, 0x0, 0x1, 0xBA])
+			|| this.check([0x0, 0x0, 0x1, 0xB3])
+		) {
+			return {
+				ext: 'mpg',
+				mime: 'video/mpeg',
+			};
+		}
+
+		if (this.check([0x00, 0x01, 0x00, 0x00, 0x00])) {
+			return {
+				ext: 'ttf',
+				mime: 'font/ttf',
+			};
+		}
+
+		if (this.check([0x00, 0x00, 0x01, 0x00])) {
+			return {
+				ext: 'ico',
+				mime: 'image/x-icon',
+			};
+		}
+
+		if (this.check([0x00, 0x00, 0x02, 0x00])) {
+			return {
+				ext: 'cur',
+				mime: 'image/x-icon',
 			};
 		}
 
