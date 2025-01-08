@@ -170,6 +170,7 @@ export const extensions = [
 	'dotm',
 	'potm',
 	'pptm',
+	'jar',
 ];
 
 export const mimeTypes = [
@@ -339,4 +340,5 @@ export const mimeTypes = [
 	'application/vnd.ms-word.template.macroEnabled.12',
 	'application/vnd.ms-powerpoint.template.macroEnabled.12',
 	'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
+	'application/java-archive',
 ];

@@ -233,7 +233,8 @@
 		"docm",
 		"dotm",
 		"potm",
-		"pptm"
+		"pptm",
+		"jar"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",
