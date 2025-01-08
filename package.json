@@ -228,7 +228,12 @@
 		"odg",
 		"otg",
 		"otp",
-		"ott"
+		"ott",
+		"xlsm",
+		"docm",
+		"dotm",
+		"potm",
+		"pptm"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",

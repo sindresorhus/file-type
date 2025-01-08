@@ -453,7 +453,9 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format)) - Debian package
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
+- [`docm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Word macro-enabled document
 - [`docx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Word document
+- [`dotm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Word macro-enabled template
 - [`dotx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Word template
 - [`drc`](https://en.wikipedia.org/wiki/Zstandard) - Google's Draco 3D Data Compression
 - [`dsf`](https://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf) - Sony DSD Stream File (DSF)
@@ -536,7 +538,9 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format
 - [`pgp`](https://en.wikipedia.org/wiki/Pretty_Good_Privacy) - Pretty Good Privacy
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics
+- [`potm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint macro-enabled template
 - [`potx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint template
+- [`pptm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint macro-enabled document
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft PowerPoint document
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
@@ -569,6 +573,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`woff2`](https://en.wikipedia.org/wiki/Web_Open_Font_Format) - Web Open Font Format
 - [`wv`](https://en.wikipedia.org/wiki/WavPack) - WavPack
 - [`xcf`](https://en.wikipedia.org/wiki/XCF_(file_format)) - eXperimental Computing Facility
+- [`xlsm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Excel macro-enabled document
 - [`xlsx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft Excel document
 - [`xltm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Excel macro-enabled template
 - [`xltx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Excel template
