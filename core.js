@@ -79,6 +79,11 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'xlsx',
 				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 			};
+		case 'application/vnd.ms-excel.sheet.macroEnabled':
+			return {
+				ext: 'xlsm',
+				mime: 'application/vnd.ms-excel.sheet.macroEnabled.12',
+			};
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.template':
 			return {
 				ext: 'xltx',
@@ -94,20 +99,40 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'docx',
 				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 			};
+		case 'application/vnd.ms-word.document.macroEnabled':
+			return {
+				ext: 'docm',
+				mime: 'application/vnd.ms-word.document.macroEnabled.12',
+			};
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template':
 			return {
 				ext: 'dotx',
 				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+			};
+		case 'application/vnd.ms-word.template.macroEnabledTemplate':
+			return {
+				ext: 'dotm',
+				mime: 'application/vnd.ms-word.template.macroEnabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.template':
 			return {
 				ext: 'potx',
 				mime: 'application/vnd.openxmlformats-officedocument.presentationml.template',
 			};
+		case 'application/vnd.ms-powerpoint.template.macroEnabled':
+			return {
+				ext: 'potm',
+				mime: 'application/vnd.ms-powerpoint.template.macroEnabled.12',
+			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 			return {
 				ext: 'pptx',
 				mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			};
+		case 'application/vnd.ms-powerpoint.presentation.macroEnabled':
+			return {
+				ext: 'pptm',
+				mime: 'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
 			};
 		case 'application/vnd.ms-visio.drawing':
 			return {

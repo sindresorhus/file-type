@@ -165,6 +165,11 @@ export const extensions = [
 	'otp',
 	'odg',
 	'otg',
+	'xlsm',
+	'docm',
+	'dotm',
+	'potm',
+	'pptm',
 ];
 
 export const mimeTypes = [
@@ -329,4 +334,9 @@ export const mimeTypes = [
 	'application/vnd.oasis.opendocument.presentation-template',
 	'application/vnd.oasis.opendocument.graphics',
 	'application/vnd.oasis.opendocument.graphics-template',
+	'application/vnd.ms-excel.sheet.macroEnabled.12',
+	'application/vnd.ms-word.document.macroEnabled.12',
+	'application/vnd.ms-word.template.macroEnabled.12',
+	'application/vnd.ms-powerpoint.template.macroEnabled.12',
+	'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
 ];
