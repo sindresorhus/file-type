@@ -30,7 +30,7 @@ const missingTests = new Set([
 const [nodeMajorVersion] = process.versions.node.split('.').map(Number);
 const nodeVersionSupportingByteBlobStream = 20;
 
-const types = [...supportedExtensions].filter(ext => !missingTests.has(ext));
+const types = [...supportedExtensions].filter(extension => !missingTests.has(extension));
 
 // Define an entry here only if the fixture has a different
 // name than `fixture` or if you want multiple fixtures
@@ -307,31 +307,31 @@ async function checkFile(t, type, filePath) {
 	t.is(typeof mime, 'string');
 }
 
-async function testFromFile(t, ext, name) {
-	const file = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${ext}`);
-	return checkFile(t, ext, file);
+async function testFromFile(t, extension, name) {
+	const file = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${extension}`);
+	return checkFile(t, extension, file);
 }
 
-async function testFromBuffer(t, ext, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+async function testFromBuffer(t, extension, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
 
 	const file = path.join(__dirname, 'fixture', fixtureName);
 	const chunk = fs.readFileSync(file);
-	await checkBufferLike(t, ext, chunk);
-	await checkBufferLike(t, ext, new Uint8Array(chunk));
-	await checkBufferLike(t, ext, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
+	await checkBufferLike(t, extension, chunk);
+	await checkBufferLike(t, extension, new Uint8Array(chunk));
+	await checkBufferLike(t, extension, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
 }
 
-async function testFromBlob(t, ext, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+async function testFromBlob(t, extension, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
 
 	const file = path.join(__dirname, 'fixture', fixtureName);
 	const chunk = fs.readFileSync(file);
-	await checkBlobLike(t, ext, chunk);
+	await checkBlobLike(t, extension, chunk);
 }
 
-async function testFalsePositive(t, ext, name) {
-	const file = path.join(__dirname, 'fixture', `${name}.${ext}`);
+async function testFalsePositive(t, extension, name) {
+	const file = path.join(__dirname, 'fixture', `${name}.${extension}`);
 
 	await t.is(await fileTypeFromFile(file), undefined);
 
@@ -341,13 +341,13 @@ async function testFalsePositive(t, ext, name) {
 	t.is(await fileTypeFromBuffer(chunk.buffer), undefined);
 }
 
-async function testFileNodeFromStream(t, ext, name) {
-	const filename = `${(name ?? 'fixture')}.${ext}`;
+async function testFileNodeFromStream(t, extension, name) {
+	const filename = `${(name ?? 'fixture')}.${extension}`;
 	const file = path.join(__dirname, 'fixture', filename);
 	const fileType = await fileTypeNodeFromStream(fs.createReadStream(file));
 
 	t.truthy(fileType, `identify ${filename}`);
-	t.is(fileType.ext, ext, 'fileType.ext');
+	t.is(fileType.ext, extension, 'fileType.ext');
 	t.is(typeof fileType.mime, 'string', 'fileType.mime');
 }
 
@@ -355,8 +355,8 @@ async function getStreamAsUint8Array(stream) {
 	return new Uint8Array(await getStreamAsArrayBuffer(stream));
 }
 
-async function testStreamWithNodeStream(t, ext, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+async function testStreamWithNodeStream(t, extension, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 
 	const readableStream = await fileTypeStream(fs.createReadStream(file));
@@ -367,8 +367,8 @@ async function testStreamWithNodeStream(t, ext, name) {
 	t.true(areUint8ArraysEqual(bufferA, bufferB));
 }
 
-async function testStreamWithWebStream(t, ext, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${ext}`;
+async function testStreamWithWebStream(t, extension, name) {
+	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
 	const file = path.join(__dirname, 'fixture', fixtureName);
 	// Read the file into a buffer
 	const fileBuffer = await readFile(file);
@@ -387,7 +387,7 @@ test('Test suite must be able to detect Node.js major version', t => {
 
 let i = 0;
 for (const type of types) {
-	if (Object.prototype.hasOwnProperty.call(names, type)) {
+	if (Object.hasOwn(names, type)) {
 		for (const name of names[type]) {
 			const fixtureName = `${name}.${type}`;
 			const _test = failingFixture.has(fixtureName) ? test.failing : test;
@@ -413,7 +413,7 @@ for (const type of types) {
 		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStreamWithNodeStream, type);
 	}
 
-	if (Object.prototype.hasOwnProperty.call(falsePositives, type)) {
+	if (Object.hasOwn(falsePositives, type)) {
 		for (const falsePositiveFile of falsePositives[type]) {
 			test(`false positive - ${type} ${i++}`, testFalsePositive, type, falsePositiveFile);
 		}
@@ -518,13 +518,13 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// File: core.js (base truth)
 	function readIndexJS() {
 		const core = fs.readFileSync('core.js', {encoding: 'utf8'});
-		const extArray = core.match(/(?<=ext:\s')(.*)(?=',)/g);
+		const extensionArray = core.match(/(?<=ext:\s')(.*)(?=',)/g);
 		const mimeArray = core.match(/(?<=mime:\s')(.*)(?=')/g);
-		const exts = new Set(extArray);
+		const extensions = new Set(extensionArray);
 		const mimes = new Set(mimeArray);
 
 		return {
-			exts,
+			exts: extensions,
 			mimes,
 		};
 	}
@@ -557,15 +557,15 @@ test('validate the repo has all extensions and mimes in sync', t => {
 			'webassembly',
 		]);
 
-		const extArray = keywords.filter(keyword => !allowedExtras.has(keyword));
-		return extArray;
+		const extensionArray = keywords.filter(keyword => !allowedExtras.has(keyword));
+		return extensionArray;
 	}
 
 	// File: readme.md
 	function readReadmeMD() {
 		const index = fs.readFileSync('readme.md', {encoding: 'utf8'});
-		const extArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
-		return extArray;
+		const extensionArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
+		return extensionArray;
 	}
 
 	// Helpers
@@ -601,13 +601,13 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 
 	// Test runner
-	function validate(found, baseTruth, fileName, extOrMime) {
+	function validate(found, baseTruth, fileName, extensionOrMime) {
 		const duplicates = findDuplicates(found);
 		const extras = findExtras(found, baseTruth);
 		const missing = findMissing(found, baseTruth);
-		t.is(duplicates.length, 0, `Found duplicate ${extOrMime}: ${duplicates} in ${fileName}.`);
-		t.is(extras.length, 0, `Extra ${extOrMime}: ${extras} in ${fileName}.`);
-		t.is(missing.length, 0, `Missing ${extOrMime}: ${missing} in ${fileName}.`);
+		t.is(duplicates.length, 0, `Found duplicate ${extensionOrMime}: ${duplicates} in ${fileName}.`);
+		t.is(extras.length, 0, `Extra ${extensionOrMime}: ${extras} in ${fileName}.`);
+		t.is(missing.length, 0, `Missing ${extensionOrMime}: ${missing} in ${fileName}.`);
 	}
 
 	// Get the base truth of extensions and mimes supported from core.js

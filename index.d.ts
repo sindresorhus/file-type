@@ -4,8 +4,9 @@ Typings for Node.js specific entry point.
 
 import type {Readable as NodeReadableStream} from 'node:stream';
 import type {AnyWebByteStream} from 'strtok3';
-import type {FileTypeResult, StreamOptions, AnyWebReadableStream, Detector, AnyWebReadableByteStreamWithFileType} from './core.js';
-import {FileTypeParser as DefaultFileTypeParser} from './core.js';
+import {
+	type FileTypeResult, type StreamOptions, type AnyWebReadableStream, type Detector, type AnyWebReadableByteStreamWithFileType, FileTypeParser as DefaultFileTypeParser,
+} from './core.js';
 
 export type ReadableStreamWithFileType = NodeReadableStream & {
 	readonly fileType?: FileTypeResult;
