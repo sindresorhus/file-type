@@ -78,5 +78,9 @@ export async function fileTypeStream(readableStream, options = {}) {
 }
 
 export {
-	fileTypeFromTokenizer, fileTypeFromBuffer, fileTypeFromBlob, supportedMimeTypes, supportedExtensions,
+	fileTypeFromTokenizer,
+	fileTypeFromBuffer,
+	fileTypeFromBlob,
+	supportedMimeTypes,
+	supportedExtensions,
 } from './core.js';
