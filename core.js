@@ -519,6 +519,14 @@ export class FileTypeParser {
 						return {
 							stop: true,
 						};
+					case 'META-INF/MANIFEST.MF':
+						fileType = {
+							ext: 'jar',
+							mime: 'application/java-archive',
+						};
+						return {
+							stop: true,
+						};
 					case 'mimetype':
 						return {
 							async handler(fileData) {
