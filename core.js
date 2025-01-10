@@ -535,16 +535,16 @@ export class FileTypeParser {
 								// Use TextDecoder to decode the UTF-8 encoded data
 								let xmlContent = new TextDecoder('utf-8').decode(fileData);
 								const endPos = xmlContent.indexOf('.main+xml"');
-								if (endPos >= 0) {
-									xmlContent = xmlContent.slice(0, Math.max(0, endPos));
-									const firstPos = xmlContent.lastIndexOf('"');
-									const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
-									fileType = getFileTypeFromMimeType(mimeType);
-								} else {
+								if (endPos === -1) {
 									const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
 									if (xmlContent.includes(`ContentType="${mimeType}"`)) {
 										fileType = getFileTypeFromMimeType(mimeType);
 									}
+								} else {
+									xmlContent = xmlContent.slice(0, Math.max(0, endPos));
+									const firstPos = xmlContent.lastIndexOf('"');
+									const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
+									fileType = getFileTypeFromMimeType(mimeType);
 								}
 							},
 							stop: true,
@@ -821,9 +821,9 @@ export class FileTypeParser {
 			}
 
 			const re = await readElement();
-			const docType = await readChildren(re.len);
+			const documentType = await readChildren(re.len);
 
-			switch (docType) {
+			switch (documentType) {
 				case 'webm':
 					return {
 						ext: 'webm',
@@ -1640,7 +1640,6 @@ export class FileTypeParser {
 			};
 		}
 	};
-
 	// Detections with limited supporting data, resulting in a higher likelihood of false positives
 	detectImprecise = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
