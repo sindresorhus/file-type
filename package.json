@@ -15,16 +15,19 @@
 		".": {
 			"node": {
 				"types": "./index.d.ts",
-				"import": "./index.js"
+				"import": "./index.js",
+				"default": "./index.js"
 			},
 			"default": {
 				"types": "./core.d.ts",
-				"import": "./core.js"
+				"import": "./core.js",
+				"default": "./core.js"
 			}
 		},
 		"./core": {
 			"types": "./core.d.ts",
-			"import": "./core.js"
+			"import": "./core.js",
+			"default": "./core.js"
 		}
 	},
 	"sideEffects": false,
