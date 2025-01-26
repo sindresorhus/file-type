@@ -273,6 +273,9 @@ const names = {
 	lz4: [
 		'fixture',
 	],
+	svg: [
+		'fixture',
+	],
 };
 
 // Define an entry here only if the file type has potential
@@ -863,3 +866,4 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.is(result, undefined);
 });
+

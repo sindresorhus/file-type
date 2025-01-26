@@ -234,7 +234,8 @@
 		"dotm",
 		"potm",
 		"pptm",
-		"jar"
+		"jar",
+		"svg"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",

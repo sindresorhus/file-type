@@ -558,6 +558,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`spx`](https://en.wikipedia.org/wiki/Ogg) - Audio file
 - [`sqlite`](https://www.sqlite.org/fileformat2.html) - SQLite file
 - [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
+- [`svg`](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics) - Scalable Vector Graphics File Format (XML-based, ASCII or UTF-8)
 - [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
 - [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tarball archive file
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format) - Tagged Image file

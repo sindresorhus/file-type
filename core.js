@@ -296,6 +296,17 @@ export class FileTypeParser {
 
 		await tokenizer.peekBuffer(this.buffer, {length: 12, mayBeLess: true});
 
+		// -- Add SVG detection --
+		if (this.checkString('<?xml', {offset: 0}) || this.checkString('<svg', {offset: 0})) {
+			await tokenizer.peekBuffer(this.buffer, {length: 256, mayBeLess: true});
+			if (this.checkString('<svg', {offset: 0}) || this.checkString('<svg', {offset: 6})) {
+				return {
+					ext: 'svg',
+					mime: 'image/svg+xml',
+				};
+			}
+		}
+
 		// -- 2-byte signatures --
 
 		if (this.check([0x42, 0x4D])) {
@@ -1726,6 +1737,15 @@ export class FileTypeParser {
 				return {
 					ext: 'mp1',
 					mime: 'audio/mpeg',
+				};
+			}
+
+			// Check for SVG file (XML declaration or <svg> tag)
+			const bufferString = new TextDecoder().decode(this.buffer);
+			if (bufferString.startsWith('<?xml') || bufferString.includes('<svg')) {
+				return {
+					ext: 'svg',
+					mime: 'image/svg+xml',
 				};
 			}
 		}
