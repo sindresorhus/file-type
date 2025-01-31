@@ -256,15 +256,16 @@ console.log(fileType);
 Or use [`@tokenizer/s3`](https://github.com/Borewit/tokenizer-s3) to determine the file type of a file stored on [Amazon S3](https://aws.amazon.com/s3):
 
 ```js
-import S3 from 'aws-sdk/clients/s3';
-import {makeTokenizer} from '@tokenizer/s3';
+import {S3Client} from '@aws-sdk/client-s3';
+import {makeChunkedTokenizerFromS3} from '@tokenizer/s3';
 import {fileTypeFromTokenizer} from 'file-type';
 
 // Initialize the S3 client
-const s3 = new S3();
+// Initialize S3 client
+const s3 = new S3Client();
 
 // Initialize the S3 tokenizer.
-const s3Tokenizer = await makeTokenizer(s3, {
+const s3Tokenizer = await makeChunkedTokenizerFromS3(s3, {
 	Bucket: 'affectlab',
 	Key: '1min_35sec.mp4'
 });
