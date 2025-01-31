@@ -491,7 +491,7 @@ test('.fileTypeFromStream() method - be able to abort operation', async t => {
 	const promiseFileType = parser.fromStream(shortStream);
 	abortController.abort(); // Abort asynchronous operation: reading from shortStream
 	const error = await t.throwsAsync(promiseFileType);
-	t.is(error.message, 'Stream closed');
+	t.true(error instanceof strtok3.AbortError, 'Expect error te be an instanceof AbortError');
 });
 
 test('supportedExtensions.has', t => {
