@@ -3,8 +3,8 @@ on:
   - push
   - pull_request
 jobs:
-  test:
-    name: Node.js ${{ matrix.node-version }}
+  test-nodejs:
+    name: Node.js (V8) ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -18,5 +18,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test
+  test-bum:
+    name: Bum (JavaScriptCore) ${{ matrix.bun-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bum-version:
+          - 1.2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun-version }}
       - run: npm install
       - run: npm test
