@@ -281,6 +281,9 @@ const falsePositives = {
 	png: [
 		'fixture-corrupt',
 	],
+	webp: [
+		'fixture-json',
+	],
 };
 
 // Known failing fixture
