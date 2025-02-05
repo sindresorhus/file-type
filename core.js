@@ -1275,15 +1275,15 @@ export class FileTypeParser {
 
 		// -- 12-byte signatures --
 
-		if (this.checkString('WEBP', {offset: 8})) {
-			return {
-				ext: 'webp',
-				mime: 'image/webp',
-			};
-		}
-
 		// RIFF file format which might be AVI, WAV, QCP, etc
 		if (this.check([0x52, 0x49, 0x46, 0x46])) {
+			if (this.checkString('WEBP', {offset: 8})) {
+				return {
+					ext: 'webp',
+					mime: 'image/webp',
+				};
+			}
+
 			if (this.check([0x41, 0x56, 0x49], {offset: 8})) {
 				return {
 					ext: 'avi',
