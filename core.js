@@ -476,13 +476,6 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('WEBP', {offset: 8})) {
-			return {
-				ext: 'webp',
-				mime: 'image/webp',
-			};
-		}
-
 		// Musepack, SV8
 		if (this.checkString('MPCK')) {
 			return {
@@ -848,31 +841,6 @@ export class FileTypeParser {
 
 				default:
 					return;
-			}
-		}
-
-		// RIFF file format which might be AVI, WAV, QCP, etc
-		if (this.check([0x52, 0x49, 0x46, 0x46])) {
-			if (this.check([0x41, 0x56, 0x49], {offset: 8})) {
-				return {
-					ext: 'avi',
-					mime: 'video/vnd.avi',
-				};
-			}
-
-			if (this.check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
-				return {
-					ext: 'wav',
-					mime: 'audio/wav',
-				};
-			}
-
-			// QLCM, QCP file
-			if (this.check([0x51, 0x4C, 0x43, 0x4D], {offset: 8})) {
-				return {
-					ext: 'qcp',
-					mime: 'audio/qcelp',
-				};
 			}
 		}
 
@@ -1306,6 +1274,38 @@ export class FileTypeParser {
 		}
 
 		// -- 12-byte signatures --
+
+		if (this.checkString('WEBP', {offset: 8})) {
+			return {
+				ext: 'webp',
+				mime: 'image/webp',
+			};
+		}
+
+		// RIFF file format which might be AVI, WAV, QCP, etc
+		if (this.check([0x52, 0x49, 0x46, 0x46])) {
+			if (this.check([0x41, 0x56, 0x49], {offset: 8})) {
+				return {
+					ext: 'avi',
+					mime: 'video/vnd.avi',
+				};
+			}
+
+			if (this.check([0x57, 0x41, 0x56, 0x45], {offset: 8})) {
+				return {
+					ext: 'wav',
+					mime: 'audio/wav',
+				};
+			}
+
+			// QLCM, QCP file
+			if (this.check([0x51, 0x4C, 0x43, 0x4D], {offset: 8})) {
+				return {
+					ext: 'qcp',
+					mime: 'audio/qcelp',
+				};
+			}
+		}
 
 		if (this.check([0x49, 0x49, 0x55, 0x00, 0x18, 0x00, 0x00, 0x00, 0x88, 0xE7, 0x74, 0xD8])) {
 			return {
