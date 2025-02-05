@@ -20,6 +20,8 @@ npm install file-type
 
 If you use it with Webpack, you need the latest Webpack version and ensure you configure it correctly for ESM.
 
+File type detection is based on binary signatures (magic numbers) and should be treated as a best-effort hint, not a guarantee.
+
 ## Usage
 
 ### Node.js
