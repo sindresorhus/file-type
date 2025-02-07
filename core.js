@@ -15,17 +15,28 @@ import {extensions, mimeTypes} from './supported.js';
 
 export const reasonableDetectionSizeInBytes = 4100; // A fair amount of file-types are detectable within this range.
 
-export async function fileTypeFromStream(stream) {
-	return new FileTypeParser().fromStream(stream);
-}
-
 export async function fileTypeFromBuffer(input) {
 	return new FileTypeParser().fromBuffer(input);
+}
+
+export async function fileTypeFromStream(stream) {
+	return new FileTypeParser().fromStream(stream);
 }
 
 export async function fileTypeFromBlob(blob) {
 	return new FileTypeParser().fromBlob(blob);
 }
+
+export async function fileTypeFromTokenizer(tokenizer) {
+	return new FileTypeParser().fromTokenizer(tokenizer);
+}
+
+export async function fileTypeStream(webStream, options) {
+	return new FileTypeParser().toDetectionStream(webStream, options);
+}
+
+export const supportedExtensions = new Set(extensions);
+export const supportedMimeTypes = new Set(mimeTypes);
 
 function getFileTypeFromMimeType(mimeType) {
 	switch (mimeType) {
@@ -167,14 +178,6 @@ function _check(buffer, headers, options) {
 	}
 
 	return true;
-}
-
-export async function fileTypeFromTokenizer(tokenizer) {
-	return new FileTypeParser().fromTokenizer(tokenizer);
-}
-
-export async function fileTypeStream(webStream, options) {
-	return new FileTypeParser(options).toDetectionStream(webStream, options);
 }
 
 export class FileTypeParser {
@@ -1806,6 +1809,3 @@ export class FileTypeParser {
 		}
 	}
 }
-
-export const supportedExtensions = new Set(extensions);
-export const supportedMimeTypes = new Set(mimeTypes);

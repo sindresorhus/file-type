@@ -8,7 +8,6 @@ import {
 	type FileTypeResult,
 	type StreamOptions,
 	type AnyWebReadableStream,
-	type Detector,
 	type AnyWebReadableByteStreamWithFileType,
 	FileTypeParser as DefaultFileTypeParser,
 } from './core.js';
@@ -48,7 +47,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 @returns The detected file type and MIME type or `undefined` when there is no match.
 */
-export function fileTypeFromFile(filePath: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
+export function fileTypeFromFile(filePath: string): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
@@ -91,7 +90,8 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
-export function fileTypeStream(webStream: AnyWebByteStream, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+export function fileTypeStream(readableStream: NodeReadableStream, streamOptiopns?: StreamOptions): Promise<ReadableStreamWithFileType>;
+
+export function fileTypeStream(webStream: AnyWebByteStream,	streamOptiopns?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export * from './core.js';
