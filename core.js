@@ -917,6 +917,13 @@ export class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('ttcf')) {
+			return {
+				ext: 'ttc',
+				mime: 'font/ttc',
+			};
+		}
+
 		if (this.check([0xCF, 0xFA, 0xED, 0xFE])) {
 			return {
 				ext: 'macho',
