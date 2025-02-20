@@ -552,6 +552,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`qcp`](https://en.wikipedia.org/wiki/QCP) - Tagged and chunked data
 - [`raf`](https://en.wikipedia.org/wiki/Raw_image_format) - Fujifilm RAW image file
 - [`rar`](https://en.wikipedia.org/wiki/RAR_(file_format)) - Archive file
+- [`rm`](https://en.wikipedia.org/wiki/RealMedia) - RealMedia
 - [`rpm`](https://fileinfo.com/extension/rpm) - Red Hat Package Manager file
 - [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format) - Rich Text Format
 - [`rw2`](https://en.wikipedia.org/wiki/Raw_image_format) - Panasonic RAW image file
