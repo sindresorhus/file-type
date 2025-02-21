@@ -26,8 +26,11 @@
 		},
 		"./core": {
 			"types": "./core.d.ts",
-			"import": "./core.js",
-			"module-sync": "./core.js"
+			"default": "./core.js"
+		},
+		"./node": {
+			"types": "./index.d.ts",
+			"default": "./index.js"
 		}
 	},
 	"sideEffects": false,
