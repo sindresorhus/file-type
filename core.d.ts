@@ -136,7 +136,8 @@ console.log(fileType);
 ```
 
 ### Available-third party file-type detectors
-* [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as: GLM, KML, MusicXML, RSS, SVG, XHTML
+
+- [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as GLM, KML, MusicXML, RSS, SVG, and XHTML
 
 ### Detector execution flow
 
