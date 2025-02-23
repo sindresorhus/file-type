@@ -273,6 +273,10 @@ const names = {
 	lz4: [
 		'fixture',
 	],
+	rm: [
+		'fixture-realmedia-audio',
+		'fixture-realmedia-video',
+	],
 };
 
 // Define an entry here only if the file type has potential

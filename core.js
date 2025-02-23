@@ -1021,6 +1021,15 @@ export class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('.RMF')) {
+			return {
+				ext: 'rm',
+				mime: 'application/vnd.rn-realmedia',
+			};
+		}
+
+		// -- 5-byte signatures --
+
 		if (this.checkString('DRACO')) {
 			return {
 				ext: 'drc',
