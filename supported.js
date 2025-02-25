@@ -127,7 +127,6 @@ export const extensions = [
 	'it',
 	's3m',
 	'xm',
-	'ai',
 	'skp',
 	'avif',
 	'eps',
