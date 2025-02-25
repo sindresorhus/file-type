@@ -5,7 +5,7 @@ Primary entry point, Node.js specific entry point is index.js
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
 import {ZipHandler} from '@tokenizer/inflate';
-import {includes, getUintBE} from 'uint8array-extras';
+import {getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -729,28 +729,6 @@ export class FileTypeParser {
 		}
 
 		if (this.checkString('%PDF')) {
-			try {
-				const skipBytes = 1350;
-				if (skipBytes === await tokenizer.ignore(skipBytes)) {
-					const maxBufferSize = 10 * 1024 * 1024;
-					const buffer = new Uint8Array(Math.min(maxBufferSize, tokenizer.fileInfo.size - skipBytes));
-					await tokenizer.readBuffer(buffer, {mayBeLess: true});
-
-					// Check if this is an Adobe Illustrator file
-					if (includes(buffer, new TextEncoder().encode('AIPrivateData'))) {
-						return {
-							ext: 'ai',
-							mime: 'application/postscript',
-						};
-					}
-				}
-			} catch (error) {
-				// Swallow end of stream error if file is too small for the Adobe AI check
-				if (!(error instanceof strtok3.EndOfStreamError)) {
-					throw error;
-				}
-			}
-
 			// Assume this is just a normal PDF
 			return {
 				ext: 'pdf',
