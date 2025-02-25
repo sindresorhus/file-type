@@ -578,6 +578,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
 - [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tarball archive file
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format) - Tagged Image file
+- [`ttc`](https://en.wikipedia.org/wiki/TrueType#TrueType_Collection) - TrueType Collection font
 - [`ttf`](https://en.wikipedia.org/wiki/TrueType) - TrueType font
 - [`vcf`](https://en.wikipedia.org/wiki/VCard) - vCard
 - [`voc`](https://wiki.multimedia.cx/index.php/Creative_Voice) - Creative Voice File
