@@ -920,7 +920,7 @@ export class FileTypeParser {
 		if (this.checkString('ttcf')) {
 			return {
 				ext: 'ttc',
-				mime: 'font/ttc',
+				mime: 'font/collection',
 			};
 		}
 

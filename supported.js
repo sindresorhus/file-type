@@ -239,7 +239,7 @@ export const mimeTypes = [
 	'application/vnd.ms-fontobject',
 	'font/ttf',
 	'font/otf',
-	'font/ttc',
+	'font/collection',
 	'image/x-icon',
 	'video/x-flv',
 	'application/postscript',
