@@ -195,8 +195,8 @@ export type AnyWebReadableByteStreamWithFileType = AnyWebReadableStream<Uint8Arr
 };
 
 /**
-  Workaround for TypeScript using "bundler" as the module-resolution.
- */
+Workaround for using `bundler` as the module-resolution in TypeScript.
+*/
 export function fileTypeFromFile(filePath: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
 
 /**
