@@ -277,6 +277,12 @@ const names = {
 		'fixture-realmedia-audio',
 		'fixture-realmedia-video',
 	],
+	ppsx: [
+		'fixture',
+	],
+	ppsm: [
+		'fixture',
+	],
 };
 
 // Define an entry here only if the file type has potential

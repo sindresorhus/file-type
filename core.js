@@ -28,7 +28,7 @@ export async function fileTypeFromBlob(blob) {
 }
 
 function getFileTypeFromMimeType(mimeType) {
-	switch (mimeType) {
+	switch (mimeType.toLowerCase()) {
 		case 'application/epub+zip':
 			return {
 				ext: 'epub',
@@ -74,65 +74,75 @@ function getFileTypeFromMimeType(mimeType) {
 				ext: 'otg',
 				mime: 'application/vnd.oasis.opendocument.graphics-template',
 			};
+		case 'application/vnd.openxmlformats-officedocument.presentationml.slideshow':
+			return {
+				ext: 'ppsx',
+				mime: 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+			};
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 			return {
 				ext: 'xlsx',
 				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 			};
-		case 'application/vnd.ms-excel.sheet.macroEnabled':
+		case 'application/vnd.ms-excel.sheet.macroenabled':
 			return {
 				ext: 'xlsm',
-				mime: 'application/vnd.ms-excel.sheet.macroEnabled.12',
+				mime: 'application/vnd.ms-excel.sheet.macroenabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.template':
 			return {
 				ext: 'xltx',
 				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
 			};
-		case 'application/vnd.ms-excel.template.macroEnabled':
+		case 'application/vnd.ms-excel.template.macroenabled':
 			return {
 				ext: 'xltm',
 				mime: 'application/vnd.ms-excel.template.macroenabled.12',
+			};
+		case 'application/vnd.ms-powerpoint.slideshow.macroenabled':
+			return {
+				ext: 'ppsm',
+				mime: 'application/vnd.ms-powerpoint.slideshow.macroenabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 			return {
 				ext: 'docx',
 				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 			};
-		case 'application/vnd.ms-word.document.macroEnabled':
+		case 'application/vnd.ms-word.document.macroenabled':
 			return {
 				ext: 'docm',
-				mime: 'application/vnd.ms-word.document.macroEnabled.12',
+				mime: 'application/vnd.ms-word.document.macroenabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template':
 			return {
 				ext: 'dotx',
 				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
 			};
-		case 'application/vnd.ms-word.template.macroEnabledTemplate':
+		case 'application/vnd.ms-word.template.macroenabledtemplate':
 			return {
 				ext: 'dotm',
-				mime: 'application/vnd.ms-word.template.macroEnabled.12',
+				mime: 'application/vnd.ms-word.template.macroenabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.template':
 			return {
 				ext: 'potx',
 				mime: 'application/vnd.openxmlformats-officedocument.presentationml.template',
 			};
-		case 'application/vnd.ms-powerpoint.template.macroEnabled':
+		case 'application/vnd.ms-powerpoint.template.macroenabled':
 			return {
 				ext: 'potm',
-				mime: 'application/vnd.ms-powerpoint.template.macroEnabled.12',
+				mime: 'application/vnd.ms-powerpoint.template.macroenabled.12',
 			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 			return {
 				ext: 'pptx',
 				mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 			};
-		case 'application/vnd.ms-powerpoint.presentation.macroEnabled':
+		case 'application/vnd.ms-powerpoint.presentation.macroenabled':
 			return {
 				ext: 'pptm',
-				mime: 'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
+				mime: 'application/vnd.ms-powerpoint.presentation.macroenabled.12',
 			};
 		case 'application/vnd.ms-visio.drawing':
 			return {

@@ -557,6 +557,8 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`png`](https://en.wikipedia.org/wiki/Portable_Network_Graphics) - Portable Network Graphics
 - [`potm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint macro-enabled template
 - [`potx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint template
+- [`ppsm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions#PowerPoint) - Office PowerPoint 2007 macro-enabled slide show
+- [`ppsx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions#PowerPoint) - Office PowerPoint 2007 slide show
 - [`pptm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint macro-enabled document
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft PowerPoint document
 - [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
