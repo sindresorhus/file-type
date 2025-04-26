@@ -242,7 +242,9 @@
 		"potm",
 		"pptm",
 		"jar",
-		"rm"
+		"rm",
+		"ppsm",
+		"ppsx"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.2.6",
