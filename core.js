@@ -920,7 +920,7 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('PAR1')) {
+		if (this.checkString('PAR1') || this.checkString('PARE')) {
 			return {
 				ext: 'parquet',
 				mime: 'application/vnd.apache.parquet',
