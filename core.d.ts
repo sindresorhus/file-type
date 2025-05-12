@@ -188,6 +188,13 @@ export type Detector = {
 
 export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
+
+	/**
+	 Default 0 bytes. Specifies the synchronization tolerance for detecting MPEG audio frames (such as `.mp1`, `.mp2`, `.mp3`, and `.aac`).
+	 This value defines the maximum allowed byte offset between the expected start position of the initial MPEG frame and its actual detected position.
+	 It helps accommodate minor misalignments in the data stream during format identification.
+	 */
+	mpegOffsetTolerance?: number;
 };
 
 export declare class TokenizerPositionError extends Error {
