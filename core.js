@@ -427,7 +427,20 @@ export class FileTypeParser {
 			}
 
 			await tokenizer.ignore(id3HeaderLength);
-			return this.fromTokenizer(tokenizer); // Skip ID3 header, recursion
+
+			// Attempt to identify the data at the correct position
+			const fileType = await this.fromTokenizer(tokenizer); // Skip ID3 header, recursion
+			if (fileType) {
+				return fileType;
+			}
+
+			// Attempt to compensate for erroneous ID3 headers.
+			// Some writers appear to write the value of "where the data begins"
+			// rather than "how many bytes to skip from here", which means that
+			// the data begins 10 bytes later than the header says it should.
+			// Here, we try again at the incorrect offset to compensate.
+			await tokenizer.ignore(10);
+			return this.fromTokenizer(tokenizer);
 		}
 
 		// Musepack, SV7
