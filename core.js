@@ -190,7 +190,7 @@ export async function fileTypeStream(webStream, options) {
 export class FileTypeParser {
 	constructor(options) {
 		this.options = {
-			mpegOffsetTollerance: 4,
+			mpegOffsetTolerance: 10,
 			...options,
 		};
 
@@ -1719,9 +1719,12 @@ export class FileTypeParser {
 			};
 		}
 
+		// Adjust buffer to `mpegOffsetTollerance`
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(2 + this.options.mpegOffsetTolerance, tokenizer.fileInfo.size), mayBeLess: true});
+
 		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-		if (this.buffer.length >= (2 + this.options.mpegOffsetTollerance)) {
-			for (let depth = 0; depth < this.options.mpegOffsetTollerance; ++depth) {
+		if (this.buffer.length >= (2 + this.options.mpegOffsetTolerance)) {
+			for (let depth = 0; depth <= this.options.mpegOffsetTolerance; ++depth) {
 				const type = this.scanMpeg(depth);
 				if (type) {
 					return type;
