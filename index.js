@@ -65,12 +65,12 @@ export class FileTypeParser extends DefaultFileTypeParser {
 	}
 }
 
-export async function fileTypeFromFile(path, fileTypeOptions) {
-	return (new FileTypeParser(fileTypeOptions)).fromFile(path, fileTypeOptions);
+export async function fileTypeFromFile(path, options) {
+	return (new FileTypeParser(options)).fromFile(path, options);
 }
 
-export async function fileTypeFromStream(stream, fileTypeOptions) {
-	return (new FileTypeParser(fileTypeOptions)).fromStream(stream);
+export async function fileTypeFromStream(stream, options) {
+	return (new FileTypeParser(options)).fromStream(stream);
 }
 
 export async function fileTypeStream(readableStream, options = {}) {
