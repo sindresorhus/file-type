@@ -96,6 +96,8 @@ const names = {
 		'fixture',
 		'fixture-mp2l3',
 		'fixture-ffe3',
+		'fixture-bad-offset',
+		'fixture-bad-offset-10',
 	],
 	mp4: [
 		'fixture-imovie',
