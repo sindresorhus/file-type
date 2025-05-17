@@ -1199,7 +1199,7 @@ export class FileTypeParser {
 		if (this.check([0x41, 0x52, 0x52, 0x4F, 0x57, 0x31, 0x00, 0x00])) {
 			return {
 				ext: 'arrow',
-				mime: 'application/x-apache-arrow',
+				mime: 'application/vnd.apache.arrow.file',
 			};
 		}
 
