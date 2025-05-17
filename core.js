@@ -846,7 +846,7 @@ export class FileTypeParser {
 				case 'matroska':
 					return {
 						ext: 'mkv',
-						mime: 'video/x-matroska',
+						mime: 'video/matroska',
 					};
 
 				default:
