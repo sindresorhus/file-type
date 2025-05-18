@@ -216,10 +216,6 @@ const names = {
 		'fixture.wma',
 		'fixture.wmv',
 	],
-	ai: [
-		'fixture-normal', // Normal AI
-		'fixture-without-pdf-compatibility', // AI without the PDF compatibility (cannot be opened by PDF viewers I guess)
-	],
 	jxl: [
 		'fixture', // Image data stored within JXL container
 		'fixture2', // Bare image data with no container
