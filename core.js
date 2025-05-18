@@ -28,61 +28,62 @@ export async function fileTypeFromBlob(blob) {
 }
 
 function getFileTypeFromMimeType(mimeType) {
-	switch (mimeType.toLowerCase()) {
+	mimeType = mimeType.toLowerCase();
+	switch (mimeType) {
 		case 'application/epub+zip':
 			return {
 				ext: 'epub',
-				mime: 'application/epub+zip',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.text':
 			return {
 				ext: 'odt',
-				mime: 'application/vnd.oasis.opendocument.text',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.text-template':
 			return {
 				ext: 'ott',
-				mime: 'application/vnd.oasis.opendocument.text-template',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.spreadsheet':
 			return {
 				ext: 'ods',
-				mime: 'application/vnd.oasis.opendocument.spreadsheet',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.spreadsheet-template':
 			return {
 				ext: 'ots',
-				mime: 'application/vnd.oasis.opendocument.spreadsheet-template',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.presentation':
 			return {
 				ext: 'odp',
-				mime: 'application/vnd.oasis.opendocument.presentation',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.presentation-template':
 			return {
 				ext: 'otp',
-				mime: 'application/vnd.oasis.opendocument.presentation-template',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.graphics':
 			return {
 				ext: 'odg',
-				mime: 'application/vnd.oasis.opendocument.graphics',
+				mime: mimeType,
 			};
 		case 'application/vnd.oasis.opendocument.graphics-template':
 			return {
 				ext: 'otg',
-				mime: 'application/vnd.oasis.opendocument.graphics-template',
+				mime: mimeType,
 			};
 		case 'application/vnd.openxmlformats-officedocument.presentationml.slideshow':
 			return {
 				ext: 'ppsx',
-				mime: 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+				mime: mimeType,
 			};
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 			return {
 				ext: 'xlsx',
-				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-excel.sheet.macroenabled':
 			return {
@@ -92,7 +93,7 @@ function getFileTypeFromMimeType(mimeType) {
 		case 'application/vnd.openxmlformats-officedocument.spreadsheetml.template':
 			return {
 				ext: 'xltx',
-				mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-excel.template.macroenabled':
 			return {
@@ -107,7 +108,7 @@ function getFileTypeFromMimeType(mimeType) {
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 			return {
 				ext: 'docx',
-				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-word.document.macroenabled':
 			return {
@@ -117,7 +118,7 @@ function getFileTypeFromMimeType(mimeType) {
 		case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template':
 			return {
 				ext: 'dotx',
-				mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-word.template.macroenabledtemplate':
 			return {
@@ -127,7 +128,7 @@ function getFileTypeFromMimeType(mimeType) {
 		case 'application/vnd.openxmlformats-officedocument.presentationml.template':
 			return {
 				ext: 'potx',
-				mime: 'application/vnd.openxmlformats-officedocument.presentationml.template',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-powerpoint.template.macroenabled':
 			return {
@@ -137,7 +138,7 @@ function getFileTypeFromMimeType(mimeType) {
 		case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 			return {
 				ext: 'pptx',
-				mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+				mime: mimeType,
 			};
 		case 'application/vnd.ms-powerpoint.presentation.macroenabled':
 			return {
