@@ -694,7 +694,7 @@ test('supported files types are listed alphabetically', async t => {
 	}
 });
 
-// Replacing Set.symmetricDifference, for Node <= 22 compatibility
+// TODO: Replace with `Set.symmetricDifference` when targeting Node.js 22.
 function symmetricDifference(setA, setB) {
 	const diff = new Set();
 	for (const item of setA) {
