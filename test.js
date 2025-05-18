@@ -24,7 +24,6 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const missingTests = new Set([
-	'mpc',
 ]);
 
 const [nodeMajorVersion] = process.versions.node.split('.').map(Number);
@@ -693,6 +692,70 @@ test('supported files types are listed alphabetically', async t => {
 		previousFileType = currentFileType;
 		currentNode = currentNode.next;
 	}
+});
+
+// Replacing Set.symmetricDifference, for Node <= 22 compatibility
+function symmetricDifference(setA, setB) {
+	const diff = new Set();
+	for (const item of setA) {
+		if (!setB.has(item)) {
+			diff.add(item);
+		}
+	}
+
+	for (const item of setB) {
+		if (!setA.has(item)) {
+			diff.add(item);
+		}
+	}
+
+	return diff;
+}
+
+test('implemented MIME types and extensions match the list of supported ones', async t => {
+	const mimeTypesWithoutUnitTest = ['application/vnd.ms-asf', 'image/heic-sequence'];
+
+	const implementedMimeTypes = new Set(mimeTypesWithoutUnitTest);
+	const implementedExtensions = new Set();
+
+	for (const type of types) {
+		if (Object.hasOwn(names, type)) {
+			for (const name of names[type]) {
+				const filePath = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${type}`);
+				const {mime, ext} = await fileTypeFromFile(filePath) ?? {};
+				implementedMimeTypes.add(mime);
+				implementedExtensions.add(ext);
+			}
+		} else {
+			const filePath = path.join(__dirname, 'fixture', `fixture.${type}`);
+			const {mime, ext} = await fileTypeFromFile(filePath) ?? {};
+			implementedMimeTypes.add(mime);
+			implementedExtensions.add(ext);
+		}
+	}
+
+	const differencesInMimeTypes = symmetricDifference(supportedMimeTypes, implementedMimeTypes);
+
+	for (const difference of differencesInMimeTypes) {
+		if (implementedMimeTypes.has(difference)) {
+			t.fail(`MIME-type ${difference} is implemented, but not declared as a a supported MIME-type`);
+		} else {
+			t.fail(`MIME-type ${difference} declared as a supported MIME -type, but not found as an implemented MIME-type`);
+		}
+	}
+
+	t.is(differencesInMimeTypes.size, 0);
+
+	const differencesInExtensions = symmetricDifference(supportedExtensions, implementedExtensions);
+	for (const difference of differencesInExtensions) {
+		if (implementedMimeTypes.has(difference)) {
+			t.fail(`Extension ${difference} is implemented, but not declared as a a supported Extension`);
+		} else {
+			t.fail(`Extension ${difference} declared as a supported Extension, but not found as an implemented Extension`);
+		}
+	}
+
+	t.is(differencesInExtensions.size, 0);
 });
 
 test('corrupt MKV throws', async t => {
