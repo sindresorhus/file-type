@@ -228,7 +228,7 @@ export const mimeTypes = [
 	'audio/ogg',
 	'audio/ogg; codecs=opus',
 	'application/ogg',
-	'audio/x-flac',
+	'audio/flac',
 	'audio/ape',
 	'audio/wavpack',
 	'audio/amr',
