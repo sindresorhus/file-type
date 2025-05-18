@@ -709,7 +709,7 @@ export class FileTypeParser {
 		if (this.checkString('fLaC')) {
 			return {
 				ext: 'flac',
-				mime: 'audio/x-flac',
+				mime: 'audio/flac',
 			};
 		}
 
