@@ -321,7 +321,7 @@ export const mimeTypes = [
 	'image/jls',
 	'application/vnd.ms-outlook',
 	'image/vnd.dwg',
-	'application/x-parquet',
+	'application/vnd.apache.parquet',
 	'application/java-vm',
 	'application/x-arj',
 	'application/x-cpio',
