@@ -713,7 +713,10 @@ function symmetricDifference(setA, setB) {
 }
 
 test('implemented MIME types and extensions match the list of supported ones', async t => {
-	const mimeTypesWithoutUnitTest = ['application/vnd.ms-asf', 'image/heic-sequence'];
+	const mimeTypesWithoutUnitTest = [
+		'application/vnd.ms-asf',
+		'image/heic-sequence',
+	];
 
 	const implementedMimeTypes = new Set(mimeTypesWithoutUnitTest);
 	const implementedExtensions = new Set();
@@ -738,9 +741,9 @@ test('implemented MIME types and extensions match the list of supported ones', a
 
 	for (const difference of differencesInMimeTypes) {
 		if (implementedMimeTypes.has(difference)) {
-			t.fail(`MIME-type ${difference} is implemented, but not declared as a a supported MIME-type`);
+			t.fail(`MIME-type ${difference} is implemented, but not declared as a supported MIME-type`);
 		} else {
-			t.fail(`MIME-type ${difference} declared as a supported MIME -type, but not found as an implemented MIME-type`);
+			t.fail(`MIME-type ${difference} declared as a supported MIME-type, but not found as an implemented MIME-type`);
 		}
 	}
 
@@ -749,9 +752,9 @@ test('implemented MIME types and extensions match the list of supported ones', a
 	const differencesInExtensions = symmetricDifference(supportedExtensions, implementedExtensions);
 	for (const difference of differencesInExtensions) {
 		if (implementedMimeTypes.has(difference)) {
-			t.fail(`Extension ${difference} is implemented, but not declared as a a supported Extension`);
+			t.fail(`Extension ${difference} is implemented, but not declared as a supported extension`);
 		} else {
-			t.fail(`Extension ${difference} declared as a supported Extension, but not found as an implemented Extension`);
+			t.fail(`Extension ${difference} declared as a supported extension, but not found as an implemented extension`);
 		}
 	}
 
