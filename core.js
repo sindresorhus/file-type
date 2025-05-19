@@ -254,7 +254,7 @@ export class FileTypeParser {
 			if (!done && chunk) {
 				try {
 					// Attempt to detect the file type from the chunk
-					detectedFileType = await this.fromBuffer(chunk.slice(0, sampleSize));
+					detectedFileType = await this.fromBuffer(chunk.subarray(0, sampleSize));
 				} catch (error) {
 					if (!(error instanceof strtok3.EndOfStreamError)) {
 						throw error; // Re-throw non-EndOfStreamError
@@ -1520,7 +1520,7 @@ export class FileTypeParser {
 
 			if (jsonSize > 12 && this.buffer.length >= jsonSize + 16) {
 				try {
-					const header = new TextDecoder().decode(this.buffer.slice(16, jsonSize + 16));
+					const header = new TextDecoder().decode(this.buffer.subarray(16, jsonSize + 16));
 					const json = JSON.parse(header);
 					// Check if Pickle is ASAR
 					if (json.files) { // Final check, assuring Pickle/ASAR format
