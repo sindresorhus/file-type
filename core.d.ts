@@ -24,38 +24,38 @@ export type FileTypeResult = {
 };
 
 /**
-Detect the file type of a `Uint8Array`, or `ArrayBuffer`.
+Detect the file type of `Uint8Array`, or `ArrayBuffer`.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 If file access is available, it is recommended to use `.fromFile()` instead.
 
 @param buffer - An Uint8Array or ArrayBuffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
-@param options - Options to override default behaviour.
+@param options - Options to override default behavior.
 @returns The detected file type, or `undefined` when there is no match.
 */
 export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
-Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+Detect the file type of [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 @param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
-@param options - Options to override default behaviour.
+@param options - Options to override default behavior.
 @returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
 */
 export function fileTypeFromStream(stream: AnyWebByteStream, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
-Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
+Detect the file type from [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
 
 This method is used internally, but can also be used for a special "tokenizer" reader.
 
 A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
 
 @param tokenizer - File source implementing the tokenizer interface.
-@param options - Options to override default behaviour.
+@param options - Options to override default behavior.
 @returns The detected file type, or `undefined` when there is no match.
 
 An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it is able to *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
@@ -99,7 +99,7 @@ export type StreamOptions = {
 Detect the file type of a [`Blob`](https://nodejs.org/api/buffer.html#class-blob) or [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
 
 @param blob - The [`Blob`](https://nodejs.org/api/buffer.html#class-blob) used for file detection.
-@param options - Options to override default behaviour.
+@param options - Options to override default behavior.
 @returns The detected file type, or `undefined` when there is no match.
 
 @example
