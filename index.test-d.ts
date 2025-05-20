@@ -35,25 +35,13 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 
 // FileTypeFromBlob
 (async () => {
-	const result = await fileTypeFromBlob(new Blob());
-	if (result !== undefined) {
-		expectType<string>(result.ext);
-		expectType<string>(result.mime);
-	}
-
+	expectType<FileTypeResult | undefined>(await fileTypeFromBlob(new Blob()));
 	expectType<FileTypeResult | undefined>(await fileTypeFromBlob(new Blob(), {customDetectors: []}));
 })();
 
 // FileTypeFromFile
 (async () => {
 	expectType<FileTypeResult | undefined>(await fileTypeFromFile('myFile'));
-
-	const result = await fileTypeFromFile('myFile');
-	if (result !== undefined) {
-		expectType<string>(result.ext);
-		expectType<string>(result.mime);
-	}
-
 	expectType<FileTypeResult | undefined>(await fileTypeFromFile('myFile', {customDetectors: []}));
 })();
 
@@ -62,13 +50,6 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 	const stream = createReadStream('myFile');
 
 	expectType<FileTypeResult | undefined>(await fileTypeFromStream(stream));
-
-	const result = await fileTypeFromStream(stream);
-	if (result !== undefined) {
-		expectType<string>(result.ext);
-		expectType<string>(result.mime);
-	}
-
 	expectType<FileTypeResult | undefined>(await fileTypeFromStream(stream, {customDetectors: []}));
 })();
 
@@ -98,36 +79,28 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 	// With custom detectors
 	fileTypeParser = new FileTypeParser({customDetectors: []});
 
-	const fromFileFileType = await fileTypeParser.fromFile('myFile');
-	expectType<FileTypeResult | undefined>(fromFileFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromFile('myFile'));
 
 	// From a Node Readable (stream)
-	const fromNodeStreamFileType = await fileTypeParser.fromStream(new Readable());
-	expectType<FileTypeResult | undefined>(fromNodeStreamFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new Readable()));
 
 	// From a DOM type Blob
-	const fromBlobFileType = await fileTypeParser.fromBlob(new Blob());
-	expectType<FileTypeResult | undefined>(fromBlobFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromBlob(new Blob()));
 
 	// From a DOM type Web byte ReadableStream
-	const fromWebReadableStreamFileType = await fileTypeParser.fromStream(new ReadableStream({type: 'bytes'}));
-	expectType<FileTypeResult | undefined>(fromWebReadableStreamFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new ReadableStream({type: 'bytes'})));
 
 	// From a Node type byte ReadableStream
-	const fromNodeReadableStreamFileType = await fileTypeParser.fromStream(new NodeReadableStream({type: 'bytes'}));
-	expectType<FileTypeResult | undefined>(fromNodeReadableStreamFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new NodeReadableStream({type: 'bytes'})));
 
 	// From a Node type byte ReadableStream
 	const tokenizer = await fromFile('myFile');
-	const fromTokenizerFileType = await fileTypeParser.fromTokenizer(tokenizer);
-	expectType<FileTypeResult | undefined>(fromTokenizerFileType);
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromTokenizer(tokenizer));
 
 	// From a Node type byte ReadableStream
-	const toDetectionStreamReadable = await fileTypeParser.toDetectionStream(new Readable());
-	expectType<ReadableStreamWithFileType>(toDetectionStreamReadable);
+	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(new Readable()));
 
-	const toDetectionStreamWithOptionsReadable = await fileTypeParser.toDetectionStream(new Readable(), {sampleSize: 256});
-	expectType<ReadableStreamWithFileType>(toDetectionStreamWithOptionsReadable);
+	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(new Readable(), {sampleSize: 256}));
 })();
 
 expectType<ReadonlySet<string>>(supportedExtensions);
