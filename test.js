@@ -293,69 +293,86 @@ const falsePositives = {
 
 // Known failing fixture
 const failingFixture = new Set([
-	'fixture-password-protected', // .xls, Excel / MS-OSHARED / Compound-File-Binary-Format
+	'fixture-password-protected.xls', // Excel / MS-OSHARED / Compound-File-Binary-Format
 ]);
 
-async function checkBufferLike(t, type, bufferLike) {
+/**
+ @returns {Array<Object>} An array of fixture objects.
+ Each object contains the following properties:
+ - `path` {string}: The full path to the fixture file.
+ - `filename` {string}: The name of the fixture file.
+ - `type` {string}: The type/extension of the fixture.
+ */
+function getFixtures() {
+	const paths = [];
+	for (const type of types) {
+		if (Object.hasOwn(names, type)) {
+			for (const suffix of names[type]) {
+				const filename = `${(suffix ?? 'fixture')}.${type}`;
+				paths.push({
+					path: path.join(__dirname, 'fixture', filename),
+					filename,
+					type,
+				});
+			}
+		} else {
+			const filename = `fixture.${type}`;
+			paths.push({
+				path: path.join(__dirname, 'fixture', filename),
+				filename,
+				type,
+			});
+		}
+	}
+
+	return paths;
+}
+
+async function checkBufferLike(t, expectedExtension, bufferLike) {
 	const {ext, mime} = await fileTypeFromBuffer(bufferLike) ?? {};
-	t.is(ext, type);
+	t.is(ext, expectedExtension);
 	t.is(typeof mime, 'string');
 }
 
-async function checkBlobLike(t, type, bufferLike) {
+async function checkBlobLike(t, expectedExtension, bufferLike) {
 	const blob = new Blob([bufferLike]);
 	const {ext, mime} = await fileTypeFromBlob(blob) ?? {};
-	t.is(ext, type);
+	t.is(ext, expectedExtension);
 	t.is(typeof mime, 'string');
 }
 
-async function checkFile(t, type, filePath) {
+async function testFromFile(t, expectedExtension, filePath) {
 	const {ext, mime} = await fileTypeFromFile(filePath) ?? {};
-	t.is(ext, type);
+	t.is(ext, expectedExtension);
 	t.is(typeof mime, 'string');
 }
 
-async function testFromFile(t, extension, name) {
-	const file = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${extension}`);
-	return checkFile(t, extension, file);
+async function testFromBuffer(t, expectedExtension, path) {
+	const chunk = fs.readFileSync(path);
+	await checkBufferLike(t, expectedExtension, chunk);
+	await checkBufferLike(t, expectedExtension, new Uint8Array(chunk));
+	await checkBufferLike(t, expectedExtension, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
 }
 
-async function testFromBuffer(t, extension, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
-
-	const file = path.join(__dirname, 'fixture', fixtureName);
-	const chunk = fs.readFileSync(file);
-	await checkBufferLike(t, extension, chunk);
-	await checkBufferLike(t, extension, new Uint8Array(chunk));
-	await checkBufferLike(t, extension, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
+async function testFromBlob(t, expectedExtension, path) {
+	const chunk = fs.readFileSync(path);
+	await checkBlobLike(t, expectedExtension, chunk);
 }
 
-async function testFromBlob(t, extension, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
+async function testFalsePositive(t, filePath) {
+	await t.is(await fileTypeFromFile(filePath), undefined);
 
-	const file = path.join(__dirname, 'fixture', fixtureName);
-	const chunk = fs.readFileSync(file);
-	await checkBlobLike(t, extension, chunk);
-}
-
-async function testFalsePositive(t, extension, name) {
-	const file = path.join(__dirname, 'fixture', `${name}.${extension}`);
-
-	await t.is(await fileTypeFromFile(file), undefined);
-
-	const chunk = fs.readFileSync(file);
+	const chunk = fs.readFileSync(filePath);
 	t.is(await fileTypeFromBuffer(chunk), undefined);
 	t.is(await fileTypeFromBuffer(new Uint8Array(chunk)), undefined);
 	t.is(await fileTypeFromBuffer(chunk.buffer), undefined);
 }
 
-async function testFileNodeFromStream(t, extension, name) {
-	const filename = `${(name ?? 'fixture')}.${extension}`;
-	const file = path.join(__dirname, 'fixture', filename);
-	const fileType = await fileTypeNodeFromStream(fs.createReadStream(file));
+async function testFileNodeFromStream(t, expectedExtension, filePath, filename) {
+	const fileType = await fileTypeNodeFromStream(fs.createReadStream(filePath));
 
 	t.truthy(fileType, `identify ${filename}`);
-	t.is(fileType.ext, extension, 'fileType.ext');
+	t.is(fileType.ext, expectedExtension, 'fileType.ext');
 	t.is(typeof fileType.mime, 'string', 'fileType.mime');
 }
 
@@ -363,23 +380,24 @@ async function getStreamAsUint8Array(stream) {
 	return new Uint8Array(await getStreamAsArrayBuffer(stream));
 }
 
-async function testStreamWithNodeStream(t, extension, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
-	const file = path.join(__dirname, 'fixture', fixtureName);
-
-	const readableStream = await fileTypeStream(fs.createReadStream(file));
-	const fileStream = fs.createReadStream(file);
-
-	const [bufferA, bufferB] = await Promise.all([getStreamAsUint8Array(readableStream), getStreamAsUint8Array(fileStream)]);
-
-	t.true(areUint8ArraysEqual(bufferA, bufferB));
+async function testStreamWithNodeStream(t, expectedExtension, filePath) {
+	const readableStream = await fileTypeStream(fs.createReadStream(filePath));
+	try {
+		const fileStream = fs.createReadStream(filePath);
+		try {
+			const [bufferA, bufferB] = await Promise.all([getStreamAsUint8Array(readableStream), getStreamAsUint8Array(fileStream)]);
+			t.true(areUint8ArraysEqual(bufferA, bufferB));
+		} finally {
+			fileStream.destroy();
+		}
+	} finally {
+		readableStream.destroy();
+	}
 }
 
-async function testStreamWithWebStream(t, extension, name) {
-	const fixtureName = `${(name ?? 'fixture')}.${extension}`;
-	const file = path.join(__dirname, 'fixture', fixtureName);
+async function testStreamWithWebStream(t, expectedExtension, path) {
 	// Read the file into a buffer
-	const fileBuffer = await readFile(file);
+	const fileBuffer = await readFile(path);
 	// Create a Blob from the buffer
 	const blob = new Blob([fileBuffer]);
 	const webStream = await fileTypeStream(blob.stream());
@@ -394,36 +412,23 @@ test('Test suite must be able to detect Node.js major version', t => {
 });
 
 let i = 0;
-for (const type of types) {
-	if (Object.hasOwn(names, type)) {
-		for (const name of names[type]) {
-			const fixtureName = `${name}.${type}`;
-			const _test = failingFixture.has(fixtureName) ? test.failing : test;
+for (const fixture of getFixtures()) {
+	const _test = failingFixture.has(fixture.filename) ? test.failing : test;
 
-			_test(`${name}.${type} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, type, name);
-			_test(`${name}.${type} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, type, name);
-			if (nodeMajorVersion >= nodeVersionSupportingByteBlobStream) {
-				// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
-				_test(`${name}.${type} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, type, name);
-				test(`${name}.${type} ${i++} .fileTypeStream() - identical Web Streams`, testStreamWithWebStream, type, name);
-			}
-
-			_test(`${name}.${type} ${i++} .fileTypeFromStream() Node.js method - same fileType`, testFileNodeFromStream, type, name);
-			_test(`${name}.${type} ${i++} .fileTypeStream() - identical Node.js Readable streams`, testStreamWithNodeStream, type, name);
-		}
-	} else {
-		const fixtureName = `fixture.${type}`;
-		const _test = failingFixture.has(fixtureName) ? test.failing : test;
-
-		_test(`${type} ${i++} .fileTypeFromFile()`, testFromFile, type);
-		_test(`${type} ${i++} .fileTypeFromBuffer()`, testFromBuffer, type);
-		_test(`${type} ${i++} .fileTypeFromStream() Node.js`, testFileNodeFromStream, type);
-		test(`${type} ${i++} .fileTypeStream() - identical streams`, testStreamWithNodeStream, type);
+	_test(`${fixture.filename} ${i++} .fileTypeFromFile() method - same fileType`, testFromFile, fixture.type, fixture.path);
+	_test(`${fixture.filename} ${i++} .fileTypeFromBuffer() method - same fileType`, testFromBuffer, fixture.type, fixture.path);
+	if (nodeMajorVersion >= nodeVersionSupportingByteBlobStream) {
+		// Blob requires to stream to BYOB ReadableStream, requiring Node.js ≥ 20
+		_test(`${fixture.filename} ${i++} .fileTypeFromBlob() method - same fileType`, testFromBlob, fixture.type, fixture.path);
+		test(`${fixture.filename} ${i++} .fileTypeStream() - identical Web Streams`, testStreamWithWebStream, fixture.type, fixture.path);
 	}
 
-	if (Object.hasOwn(falsePositives, type)) {
-		for (const falsePositiveFile of falsePositives[type]) {
-			test(`false positive - ${type} ${i++}`, testFalsePositive, type, falsePositiveFile);
+	_test(`${fixture.filename} ${i++} .fileTypeFromStream() Node.js method - same fileType`, testFileNodeFromStream, fixture.type, fixture.path, fixture.filename);
+	_test(`${fixture.filename} ${i++} .fileTypeStream() - identical Node.js Readable streams`, testStreamWithNodeStream, fixture.type, fixture.path);
+
+	if (Object.hasOwn(falsePositives, fixture.filename)) {
+		for (const falsePositiveFile of falsePositives[fixture.filename]) {
+			test(`false positive - ${fixture.filename} ${i++}`, testFalsePositive, fixture.filename, falsePositiveFile);
 		}
 	}
 }
@@ -609,13 +614,13 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	}
 
 	// Test runner
-	function validate(found, baseTruth, fileName, extensionOrMime) {
+	function validate(found, baseTruth, filename, extensionOrMime) {
 		const duplicates = findDuplicates(found);
 		const extras = findExtras(found, baseTruth);
 		const missing = findMissing(found, baseTruth);
-		t.is(duplicates.length, 0, `Found duplicate ${extensionOrMime}: ${duplicates} in ${fileName}.`);
-		t.is(extras.length, 0, `Extra ${extensionOrMime}: ${extras} in ${fileName}.`);
-		t.is(missing.length, 0, `Missing ${extensionOrMime}: ${missing} in ${fileName}.`);
+		t.is(duplicates.length, 0, `Found duplicate ${extensionOrMime}: ${duplicates} in ${filename}.`);
+		t.is(extras.length, 0, `Extra ${extensionOrMime}: ${extras} in ${filename}.`);
+		t.is(missing.length, 0, `Missing ${extensionOrMime}: ${missing} in ${filename}.`);
 	}
 
 	// Get the base truth of extensions and mimes supported from core.js
@@ -628,10 +633,10 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		'readme.md': readReadmeMD(),
 	};
 
-	for (const fileName in filesWithExtensions) {
-		if (filesWithExtensions[fileName]) {
-			const foundExtensions = filesWithExtensions[fileName];
-			validate(foundExtensions, exts, fileName, 'extensions');
+	for (const filename in filesWithExtensions) {
+		if (filesWithExtensions[filename]) {
+			const foundExtensions = filesWithExtensions[filename];
+			validate(foundExtensions, exts, filename, 'extensions');
 		}
 	}
 });
@@ -717,20 +722,10 @@ test('implemented MIME types and extensions match the list of supported ones', a
 	const implementedMimeTypes = new Set(mimeTypesWithoutUnitTest);
 	const implementedExtensions = new Set();
 
-	for (const type of types) {
-		if (Object.hasOwn(names, type)) {
-			for (const name of names[type]) {
-				const filePath = path.join(__dirname, 'fixture', `${(name ?? 'fixture')}.${type}`);
-				const {mime, ext} = await fileTypeFromFile(filePath) ?? {};
-				implementedMimeTypes.add(mime);
-				implementedExtensions.add(ext);
-			}
-		} else {
-			const filePath = path.join(__dirname, 'fixture', `fixture.${type}`);
-			const {mime, ext} = await fileTypeFromFile(filePath) ?? {};
-			implementedMimeTypes.add(mime);
-			implementedExtensions.add(ext);
-		}
+	for (const {path} of getFixtures()) {
+		const {mime, ext} = await fileTypeFromFile(path) ?? {};
+		implementedMimeTypes.add(mime);
+		implementedExtensions.add(ext);
 	}
 
 	const differencesInMimeTypes = symmetricDifference(supportedMimeTypes, implementedMimeTypes);
