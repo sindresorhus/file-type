@@ -37,7 +37,7 @@ If file access is available, it is recommended to use `.fromFile()` instead.
 export function fileTypeFromBuffer(buffer: Uint8Array | ArrayBuffer, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
-Detect the file type of [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
+Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
