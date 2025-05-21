@@ -24,7 +24,7 @@ export type FileTypeResult = {
 };
 
 /**
-Detect the file type of `Uint8Array`, or `ArrayBuffer`.
+Detect the file type of a `Uint8Array` or `ArrayBuffer`.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -48,7 +48,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 export function fileTypeFromStream(stream: AnyWebByteStream, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
-Detect the file type from [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
+Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
 
 This method is used internally, but can also be used for a special "tokenizer" reader.
 

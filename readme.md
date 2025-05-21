@@ -304,7 +304,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 Type: `object`
 
-May also include [generic file-type options](#file-type-options).
+May also include [generic file-type options](#options).
 
 ##### sampleSize
 
@@ -343,15 +343,14 @@ Returns a `Set<string>` of supported file extensions.
 
 Returns a `Set<string>` of supported MIME types.
 
-### File-type options
-
-The following optional options are supported:
+### Options
 
 #### customDetectors
 
-Array of custom file type detectors, to run before default detectors.
+Array of custom file type detectors to run before default detectors.
 
 For example:
+
 ```js
 import {fileTypeFromFile} from 'file-type';
 import {detectXml} from '@file-type/xml';
@@ -373,6 +372,7 @@ Detectors can be added via the constructor options or by directly modifying `Fil
 ### Example adding a detector
 
 For example:
+
 ```js
 import {fileTypeFromFile} from 'file-type';
 import {detectXml} from '@file-type/xml';
