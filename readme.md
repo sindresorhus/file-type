@@ -374,7 +374,7 @@ Detectors can be added via the constructor options or by directly modifying `Fil
 For example:
 
 ```js
-import {fileTypeFromFile} from 'file-type';
+import {FileTypeParser} from 'file-type';
 import {detectXml} from '@file-type/xml';
 
 const parser = new FileTypeParser({customDetectors: [detectXml]});
