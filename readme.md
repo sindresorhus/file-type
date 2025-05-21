@@ -304,7 +304,7 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 Type: `object`
 
-May also include [generic file-type options](#options).
+Supports the following options in addition to the [general options](#options):
 
 ##### sampleSize
 
