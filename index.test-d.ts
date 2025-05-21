@@ -68,7 +68,7 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 	// With StreamOptions
 	expectType<ReadableStreamWithFileType>(await fileTypeStream(inputReadable, {sampleSize: 256}));
 
-	// With StreamOptions & FileTypeOptions
+	// Should accept mixed options from: StreamOptions & FileTypeOptions
 	expectType<ReadableStreamWithFileType>(await fileTypeStream(inputReadable, {sampleSize: 256, customDetectors: []}));
 })();
 
@@ -81,17 +81,23 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromFile('myFile'));
 
+	// From a Blob
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromBlob(new Blob()));
+
 	// From a Node Readable (stream)
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new Readable()));
 
-	// From a DOM type Blob
-	expectType<FileTypeResult | undefined>(await fileTypeParser.fromBlob(new Blob()));
+	// From a DOM type Web ReadableStream<Uint8Array>
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new ReadableStream<Uint8Array>()));
 
 	// From a DOM type Web byte ReadableStream
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new ReadableStream({type: 'bytes'})));
 
 	// From a Node type byte ReadableStream
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new NodeReadableStream({type: 'bytes'})));
+
+	// From a Node type ReadableStream<Uint8Array>
+	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(new NodeReadableStream<Uint8Array>()));
 
 	// From a Node type byte ReadableStream
 	const tokenizer = await fromFile('myFile');
@@ -100,7 +106,8 @@ expectType<Promise<FileTypeResult | undefined>>(fileTypeFromBuffer(new ArrayBuff
 	// From a Node type byte ReadableStream
 	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(new Readable()));
 
-	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(new Readable(), {sampleSize: 256}));
+	// Should accept mixed options from: StreamOptions & FileTypeOptions
+	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(new Readable(), {sampleSize: 256, customDetectors: []}));
 })();
 
 expectType<ReadonlySet<string>>(supportedExtensions);

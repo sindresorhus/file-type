@@ -31,8 +31,8 @@ export declare class FileTypeParser extends DefaultFileTypeParser {
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
-	toDetectionStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
-	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+	toDetectionStream(readableStream: NodeReadableStream, options?: FileTypeOptions & StreamOptions): Promise<ReadableStreamWithFileType>;
+	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: FileTypeOptions & StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }
 
 /**
@@ -92,7 +92,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions | FileTypeOptions): Promise<ReadableStreamWithFileType>;
-export function fileTypeStream(webStream: AnyWebByteStream, options?: StreamOptions | FileTypeOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+export function fileTypeStream(readableStream: NodeReadableStream, options?: FileTypeOptions & StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(webStream: AnyWebByteStream, options?: FileTypeOptions & StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export * from './core.js';
