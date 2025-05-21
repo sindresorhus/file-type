@@ -109,7 +109,7 @@ console.log(fileType);
 
 ## API
 
-### fileTypeFromBuffer(buffer)
+### fileTypeFromBuffer(buffer, options)
 
 Detect the file type of a `Uint8Array`, or `ArrayBuffer`.
 
@@ -130,13 +130,13 @@ Type: `Uint8Array | ArrayBuffer`
 
 A buffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 
-### fileTypeFromFile(filePath)
+### fileTypeFromFile(filePath, options)
 
 Detect the file type of a file path.
 
 This is for Node.js only.
 
-To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob).
+To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob-options).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -176,7 +176,7 @@ Type: [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/Re
 
 A readable stream representing file data.
 
-### fileTypeFromBlob(blob)
+### fileTypeFromBlob(blob, options)
 
 Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Blob),
 
@@ -225,7 +225,7 @@ async function readFromBlobWithoutStreaming(blob) {
 
 Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
 
-### fileTypeFromTokenizer(tokenizer)
+### fileTypeFromTokenizer(tokenizer, options)
 
 Detect the file type from an `ITokenizer` source.
 
@@ -304,6 +304,8 @@ Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream
 
 Type: `object`
 
+Supports the following options in addition to the [general options](#options):
+
 ##### sampleSize
 
 Type: `number`\
@@ -341,6 +343,22 @@ Returns a `Set<string>` of supported file extensions.
 
 Returns a `Set<string>` of supported MIME types.
 
+### Options
+
+#### customDetectors
+
+Array of custom file type detectors to run before default detectors.
+
+For example:
+
+```js
+import {fileTypeFromFile} from 'file-type';
+import {detectXml} from '@file-type/xml';
+
+const fileType = await fileTypeFromFile('sample.kml', {customDetectors: [detectXml]});
+console.log(fileType);
+```
+
 ## Custom detectors
 
 Custom file type detectors are plugins designed to extend the default detection capabilities.
@@ -352,6 +370,8 @@ Detectors provided through the constructor are executed before the default ones.
 Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 
 ### Example adding a detector
+
+For example:
 
 ```js
 import {FileTypeParser} from 'file-type';

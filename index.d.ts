@@ -8,8 +8,8 @@ import {
 	type FileTypeResult,
 	type StreamOptions,
 	type AnyWebReadableStream,
-	type Detector,
 	type AnyWebReadableByteStreamWithFileType,
+	type FileTypeOptions,
 	FileTypeParser as DefaultFileTypeParser,
 } from './core.js';
 
@@ -31,8 +31,8 @@ export declare class FileTypeParser extends DefaultFileTypeParser {
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
-	toDetectionStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
-	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+	toDetectionStream(readableStream: NodeReadableStream, options?: FileTypeOptions & StreamOptions): Promise<ReadableStreamWithFileType>;
+	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: FileTypeOptions & StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }
 
 /**
@@ -48,7 +48,7 @@ The file type is detected by checking the [magic number](https://en.wikipedia.or
 
 @returns The detected file type and MIME type or `undefined` when there is no match.
 */
-export function fileTypeFromFile(filePath: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
+export function fileTypeFromFile(filePath: string, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
@@ -60,9 +60,10 @@ Direct support for Node.js streams will be dropped in the future, when Node.js s
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 @param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable) streaming a file to examine.
-@returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
+@param options - Options to override default behaviour.
+ @returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array> | NodeReadableStream, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
@@ -91,7 +92,7 @@ if (stream2.fileType?.mime === 'image/jpeg') {
 }
 ```
 */
-export function fileTypeStream(readableStream: NodeReadableStream, options?: StreamOptions): Promise<ReadableStreamWithFileType>;
-export function fileTypeStream(webStream: AnyWebByteStream, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+export function fileTypeStream(readableStream: NodeReadableStream, options?: FileTypeOptions & StreamOptions): Promise<ReadableStreamWithFileType>;
+export function fileTypeStream(webStream: AnyWebByteStream, options?: FileTypeOptions & StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export * from './core.js';
