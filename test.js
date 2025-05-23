@@ -161,6 +161,7 @@ const names = {
 		'fixture',
 		'fixture-v7',
 		'fixture-spaces',
+		'fixture-pax',
 	],
 	mie: [
 		'fixture-big-endian',
