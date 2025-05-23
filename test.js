@@ -723,9 +723,11 @@ test('implemented MIME types and extensions match the list of supported ones', a
 	const implementedExtensions = new Set();
 
 	for (const {path} of getFixtures()) {
-		const {mime, ext} = await fileTypeFromFile(path) ?? {};
-		implementedMimeTypes.add(mime);
-		implementedExtensions.add(ext);
+		const fileType = await fileTypeFromFile(path);
+		if (fileType) {
+			implementedMimeTypes.add(fileType.mime);
+			implementedExtensions.add(fileType.ext);
+		}
 	}
 
 	const differencesInMimeTypes = symmetricDifference(supportedMimeTypes, implementedMimeTypes);
