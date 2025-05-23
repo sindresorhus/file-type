@@ -1623,7 +1623,8 @@ export class FileTypeParser {
 		await tokenizer.peekBuffer(this.buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
 		// Requires a buffer size of 512 bytes
-		if (tarHeaderChecksumMatches(this.buffer)) {
+		if ((this.checkString('ustar', {offset: 257}) && (this.checkString('\0', {offset: 262}) || this.checkString(' ', {offset: 262})))
+			|| (this.check([0, 0, 0, 0, 0, 0], {offset: 257}) && tarHeaderChecksumMatches(this.buffer))) {
 			return {
 				ext: 'tar',
 				mime: 'application/x-tar',
