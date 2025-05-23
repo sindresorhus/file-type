@@ -359,6 +359,16 @@ const fileType = await fileTypeFromFile('sample.kml', {customDetectors: [detectX
 console.log(fileType);
 ```
 
+#### mpegOffsetTolerance
+
+Default: `0`
+
+Specifies the byte tolerance for locating the first MPEG audio frame (e.g. `.mp1`, `.mp2`, `.mp3`, `.aac`).
+
+Allows detection to handle slight sync offsets between the expected and actual frame start. Common in malformed or incorrectly muxed files, which, while technically invalid, do occur in the wild.
+
+A tolerance of 10 bytes covers most cases.
+
 ## Custom detectors
 
 Custom file type detectors are plugins designed to extend the default detection capabilities.

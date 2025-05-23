@@ -188,6 +188,17 @@ export type Detector = {
 
 export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
+
+	/**
+	Specifies the byte tolerance for locating the first MPEG audio frame (e.g. `.mp1`, `.mp2`, `.mp3`, `.aac`).
+
+	Allows detection to handle slight sync offsets between the expected and actual frame start. Common in malformed or incorrectly muxed files, which, while technically invalid, do occur in the wild.
+
+	A tolerance of 10 bytes covers most cases.
+
+ 	@default 0
+	*/
+	mpegOffsetTolerance?: number;
 };
 
 export declare class TokenizerPositionError extends Error {

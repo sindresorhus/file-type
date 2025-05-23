@@ -935,3 +935,20 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.is(result, undefined);
 });
+
+test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance option', async t => {
+	const badOffset1Path = path.join(__dirname, 'fixture', 'fixture-bad-offset.mp3');
+	const badOffset10Path = path.join(__dirname, 'fixture', 'fixture-bad-offset-10.mp3');
+
+	let result = await fileTypeFromFile(badOffset1Path);
+	t.is(result, undefined, 'does not detect an MP3 which 1 byte out-sync, with default value mpegOffsetTolerance=0');
+
+	result = await fileTypeFromFile(badOffset1Path, {mpegOffsetTolerance: 1});
+	t.deepEqual(result, {ext: 'mp3', mime: 'audio/mpeg'}, 'detect an MP3 which 1 byte out of sync');
+
+	result = await fileTypeFromFile(badOffset10Path);
+	t.is(result, undefined, 'does not detect an MP3 which 10 bytes out of sync, with default value mpegOffsetTolerance=0');
+
+	result = await fileTypeFromFile(badOffset10Path, {mpegOffsetTolerance: 10});
+	t.deepEqual(result, {ext: 'mp3', mime: 'audio/mpeg'}, 'detect an MP3 which 1 byte out of sync');
+});

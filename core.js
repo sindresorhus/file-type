@@ -190,6 +190,11 @@ export async function fileTypeStream(webStream, options) {
 
 export class FileTypeParser {
 	constructor(options) {
+		this.options = {
+			mpegOffsetTolerance: 0,
+			...options,
+		};
+
 		this.detectors = [...(options?.customDetectors ?? []),
 			{id: 'core', detect: this.detectConfident},
 			{id: 'core.imprecise', detect: this.detectImprecise}];
@@ -1693,47 +1698,16 @@ export class FileTypeParser {
 			};
 		}
 
+		// Adjust buffer to `mpegOffsetTolerance`
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(2 + this.options.mpegOffsetTolerance, tokenizer.fileInfo.size), mayBeLess: true});
+
 		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-		if (this.buffer.length >= 2 && this.check([0xFF, 0xE0], {offset: 0, mask: [0xFF, 0xE0]})) {
-			if (this.check([0x10], {offset: 1, mask: [0x16]})) {
-				// Check for (ADTS) MPEG-2
-				if (this.check([0x08], {offset: 1, mask: [0x08]})) {
-					return {
-						ext: 'aac',
-						mime: 'audio/aac',
-					};
+		if (this.buffer.length >= (2 + this.options.mpegOffsetTolerance)) {
+			for (let depth = 0; depth <= this.options.mpegOffsetTolerance; ++depth) {
+				const type = this.scanMpeg(depth);
+				if (type) {
+					return type;
 				}
-
-				// Must be (ADTS) MPEG-4
-				return {
-					ext: 'aac',
-					mime: 'audio/aac',
-				};
-			}
-
-			// MPEG 1 or 2 Layer 3 header
-			// Check for MPEG layer 3
-			if (this.check([0x02], {offset: 1, mask: [0x06]})) {
-				return {
-					ext: 'mp3',
-					mime: 'audio/mpeg',
-				};
-			}
-
-			// Check for MPEG layer 2
-			if (this.check([0x04], {offset: 1, mask: [0x06]})) {
-				return {
-					ext: 'mp2',
-					mime: 'audio/mpeg',
-				};
-			}
-
-			// Check for MPEG layer 1
-			if (this.check([0x06], {offset: 1, mask: [0x06]})) {
-				return {
-					ext: 'mp1',
-					mime: 'audio/mpeg',
-				};
 			}
 		}
 	};
@@ -1808,6 +1782,57 @@ export class FileTypeParser {
 				ext: 'tif',
 				mime: 'image/tiff',
 			};
+		}
+	}
+
+	/**
+	Scan check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE).
+
+	@param offset - Offset to scan for sync-preamble.
+	@returns {{ext: string, mime: string}}
+	*/
+	scanMpeg(offset) {
+		if (this.check([0xFF, 0xE0], {offset, mask: [0xFF, 0xE0]})) {
+			if (this.check([0x10], {offset: offset + 1, mask: [0x16]})) {
+				// Check for (ADTS) MPEG-2
+				if (this.check([0x08], {offset: offset + 1, mask: [0x08]})) {
+					return {
+						ext: 'aac',
+						mime: 'audio/aac',
+					};
+				}
+
+				// Must be (ADTS) MPEG-4
+				return {
+					ext: 'aac',
+					mime: 'audio/aac',
+				};
+			}
+
+			// MPEG 1 or 2 Layer 3 header
+			// Check for MPEG layer 3
+			if (this.check([0x02], {offset: offset + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp3',
+					mime: 'audio/mpeg',
+				};
+			}
+
+			// Check for MPEG layer 2
+			if (this.check([0x04], {offset: offset + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp2',
+					mime: 'audio/mpeg',
+				};
+			}
+
+			// Check for MPEG layer 1
+			if (this.check([0x06], {offset: offset + 1, mask: [0x06]})) {
+				return {
+					ext: 'mp1',
+					mime: 'audio/mpeg',
+				};
+			}
 		}
 	}
 }
