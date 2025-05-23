@@ -361,11 +361,13 @@ console.log(fileType);
 
 #### mpegOffsetTolerance
 
-`number` in bytes. Default 0 bytes. Specifies the synchronization tolerance for detecting MPEG audio frames (such as `.mp1`, `.mp2`, `.mp3`, and `.aac`).
-This value defines the maximum allowed byte offset between the expected start position of the initial MPEG frame and its actual detected position.
-It helps accommodate minor misalignments in the data stream during format identification.
+Default: `0`
 
-A value of 10 bytes is effective for the most common deviating synchronization offsets.
+Specifies the byte tolerance for locating the first MPEG audio frame (e.g. `.mp1`, `.mp2`, `.mp3`, `.aac`).
+
+Allows detection to handle slight sync offsets between the expected and actual frame start. Common in malformed or incorrectly muxed files, which, while technically invalid, do occur in the wild.
+
+A tolerance of 10 bytes covers most cases.
 
 ## Custom detectors
 
