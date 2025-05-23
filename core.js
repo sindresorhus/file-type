@@ -1786,10 +1786,11 @@ export class FileTypeParser {
 	}
 
 	/**
-	 Scan Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-	 @param offset to scan for sync-preamble
-	 @returns {{ext: string, mime: string}}
-	 */
+	Scan check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE).
+
+	@param offset - Offset to scan for sync-preamble.
+	@returns {{ext: string, mime: string}}
+	*/
 	scanMpeg(offset) {
 		if (this.check([0xFF, 0xE0], {offset, mask: [0xFF, 0xE0]})) {
 			if (this.check([0x10], {offset: offset + 1, mask: [0x16]})) {
