@@ -190,9 +190,11 @@ export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
 
 	/**
-	Specifies the synchronization tolerance for detecting MPEG audio frames (such as `.mp1`, `.mp2`, `.mp3`, and `.aac`).
+	Specifies the byte tolerance for locating the first MPEG audio frame (e.g. `.mp1`, `.mp2`, `.mp3`, `.aac`).
 
-	This value defines the maximum allowed byte offset between the expected start position of the initial MPEG frame and its actual detected position. It helps accommodate minor misalignments in the data stream during format identification.
+	Allows detection to handle slight sync offsets between the expected and actual frame start. Common in malformed or incorrectly muxed files, which, while technically invalid, do occur in the wild.
+
+	A tolerance of 10 bytes covers most cases.
 
  	@default 0
 	*/
