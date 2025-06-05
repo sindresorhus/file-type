@@ -4,7 +4,7 @@ Primary entry point, Node.js specific entry point is index.js
 
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
-import {ZipHandler} from '@tokenizer/inflate';
+import {ZipHandler, GzipHandler} from '@tokenizer/inflate';
 import {getUintBE} from 'uint8array-extras';
 import {
 	stringToBytes,
@@ -238,7 +238,7 @@ export class FileTypeParser {
 	}
 
 	async fromStream(stream) {
-		const tokenizer = await strtok3.fromWebStream(stream, this.tokenizerOptions);
+		const tokenizer = strtok3.fromWebStream(stream, this.tokenizerOptions);
 		try {
 			return await this.fromTokenizer(tokenizer);
 		} finally {
@@ -408,6 +408,21 @@ export class FileTypeParser {
 		}
 
 		if (this.check([0x1F, 0x8B, 0x8])) {
+			const gzipHandler = new GzipHandler(tokenizer);
+
+			const stream = gzipHandler.inflate();
+			try {
+				const compressedFileType = await this.fromStream(stream);
+				if (compressedFileType && compressedFileType.ext === 'tar') {
+					return {
+						ext: 'tar.gz',
+						mime: 'application/gzip',
+					};
+				}
+			} finally {
+				await stream.cancel();
+			}
+
 			return {
 				ext: 'gz',
 				mime: 'application/gzip',

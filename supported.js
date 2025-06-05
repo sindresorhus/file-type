@@ -174,6 +174,7 @@ export const extensions = [
 	'rm',
 	'ppsm',
 	'ppsx',
+	'tar.gz',
 ];
 
 export const mimeTypes = [
