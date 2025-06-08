@@ -607,7 +607,8 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`sqlite`](https://www.sqlite.org/fileformat2.html) - SQLite file
 - [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
 - [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
-- [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tarball archive file
+- [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tape archive or tarball
+- [`tar.gz`](https://en.wikipedia.org/wiki/Gzip) - Gzipped tape archive (tarball)
 - [`tif`](https://en.wikipedia.org/wiki/Tagged_Image_File_Format) - Tagged Image file
 - [`ttc`](https://en.wikipedia.org/wiki/TrueType#TrueType_Collection) - TrueType Collection font
 - [`ttf`](https://en.wikipedia.org/wiki/TrueType) - TrueType font

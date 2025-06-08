@@ -243,11 +243,12 @@
 		"jar",
 		"rm",
 		"ppsm",
-		"ppsx"
+		"ppsx",
+		"tar.gz"
 	],
 	"dependencies": {
-		"@tokenizer/inflate": "^0.2.7",
-		"strtok3": "^10.2.2",
+		"@tokenizer/inflate": "^0.3.1",
+		"strtok3": "^10.3.1",
 		"token-types": "^6.0.0",
 		"uint8array-extras": "^1.4.0"
 	},

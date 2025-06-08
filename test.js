@@ -113,7 +113,7 @@ const names = {
 		'fixture-bali',
 	],
 	gz: [
-		'fixture.tar',
+		'fixture',
 	],
 	xz: [
 		'fixture.tar',
@@ -277,6 +277,9 @@ const names = {
 		'fixture',
 	],
 	ppsm: [
+		'fixture',
+	],
+	'tar.gz': [
 		'fixture',
 	],
 };
