@@ -175,6 +175,7 @@ export const extensions = [
 	'ppsm',
 	'ppsx',
 	'tar.gz',
+	'reg',
 ];
 
 export const mimeTypes = [
@@ -349,4 +350,5 @@ export const mimeTypes = [
 	'application/vnd.ms-powerpoint.presentation.macroenabled.12',
 	'application/java-archive',
 	'application/vnd.rn-realmedia',
+	'application/x-ms-regedit',
 ];
