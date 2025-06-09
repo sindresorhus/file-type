@@ -285,6 +285,7 @@ const names = {
 	],
 	reg: [
 		'fixture-win2000',
+		'fixture-win95',
 	],
 };
 
