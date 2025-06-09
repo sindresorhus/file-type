@@ -286,6 +286,9 @@ const names = {
 	reg: [
 		'fixture-win2000',
 	],
+	dat: [
+		'fixture-unicode-tests',
+	],
 };
 
 // Define an entry here only if the file type has potential

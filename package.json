@@ -245,7 +245,8 @@
 		"ppsm",
 		"ppsx",
 		"tar.gz",
-		"reg"
+		"reg",
+		"dat"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.3.1",

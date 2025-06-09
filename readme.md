@@ -494,6 +494,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`cr3`](https://fileinfo.com/extension/cr3) - Canon Raw image file (v3)
 - [`crx`](https://developer.chrome.com/extensions/crx) - Google Chrome extension
 - [`cur`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Icon file
+- [`dat`](https://en.wikipedia.org/wiki/Windows_Registry) - Windows registry hive file
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format)) - Debian package
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
