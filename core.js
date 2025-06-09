@@ -296,7 +296,7 @@ export class FileTypeParser {
 	}
 
 	checkString(header, options) {
-		return this.check(stringToBytes(header), options);
+		return this.check(stringToBytes(header, options?.encoding), options);
 	}
 
 	// Detections with a high degree of certainty in identifying the correct file type
@@ -310,7 +310,7 @@ export class FileTypeParser {
 
 		this.tokenizer = tokenizer;
 
-		await tokenizer.peekBuffer(this.buffer, {length: 12, mayBeLess: true});
+		await tokenizer.peekBuffer(this.buffer, {length: 32, mayBeLess: true});
 
 		// -- 2-byte signatures --
 
@@ -1458,8 +1458,8 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xFE, 0xFF])) { // UTF-16-BOM-LE
-			if (this.check([0, 60, 0, 63, 0, 120, 0, 109, 0, 108], {offset: 2})) {
+		if (this.check([0xFE, 0xFF])) { // UTF-16-BOM-BE
+			if (this.checkString('<?xml ', {offset: 2, encoding: 'utf-16be'})) {
 				return {
 					ext: 'xml',
 					mime: 'application/xml',
@@ -1477,7 +1477,7 @@ export class FileTypeParser {
 			};
 		}
 
-		// Increase sample size from 12 to 256.
+		// Increase sample size from 32 to 256.
 		await tokenizer.peekBuffer(this.buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
 
 		if (this.check([0x61, 0x63, 0x73, 0x70], {offset: 36})) {
@@ -1651,15 +1651,16 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xFF, 0xFE])) { // UTF-16-BOM-BE
-			if (this.check([60, 0, 63, 0, 120, 0, 109, 0, 108, 0], {offset: 2})) {
+		if (this.check([0xFF, 0xFE])) { // UTF-16-BOM-LE
+			const encoding = 'utf-16le';
+			if (this.checkString('<?xml ', {offset: 2, encoding})) {
 				return {
 					ext: 'xml',
 					mime: 'application/xml',
 				};
 			}
 
-			if (this.check([0xFF, 0x0E, 0x53, 0x00, 0x6B, 0x00, 0x65, 0x00, 0x74, 0x00, 0x63, 0x00, 0x68, 0x00, 0x55, 0x00, 0x70, 0x00, 0x20, 0x00, 0x4D, 0x00, 0x6F, 0x00, 0x64, 0x00, 0x65, 0x00, 0x6C, 0x00], {offset: 2})) {
+			if (this.check([0xFF, 0x0E], {offset: 2}) && this.checkString('SketchUp Model', {offset: 4, encoding})) {
 				return {
 					ext: 'skp',
 					mime: 'application/vnd.sketchup.skp',
