@@ -1667,6 +1667,13 @@ export class FileTypeParser {
 				};
 			}
 
+			if (this.checkString('Windows Registry Editor Version 5.00\r\n', {offset: 2, encoding})) {
+				return {
+					ext: 'reg',
+					mime: 'application/x-ms-regedit',
+				};
+			}
+
 			return undefined; // Some text based format
 		}
 

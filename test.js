@@ -283,6 +283,9 @@ const names = {
 	'tar.gz': [
 		'fixture',
 	],
+	reg: [
+		'fixture-win2000',
+	],
 };
 
 // Define an entry here only if the file type has potential
