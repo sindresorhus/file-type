@@ -10,6 +10,7 @@ import {Parser as ReadmeParser} from 'commonmark';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
+import {stringToBytes} from './util.js';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream as fileTypeNodeFromStream,
@@ -955,4 +956,50 @@ test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance
 
 	result = await fileTypeFromFile(badOffset10Path, {mpegOffsetTolerance: 10});
 	t.deepEqual(result, {ext: 'mp3', mime: 'audio/mpeg'}, 'detect an MP3 which 1 byte out of sync');
+});
+
+function loopEncoding(t, stringValue, encoding) {
+	t.deepEqual(new TextDecoder(encoding).decode(new Uint8Array(stringToBytes(stringValue, encoding))), stringValue, `Ensure consistency with TextDecoder with encoding ${encoding}`);
+}
+
+test('stringToBytes encodes correctly for selected characters and encodings', t => {
+	// Default encoding: basic ASCII
+	t.deepEqual(
+		stringToBytes('ABC'),
+		[65, 66, 67],
+		'should encode ASCII correctly using default encoding',
+	);
+
+	// UTF-16LE with character above 0xFF
+	t.deepEqual(
+		stringToBytes('ꟻ', 'utf-16le'),
+		[0xFB, 0xA7],
+		'should encode U+A7FB correctly in utf-16le',
+	);
+
+	// UTF-16BE with character above 0xFF
+	t.deepEqual(
+		stringToBytes('ꟻ', 'utf-16be'),
+		[0xA7, 0xFB],
+		'should encode U+A7FB correctly in utf-16be',
+	);
+
+	// UTF-16LE with surrogate pair (🦄)
+	t.deepEqual(
+		stringToBytes('🦄', 'utf-16le'),
+		[0x3E, 0xD8, 0x84, 0xDD],
+		'should encode 🦄 (U+1F984) correctly in utf-16le',
+	);
+
+	// UTF-16BE with surrogate pair (🦄)
+	t.deepEqual(
+		stringToBytes('🦄', 'utf-16be'),
+		[0xD8, 0x3E, 0xDD, 0x84],
+		'should encode 🦄 (U+1F984) correctly in utf-16be',
+	);
+
+	loopEncoding(t, '🦄', 'utf-16le');
+	loopEncoding(t, '🦄', 'utf-16be');
+
+	t.is(new TextDecoder('utf-16be').decode(new Uint8Array(stringToBytes('🦄', 'utf-16be'))), '🦄', 'Decoded value should match original value');
 });
