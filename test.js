@@ -958,6 +958,10 @@ test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance
 	t.deepEqual(result, {ext: 'mp3', mime: 'audio/mpeg'}, 'detect an MP3 which 1 byte out of sync');
 });
 
+function loopEncoding(t, stringValue, encoding) {
+	t.deepEqual(new TextDecoder(encoding).decode(new Uint8Array(stringToBytes(stringValue, encoding))), stringValue, `Ensure consistency with TextDecoder with encoding ${encoding}`);
+}
+
 test('stringToBytes encodes correctly for selected characters and encodings', t => {
 	// Default encoding: basic ASCII
 	t.deepEqual(
@@ -993,4 +997,9 @@ test('stringToBytes encodes correctly for selected characters and encodings', t 
 		[0xD8, 0x3E, 0xDD, 0x84],
 		'should encode 🦄 (U+1F984) correctly in utf-16be',
 	);
+
+	loopEncoding(t, '🦄', 'utf-16le');
+	loopEncoding(t, '🦄', 'utf-16be');
+
+	t.is(new TextDecoder('utf-16be').decode(new Uint8Array(stringToBytes('🦄', 'utf-16be'))), '🦄', 'Decoded value should match original value');
 });
