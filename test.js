@@ -10,7 +10,7 @@ import {Parser as ReadmeParser} from 'commonmark';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
-import {stringToBytes} from './util.js'; // Adjust path as needed
+import {stringToBytes} from './util.js';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream as fileTypeNodeFromStream,
