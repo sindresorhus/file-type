@@ -1298,6 +1298,15 @@ export class FileTypeParser {
 			}
 		}
 
+		// -- 10-byte signatures --
+
+		if (this.checkString('REGEDIT4\r\n')) {
+			return {
+				ext: 'reg',
+				mime: 'application/x-ms-regedit',
+			};
+		}
+
 		// -- 12-byte signatures --
 
 		// RIFF file format which might be AVI, WAV, QCP, etc
