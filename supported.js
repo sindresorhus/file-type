@@ -176,6 +176,7 @@ export const extensions = [
 	'ppsx',
 	'tar.gz',
 	'reg',
+	'dat',
 ];
 
 export const mimeTypes = [
@@ -351,4 +352,5 @@ export const mimeTypes = [
 	'application/java-archive',
 	'application/vnd.rn-realmedia',
 	'application/x-ms-regedit',
+	'application/x-ft-windows-registry-hive',
 ];

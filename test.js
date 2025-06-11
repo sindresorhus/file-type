@@ -287,6 +287,9 @@ const names = {
 		'fixture-win2000',
 		'fixture-win95',
 	],
+	dat: [
+		'fixture-unicode-tests',
+	],
 };
 
 // Define an entry here only if the file type has potential

@@ -947,6 +947,13 @@ export class FileTypeParser {
 			};
 		}
 
+		if (this.checkString('regf')) {
+			return {
+				ext: 'dat',
+				mime: 'application/x-ft-windows-registry-hive',
+			};
+		}
+
 		// -- 5-byte signatures --
 
 		if (this.check([0x4F, 0x54, 0x54, 0x4F, 0x00])) {
