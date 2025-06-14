@@ -179,6 +179,10 @@ export const extensions = [
 	'dat',
 ];
 
+/**
+MIME media subtypes prefixed with `x-ft-` are custom and defined by us.
+They are neither formally registered with IANA nor based on any informal conventions.
+ */
 export const mimeTypes = [
 	'image/jpeg',
 	'image/png',
@@ -260,7 +264,7 @@ export const mimeTypes = [
 	'application/x-unix-archive',
 	'application/x-rpm',
 	'application/x-compress',
-	'application/x-lzip',
+	'application/lzip',
 	'application/x-cfb',
 	'application/x-mie',
 	'application/mxf',
@@ -288,9 +292,9 @@ export const mimeTypes = [
 	'text/vtt',
 	'model/gltf-binary',
 	'application/vnd.tcpdump.pcap',
-	'audio/x-dsf', // Non-standard
-	'application/x.ms.shortcut', // Invented by us
-	'application/x.apple.alias', // Invented by us
+	'audio/x-dsf', // Informal
+	'application/x-ms-shortcut', // Informal, used by freedesktop.org. shared-mime-info
+	'application/x-ft-apple.alias',
 	'audio/x-voc',
 	'audio/vnd.dolby.dd-raw',
 	'audio/x-m4a',
@@ -330,10 +334,10 @@ export const mimeTypes = [
 	'application/x-ace-compressed',
 	'application/avro',
 	'application/vnd.iccprofile',
-	'application/x.autodesk.fbx', // Invented by us
+	'application/x-ft-fbx',
 	'application/vnd.visio',
 	'application/vnd.android.package-archive',
-	'application/vnd.google.draco', // Invented by us
+	'application/x-ft-draco',
 	'application/x-lz4', // Invented by us
 	'application/vnd.openxmlformats-officedocument.presentationml.template',
 	'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
