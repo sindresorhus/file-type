@@ -180,9 +180,9 @@ export const extensions = [
 ];
 
 /**
-  MIME media subtype prefixed with x-ft-, are invented by us.
-  These types like formal IANA/RFC registration, neither an existing widely used convention
- */
+MIME media subtype prefixed with `x-ft-`, are invented by us.
+These types like formal IANA/RFC registration, neither an existing widely used convention.
+*/
 export const mimeTypes = [
 	'image/jpeg',
 	'image/png',
