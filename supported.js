@@ -180,9 +180,8 @@ export const extensions = [
 ];
 
 /**
-MIME media subtypes prefixed with `x-ft-` are custom and defined by us.
-They are neither formally registered with IANA nor based on any informal conventions.
- */
+MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are neither formally registered with IANA nor based on any informal conventions.
+*/
 export const mimeTypes = [
 	'image/jpeg',
 	'image/png',
