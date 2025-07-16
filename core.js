@@ -234,7 +234,12 @@ export class FileTypeParser {
 	}
 
 	async fromBlob(blob) {
-		return this.fromStream(blob.stream());
+		const tokenizer = strtok3.fromBlob(blob, this.tokenizerOptions);
+		try {
+			return await this.fromTokenizer(tokenizer);
+		} finally {
+			await tokenizer.close();
+		}
 	}
 
 	async fromStream(stream) {
