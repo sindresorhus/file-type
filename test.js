@@ -290,6 +290,10 @@ const names = {
 	dat: [
 		'fixture-unicode-tests',
 	],
+	zip: [
+		'fixture',
+		'fixture2',
+	],
 };
 
 // Define an entry here only if the file type has potential
@@ -363,6 +367,11 @@ async function testFromBuffer(t, expectedExtension, path) {
 	const chunk = fs.readFileSync(path);
 	await checkBufferLike(t, expectedExtension, chunk);
 	await checkBufferLike(t, expectedExtension, new Uint8Array(chunk));
+
+	if (path.includes('fixture2.zip')) {
+		await checkBufferLike(t, expectedExtension, chunk.buffer.slice(0, Math.floor(chunk.byteLength / 2)));
+	}
+
 	await checkBufferLike(t, expectedExtension, chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength));
 }
 
