@@ -597,7 +597,7 @@ export class FileTypeParser {
 
 						return {};
 				}
-			});
+			}).catch(() => {});
 
 			return fileType ?? {
 				ext: 'zip',
