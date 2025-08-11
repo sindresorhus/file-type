@@ -601,7 +601,6 @@ export class FileTypeParser {
 					}
 				});
 			} catch {}
-		
 
 			return fileType ?? {
 				ext: 'zip',
