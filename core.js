@@ -538,66 +538,70 @@ export class FileTypeParser {
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
 			let fileType;
-			await new ZipHandler(tokenizer).unzip(zipHeader => {
-				switch (zipHeader.filename) {
-					case 'META-INF/mozilla.rsa':
-						fileType = {
-							ext: 'xpi',
-							mime: 'application/x-xpinstall',
-						};
-						return {
-							stop: true,
-						};
-					case 'META-INF/MANIFEST.MF':
-						fileType = {
-							ext: 'jar',
-							mime: 'application/java-archive',
-						};
-						return {
-							stop: true,
-						};
-					case 'mimetype':
-						return {
-							async handler(fileData) {
-								// Use TextDecoder to decode the UTF-8 encoded data
-								const mimeType = new TextDecoder('utf-8').decode(fileData).trim();
-								fileType = getFileTypeFromMimeType(mimeType);
-							},
-							stop: true,
-						};
 
-					case '[Content_Types].xml':
-						return {
-							async handler(fileData) {
-								// Use TextDecoder to decode the UTF-8 encoded data
-								let xmlContent = new TextDecoder('utf-8').decode(fileData);
-								const endPos = xmlContent.indexOf('.main+xml"');
-								if (endPos === -1) {
-									const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
-									if (xmlContent.includes(`ContentType="${mimeType}"`)) {
+			try {
+				await new ZipHandler(tokenizer).unzip(zipHeader => {
+					switch (zipHeader.filename) {
+						case 'META-INF/mozilla.rsa':
+							fileType = {
+								ext: 'xpi',
+								mime: 'application/x-xpinstall',
+							};
+							return {
+								stop: true,
+							};
+						case 'META-INF/MANIFEST.MF':
+							fileType = {
+								ext: 'jar',
+								mime: 'application/java-archive',
+							};
+							return {
+								stop: true,
+							};
+						case 'mimetype':
+							return {
+								async handler(fileData) {
+									// Use TextDecoder to decode the UTF-8 encoded data
+									const mimeType = new TextDecoder('utf-8').decode(fileData).trim();
+									fileType = getFileTypeFromMimeType(mimeType);
+								},
+								stop: true,
+							};
+
+						case '[Content_Types].xml':
+							return {
+								async handler(fileData) {
+									// Use TextDecoder to decode the UTF-8 encoded data
+									let xmlContent = new TextDecoder('utf-8').decode(fileData);
+									const endPos = xmlContent.indexOf('.main+xml"');
+									if (endPos === -1) {
+										const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
+										if (xmlContent.includes(`ContentType="${mimeType}"`)) {
+											fileType = getFileTypeFromMimeType(mimeType);
+										}
+									} else {
+										xmlContent = xmlContent.slice(0, Math.max(0, endPos));
+										const firstPos = xmlContent.lastIndexOf('"');
+										const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
 										fileType = getFileTypeFromMimeType(mimeType);
 									}
-								} else {
-									xmlContent = xmlContent.slice(0, Math.max(0, endPos));
-									const firstPos = xmlContent.lastIndexOf('"');
-									const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
-									fileType = getFileTypeFromMimeType(mimeType);
-								}
-							},
-							stop: true,
-						};
-					default:
-						if (/classes\d*\.dex/.test(zipHeader.filename)) {
-							fileType = {
-								ext: 'apk',
-								mime: 'application/vnd.android.package-archive',
+								},
+								stop: true,
 							};
-							return {stop: true};
-						}
+						default:
+							if (/classes\d*\.dex/.test(zipHeader.filename)) {
+								fileType = {
+									ext: 'apk',
+									mime: 'application/vnd.android.package-archive',
+								};
+								return {stop: true};
+							}
 
-						return {};
-				}
-			});
+							return {};
+					}
+				});
+			} catch {}
+		
 
 			return fileType ?? {
 				ext: 'zip',
