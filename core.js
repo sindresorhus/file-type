@@ -597,7 +597,11 @@ export class FileTypeParser {
 
 						return {};
 				}
-			}).catch(() => {});
+			}).catch((error) => {
+				if (!(error instanceof strtok3.EndOfStreamError)) {
+					throw error; // Re-throw non-EndOfStreamError
+				}
+			});
 
 			return fileType ?? {
 				ext: 'zip',
