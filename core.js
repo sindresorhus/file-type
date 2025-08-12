@@ -597,7 +597,7 @@ export class FileTypeParser {
 
 						return {};
 				}
-			}).catch((error) => {
+			}).catch(error => {
 				if (!(error instanceof strtok3.EndOfStreamError)) {
 					throw error; // Re-throw non-EndOfStreamError
 				}
