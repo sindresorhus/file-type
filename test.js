@@ -299,6 +299,7 @@ const names = {
 		'fixture-x86_64',
 		'fixture-i386',
 		'fixture-ppc7400',
+		'fixture-fat-binary',
 	],
 };
 
