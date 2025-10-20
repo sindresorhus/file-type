@@ -294,6 +294,12 @@ const names = {
 		'fixture',
 		'fixture2',
 	],
+	macho: [
+		'fixture-arm64',
+		'fixture-x86_64',
+		'fixture-i386',
+		'fixture-ppc7400',
+	],
 };
 
 // Define an entry here only if the file type has potential

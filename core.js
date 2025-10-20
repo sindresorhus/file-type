@@ -951,7 +951,12 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xCF, 0xFA, 0xED, 0xFE])) {
+		if (
+			this.check([0xFE, 0xED, 0xFA, 0xCE]) // 32-bit, big-endian
+			|| this.check([0xFE, 0xED, 0xFA, 0xCF]) // 64-bit, big-endian
+			|| this.check([0xCE, 0xFA, 0xED, 0xFE]) // 32-bit, little-endian
+			|| this.check([0xCF, 0xFA, 0xED, 0xFE]) // 64-bit, little-endian
+		) {
 			return {
 				ext: 'macho',
 				mime: 'application/x-mach-binary',
