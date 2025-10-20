@@ -290,6 +290,13 @@ const names = {
 	dat: [
 		'fixture-unicode-tests',
 	],
+	macho: [
+		'fixture-arm64',
+		'fixture-x86_64',
+		'fixture-i386',
+		'fixture-ppc7400',
+		'fixture-fat-binary',
+	],
 };
 
 // Define an entry here only if the file type has potential
