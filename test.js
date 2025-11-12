@@ -294,6 +294,10 @@ const names = {
 		'fixture',
 		'fixture2',
 	],
+	pgp: [
+		'fixture',
+		'fixture-binary',
+	],
 };
 
 // Define an entry here only if the file type has potential

@@ -1702,7 +1702,18 @@ export class FileTypeParser {
 			return undefined; // Some text based format
 		}
 
-		if (this.checkString('-----BEGIN PGP MESSAGE-----')) {
+		if (
+			this.checkString('-----BEGIN PGP MESSAGE-----') // ASCII armor
+			|| this.check([0x84]) // Public-Key Encrypted Session Key (length type 0)
+			|| this.check([0x85]) // Public-Key Encrypted Session Key (length type 1)
+			|| this.check([0x95]) // Secret-Key (length type 1)
+			|| this.check([0x99]) // Public-Key (length type 1) - common in keyrings
+			|| this.check([0xA1]) // Compressed Data (length type 1) - very common
+			|| this.check([0xA6]) // Symmetrically Encrypted Data (length type 2)
+			|| this.check([0xC1]) // New format: Public-Key Encrypted Session Key
+			|| this.check([0xC8]) // New format: Compressed Data
+			|| this.check([0xD2]) // New format: Sym. Encrypted & Integrity Protected - modern!
+		) {
 			return {
 				ext: 'pgp',
 				mime: 'application/pgp-encrypted',
