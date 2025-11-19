@@ -249,9 +249,9 @@
 		"dat"
 	],
 	"dependencies": {
-		"@tokenizer/inflate": "^0.3.1",
-		"strtok3": "^10.3.1",
-		"token-types": "^6.0.0",
+		"@tokenizer/inflate": "^0.4.1",
+		"strtok3": "^10.3.4",
+		"token-types": "^6.1.1",
 		"uint8array-extras": "^1.4.0"
 	},
 	"devDependencies": {

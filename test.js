@@ -1014,3 +1014,13 @@ test('stringToBytes encodes correctly for selected characters and encodings', t 
 
 	t.is(new TextDecoder('utf-16be').decode(new Uint8Array(stringToBytes('🦄', 'utf-16be'))), '🦄', 'Decoded value should match original value');
 });
+
+test('Does not crash or hang if provided with a partial gunzip file', async t => {
+	const buffer = Uint8Array.from([31, 139, 8, 8, 137, 83, 29, 82, 0, 11]);
+	const type = await fileTypeFromBuffer(buffer);
+
+	t.deepEqual(type, {
+		ext: 'gz',
+		mime: 'application/gzip',
+	});
+});
