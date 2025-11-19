@@ -416,8 +416,15 @@ export class FileTypeParser {
 			const gzipHandler = new GzipHandler(tokenizer);
 
 			const stream = gzipHandler.inflate();
+			let shouldCancelStream = true;
 			try {
-				const compressedFileType = await this.fromStream(stream);
+				let compressedFileType;
+				try {
+					compressedFileType = await this.fromStream(stream);
+				} catch {
+					shouldCancelStream = false;
+				}
+
 				if (compressedFileType && compressedFileType.ext === 'tar') {
 					return {
 						ext: 'tar.gz',
@@ -425,7 +432,9 @@ export class FileTypeParser {
 					};
 				}
 			} finally {
-				await stream.cancel();
+				if (shouldCancelStream) {
+					await stream.cancel();
+				}
 			}
 
 			return {
