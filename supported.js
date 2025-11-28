@@ -171,6 +171,7 @@ export const extensions = [
 	'potm',
 	'pptm',
 	'jar',
+	'jmp',
 	'rm',
 	'ppsm',
 	'ppsx',
@@ -353,4 +354,5 @@ export const mimeTypes = [
 	'application/vnd.rn-realmedia',
 	'application/x-ms-regedit',
 	'application/x-ft-windows-registry-hive',
+	'application/x-jmp-data',
 ];

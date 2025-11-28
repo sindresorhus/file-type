@@ -1673,6 +1673,17 @@ export class FileTypeParser {
 			};
 		}
 
+		// -- 16-byte signatures --
+
+		// JMP files - check for both Little Endian and Big Endian signatures
+		if (this.check([0xFF, 0xFF, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00])
+			|| this.check([0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x04, 0x00, 0x01, 0x00, 0x01])) {
+			return {
+				ext: 'jmp',
+				mime: 'application/x-jmp-data',
+			};
+		}
+
 		// Increase sample size from 256 to 512
 		await tokenizer.peekBuffer(this.buffer, {length: Math.min(512, tokenizer.fileInfo.size), mayBeLess: true});
 
