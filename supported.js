@@ -172,6 +172,7 @@ export const extensions = [
 	'pptm',
 	'jar',
 	'rm',
+	'sav',
 	'ppsm',
 	'ppsx',
 	'tar.gz',
@@ -351,6 +352,7 @@ export const mimeTypes = [
 	'application/vnd.ms-powerpoint.presentation.macroenabled.12',
 	'application/java-archive',
 	'application/vnd.rn-realmedia',
+	'application/x-spss-sav',
 	'application/x-ms-regedit',
 	'application/x-ft-windows-registry-hive',
 ];

@@ -604,6 +604,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`rtf`](https://en.wikipedia.org/wiki/Rich_Text_Format) - Rich Text Format
 - [`rw2`](https://en.wikipedia.org/wiki/Raw_image_format) - Panasonic RAW image file
 - [`s3m`](https://wiki.openmpt.org/Manual:_Module_formats#The_ScreamTracker_3_format_.28.s3m.29) - Audio module format: ScreamTracker 3
+- [`sav`](https://en.wikipedia.org/wiki/SPSS) - SPSS Statistical Data File
 - [`shp`](https://en.wikipedia.org/wiki/Shapefile) - Geospatial vector data format
 - [`skp`](https://en.wikipedia.org/wiki/SketchUp) - SketchUp
 - [`spx`](https://en.wikipedia.org/wiki/Ogg) - Audio file
