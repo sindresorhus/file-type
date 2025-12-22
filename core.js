@@ -521,14 +521,6 @@ export class FileTypeParser {
 			};
 		}
 
-		// SPSS Statistical Data File
-		if (this.checkString('$FL2') || this.checkString('$FL3')) {
-			return {
-				ext: 'sav',
-				mime: 'application/x-spss-sav',
-			};
-		}
-
 		// Musepack, SV8
 		if (this.checkString('MPCK')) {
 			return {
@@ -548,6 +540,14 @@ export class FileTypeParser {
 			return {
 				ext: 'icns',
 				mime: 'image/icns',
+			};
+		}
+
+		// SPSS Statistical Data File
+		if (this.checkString('$FL2') || this.checkString('$FL3')) {
+			return {
+				ext: 'sav',
+				mime: 'application/x-spss-sav',
 			};
 		}
 
