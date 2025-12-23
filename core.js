@@ -543,14 +543,6 @@ export class FileTypeParser {
 			};
 		}
 
-		// SPSS Statistical Data File
-		if (this.checkString('$FL2') || this.checkString('$FL3')) {
-			return {
-				ext: 'sav',
-				mime: 'application/x-spss-sav',
-			};
-		}
-
 		// Zip-based file formats
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
@@ -977,6 +969,14 @@ export class FileTypeParser {
 			return {
 				ext: 'dat',
 				mime: 'application/x-ft-windows-registry-hive',
+			};
+		}
+
+		// SPSS Statistical Data File
+		if (this.checkString('$FL2') || this.checkString('$FL3')) {
+			return {
+				ext: 'sav',
+				mime: 'application/x-spss-sav',
 			};
 		}
 
