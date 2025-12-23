@@ -533,7 +533,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`j2c`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jar`](https://en.wikipedia.org/wiki/JAR_(file_format)) - Java archive
 - [`jls`](https://en.wikipedia.org/wiki/Lossless_JPEG#JPEG-LS) - Lossless/near-lossless compression standard for continuous-tone images
-- [`jmp`](https://www.jmp.com/) - JMP data file format by SAS Institute
+- [`jmp`](https://jmp.com) - JMP data file format by SAS Institute
 - [`jp2`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jpg`](https://en.wikipedia.org/wiki/JPEG) - Joint Photographic Experts Group image
 - [`jpm`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
