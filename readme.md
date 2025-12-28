@@ -395,6 +395,7 @@ console.log(fileType);
 ### Available third-party file-type detectors
 
 - [@file-type/av](https://github.com/Borewit/file-type-av): Improves detection of audio and video file formats, with accurate differentiation between the two
+- [@file-type/pdf](https://github.com/Borewit/file-type-pdf): Detects PDF based file types, such as Adobe Illustrator
 - [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as GLM, KML, MusicXML, RSS, SVG, and XHTML
 
 ### Detector execution flow
