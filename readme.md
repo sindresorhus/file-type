@@ -206,21 +206,6 @@ console.log(await fileTypeFromBlob(blob));
 //=> {ext: 'txt', mime: 'text/plain'}
 ```
 
-> [!WARNING]
-> This method depends on [ReadableStreamBYOBReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader) which **requires Node.js ≥ 20**
-> and [may not be available in all modern browsers](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader#browser_compatibility).
-
-To work around this limitation, you can use an alternative approach to read and process the `Blob` without relying on streaming:
-
-```js
-import {fileTypeFromBuffer} from 'file-type';
-
-async function readFromBlobWithoutStreaming(blob) {
-	const buffer = await blob.arrayBuffer();
-	return fileTypeFromBuffer(buffer);
-}
-```
-
 #### blob
 
 Type: [`Blob`](https://developer.mozilla.org/en-US/docs/Web/API/Blob)
