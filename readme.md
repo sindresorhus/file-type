@@ -122,6 +122,8 @@ Returns a `Promise` for an object with the detected file type:
 - `ext` - One of the [supported file types](#supported-file-types)
 - `mime` - The [MIME type](https://en.wikipedia.org/wiki/Internet_media_type)
 
+MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are neither formally registered with IANA nor based on any informal conventions.
+
 Or `undefined` when there is no match.
 
 #### buffer

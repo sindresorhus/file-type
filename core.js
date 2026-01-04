@@ -741,7 +741,7 @@ export class FileTypeParser {
 		if (this.checkString('LZIP')) {
 			return {
 				ext: 'lz',
-				mime: 'application/x-lzip',
+				mime: 'application/lzip',
 			};
 		}
 
@@ -966,7 +966,7 @@ export class FileTypeParser {
 		if (this.check([0x04, 0x22, 0x4D, 0x18])) {
 			return {
 				ext: 'lz4',
-				mime: 'application/x-lz4', // Invented by us
+				mime: 'application/x-lz4',
 			};
 		}
 
@@ -1102,7 +1102,7 @@ export class FileTypeParser {
 		if (this.checkString('DRACO')) {
 			return {
 				ext: 'drc',
-				mime: 'application/vnd.google.draco', // Invented by us
+				mime: 'application/x-ft-draco',
 			};
 		}
 
@@ -1662,21 +1662,21 @@ export class FileTypeParser {
 		if (this.check([0x4C, 0x00, 0x00, 0x00, 0x01, 0x14, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46])) {
 			return {
 				ext: 'lnk',
-				mime: 'application/x.ms.shortcut', // Invented by us
+				mime: 'application/x-ms-shortcut', // Informal, used by freedesktop.org. shared-mime-info
 			};
 		}
 
 		if (this.check([0x62, 0x6F, 0x6F, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x6D, 0x61, 0x72, 0x6B, 0x00, 0x00, 0x00, 0x00])) {
 			return {
 				ext: 'alias',
-				mime: 'application/x.apple.alias', // Invented by us
+				mime: 'application/x-ft-apple.alias',
 			};
 		}
 
 		if (this.checkString('Kaydara FBX Binary  \u0000')) {
 			return {
 				ext: 'fbx',
-				mime: 'application/x.autodesk.fbx', // Invented by us
+				mime: 'application/x-ft-fbx',
 			};
 		}
 
