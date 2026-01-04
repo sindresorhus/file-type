@@ -951,7 +951,12 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.check([0xCF, 0xFA, 0xED, 0xFE])) {
+		if (
+			this.check([0xFE, 0xED, 0xFA, 0xCE]) // 32-bit, big-endian
+			|| this.check([0xFE, 0xED, 0xFA, 0xCF]) // 64-bit, big-endian
+			|| this.check([0xCE, 0xFA, 0xED, 0xFE]) // 32-bit, little-endian
+			|| this.check([0xCF, 0xFA, 0xED, 0xFE]) // 64-bit, little-endian
+		) {
 			return {
 				ext: 'macho',
 				mime: 'application/x-mach-binary',
@@ -1064,10 +1069,25 @@ export class FileTypeParser {
 		}
 
 		if (this.check([0xCA, 0xFE, 0xBA, 0xBE])) {
-			return {
-				ext: 'class',
-				mime: 'application/java-vm',
-			};
+			// Java bytecode and Mach-O universal binaries have the same magic number.
+			// We disambiguate based on the next 4 bytes, as done by `file`.
+			// See https://github.com/file/file/blob/master/magic/Magdir/cafebabe
+			const machOArchitectureCount = Token.UINT32_BE.get(this.buffer, 4);
+			const javaClassFileMajorVersion = Token.UINT16_BE.get(this.buffer, 6);
+
+			if (machOArchitectureCount > 0 && machOArchitectureCount <= 30) {
+				return {
+					ext: 'macho',
+					mime: 'application/x-mach-binary',
+				};
+			}
+
+			if (javaClassFileMajorVersion > 30) {
+				return {
+					ext: 'class',
+					mime: 'application/java-vm',
+				};
+			}
 		}
 
 		if (this.checkString('.RMF')) {
