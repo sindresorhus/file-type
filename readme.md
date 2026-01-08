@@ -380,6 +380,7 @@ console.log(fileType);
 ### Available third-party file-type detectors
 
 - [@file-type/av](https://github.com/Borewit/file-type-av): Improves detection of audio and video file formats, with accurate differentiation between the two
+- [@file-type/cfbf](https://github.com/Borewit/file-type-cfbf): Detects Compound File Binary Format (CFBF) based formats, such as Office 97–2003 documents and `.msi`.
 - [@file-type/pdf](https://github.com/Borewit/file-type-pdf): Detects PDF based file types, such as Adobe Illustrator
 - [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as GLM, KML, MusicXML, RSS, SVG, and XHTML
 
@@ -628,14 +629,14 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 
 *[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
-The following file types will not be accepted:
-- [MS-CFB: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b), too old and difficult to parse:
+The following file types will not be accepted, but most of them are supported by [third-party detector](#available-third-party-file-type-detectors)
+- [MS-CFB: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b)
 	- `.doc` - Microsoft Word 97-2003 Document
 	- `.xls` - Microsoft Excel 97-2003 Document
 	- `.ppt` - Microsoft PowerPoint97-2003 Document
 	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
-- `.svg` - Supported by [third-party detector](#available-third-party-file-type-detectors).
+- `.svg`
 
 #### tokenizer
 
