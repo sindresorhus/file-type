@@ -14,6 +14,169 @@ import {
 import {extensions, mimeTypes} from './supported.js';
 
 export const reasonableDetectionSizeInBytes = 4100; // A fair amount of file-types are detectable within this range.
+// Keep defensive limits small enough to avoid accidental memory spikes from untrusted inputs.
+const maximumMpegOffsetTolerance = reasonableDetectionSizeInBytes - 2;
+const maximumZipEntrySizeInBytes = 1024 * 1024;
+const maximumUntrustedSkipSizeInBytes = 16 * 1024 * 1024;
+const maximumNestedGzipDetectionSizeInBytes = maximumUntrustedSkipSizeInBytes;
+const maximumId3HeaderSizeInBytes = maximumUntrustedSkipSizeInBytes;
+const maximumEbmlDocumentTypeSizeInBytes = 64;
+const maximumEbmlElementPayloadSizeInBytes = maximumUntrustedSkipSizeInBytes;
+const maximumEbmlElementCount = 256;
+const maximumPngChunkSizeInBytes = maximumUntrustedSkipSizeInBytes;
+const maximumTiffIfdOffsetInBytes = maximumUntrustedSkipSizeInBytes;
+const recoverableZipErrorMessages = new Set([
+	'Unexpected signature',
+	'Encrypted ZIP',
+	'Expected Central-File-Header signature',
+]);
+const recoverableZipErrorMessagePrefixes = [
+	'Unsupported ZIP compression method:',
+	'ZIP entry decompressed data exceeds ',
+];
+const recoverableZipErrorCodes = new Set([
+	'Z_BUF_ERROR',
+	'Z_DATA_ERROR',
+	'ERR_INVALID_STATE',
+]);
+
+class ParserHardLimitError extends Error {}
+
+function getSafeBound(value, maximum, reason) {
+	if (
+		!Number.isFinite(value)
+		|| value < 0
+		|| value > maximum
+	) {
+		throw new ParserHardLimitError(`${reason} has invalid size ${value} (maximum ${maximum} bytes)`);
+	}
+
+	return value;
+}
+
+async function safeIgnore(tokenizer, length, {maximumLength = maximumUntrustedSkipSizeInBytes, reason = 'skip'} = {}) {
+	const safeLength = getSafeBound(length, maximumLength, reason);
+	await tokenizer.ignore(safeLength);
+}
+
+async function safeReadBuffer(tokenizer, buffer, options, {maximumLength = buffer.length, reason = 'read'} = {}) {
+	const length = options?.length ?? buffer.length;
+	const safeLength = getSafeBound(length, maximumLength, reason);
+	return tokenizer.readBuffer(buffer, {
+		...options,
+		length: safeLength,
+	});
+}
+
+async function decompressDeflateRawWithLimit(data, {maximumLength = maximumZipEntrySizeInBytes} = {}) {
+	const input = new ReadableStream({
+		start(controller) {
+			controller.enqueue(data);
+			controller.close();
+		},
+	});
+	const output = input.pipeThrough(new DecompressionStream('deflate-raw'));
+	const reader = output.getReader();
+	const chunks = [];
+	let totalLength = 0;
+
+	try {
+		for (;;) {
+			const {done, value} = await reader.read();
+			if (done) {
+				break;
+			}
+
+			totalLength += value.length;
+			if (totalLength > maximumLength) {
+				await reader.cancel();
+				throw new Error(`ZIP entry decompressed data exceeds ${maximumLength} bytes`);
+			}
+
+			chunks.push(value);
+		}
+	} finally {
+		reader.releaseLock();
+	}
+
+	const uncompressedData = new Uint8Array(totalLength);
+	let offset = 0;
+	for (const chunk of chunks) {
+		uncompressedData.set(chunk, offset);
+		offset += chunk.length;
+	}
+
+	return uncompressedData;
+}
+
+// Override the default inflate to enforce decompression size limits, since @tokenizer/inflate does not expose a configuration hook for this.
+ZipHandler.prototype.inflate = async function (zipHeader, fileData, callback) {
+	if (zipHeader.compressedMethod === 0) {
+		return callback(fileData);
+	}
+
+	if (zipHeader.compressedMethod !== 8) {
+		throw new Error(`Unsupported ZIP compression method: ${zipHeader.compressedMethod}`);
+	}
+
+	const maximumLength = hasUnknownFileSize(this.tokenizer) ? maximumZipEntrySizeInBytes : Number.MAX_SAFE_INTEGER;
+	const uncompressedData = await decompressDeflateRawWithLimit(fileData, {maximumLength});
+	return callback(uncompressedData);
+};
+
+function createByteLimitedReadableStream(stream, maximumBytes) {
+	const reader = stream.getReader();
+	let emittedBytes = 0;
+	let sourceDone = false;
+	let sourceCanceled = false;
+
+	const cancelSource = async reason => {
+		if (
+			sourceDone
+			|| sourceCanceled
+		) {
+			return;
+		}
+
+		sourceCanceled = true;
+		await reader.cancel(reason);
+	};
+
+	return new ReadableStream({
+		async pull(controller) {
+			if (emittedBytes >= maximumBytes) {
+				controller.close();
+				await cancelSource();
+				return;
+			}
+
+			const {done, value} = await reader.read();
+			if (
+				done
+				|| !value
+			) {
+				sourceDone = true;
+				controller.close();
+				return;
+			}
+
+			const remainingBytes = maximumBytes - emittedBytes;
+			if (value.length > remainingBytes) {
+				controller.enqueue(value.subarray(0, remainingBytes));
+				emittedBytes += remainingBytes;
+				controller.close();
+				await cancelSource();
+				return;
+			}
+
+			controller.enqueue(value);
+			emittedBytes += value.length;
+		},
+		async cancel(reason) {
+			await cancelSource(reason);
+		},
+	});
+}
 
 export async function fileTypeFromStream(stream, options) {
 	return new FileTypeParser(options).fromStream(stream);
@@ -180,6 +343,189 @@ function _check(buffer, headers, options) {
 	return true;
 }
 
+export function normalizeSampleSize(sampleSize) {
+	// Accept odd caller input, but preserve valid caller-requested probe depth.
+	if (!Number.isFinite(sampleSize)) {
+		return reasonableDetectionSizeInBytes;
+	}
+
+	return Math.max(1, Math.trunc(sampleSize));
+}
+
+function normalizeMpegOffsetTolerance(mpegOffsetTolerance) {
+	// This value controls scan depth and therefore worst-case CPU work.
+	if (!Number.isFinite(mpegOffsetTolerance)) {
+		return 0;
+	}
+
+	return Math.max(0, Math.min(maximumMpegOffsetTolerance, Math.trunc(mpegOffsetTolerance)));
+}
+
+function getKnownFileSizeOrMaximum(fileSize) {
+	if (!Number.isFinite(fileSize)) {
+		return Number.MAX_SAFE_INTEGER;
+	}
+
+	return Math.max(0, fileSize);
+}
+
+function hasUnknownFileSize(tokenizer) {
+	const fileSize = tokenizer.fileInfo.size;
+	return (
+		!Number.isFinite(fileSize)
+		|| fileSize === Number.MAX_SAFE_INTEGER
+	);
+}
+
+function hasExceededUnknownSizeScanBudget(tokenizer, startOffset, maximumBytes) {
+	return (
+		hasUnknownFileSize(tokenizer)
+		&& tokenizer.position - startOffset > maximumBytes
+	);
+}
+
+function isRecoverableZipError(error) {
+	if (error instanceof strtok3.EndOfStreamError) {
+		return true;
+	}
+
+	if (error instanceof ParserHardLimitError) {
+		return true;
+	}
+
+	if (!(error instanceof Error)) {
+		return false;
+	}
+
+	if (recoverableZipErrorMessages.has(error.message)) {
+		return true;
+	}
+
+	if (
+		error instanceof TypeError
+		&& recoverableZipErrorCodes.has(error.code)
+	) {
+		return true;
+	}
+
+	for (const prefix of recoverableZipErrorMessagePrefixes) {
+		if (error.message.startsWith(prefix)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function canReadZipEntryForDetection(zipHeader, maximumSize = maximumZipEntrySizeInBytes) {
+	const sizes = [zipHeader.compressedSize, zipHeader.uncompressedSize];
+	for (const size of sizes) {
+		if (
+			!Number.isFinite(size)
+			|| size < 0
+			|| size > maximumSize
+		) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function createOpenXmlZipDetectionState() {
+	return {
+		hasContentTypesEntry: false,
+		hasParsedContentTypesEntry: false,
+		isParsingContentTypes: false,
+		hasUnparseableContentTypes: false,
+		hasWordDirectory: false,
+		hasPresentationDirectory: false,
+		hasSpreadsheetDirectory: false,
+		hasThreeDimensionalModelEntry: false,
+	};
+}
+
+function updateOpenXmlZipDetectionStateFromFilename(openXmlState, filename) {
+	if (filename.startsWith('word/')) {
+		openXmlState.hasWordDirectory = true;
+	}
+
+	if (filename.startsWith('ppt/')) {
+		openXmlState.hasPresentationDirectory = true;
+	}
+
+	if (filename.startsWith('xl/')) {
+		openXmlState.hasSpreadsheetDirectory = true;
+	}
+
+	if (
+		filename.startsWith('3D/')
+		&& filename.endsWith('.model')
+	) {
+		openXmlState.hasThreeDimensionalModelEntry = true;
+	}
+}
+
+function getOpenXmlFileTypeFromZipEntries(openXmlState) {
+	// Only use directory-name heuristic when [Content_Types].xml was present in the archive
+	// but its handler was skipped (not invoked, not currently running, and not already resolved).
+	// This avoids guessing from directory names when content-type parsing already gave a definitive answer or failed.
+	if (
+		!openXmlState.hasContentTypesEntry
+		|| openXmlState.hasUnparseableContentTypes
+		|| openXmlState.isParsingContentTypes
+		|| openXmlState.hasParsedContentTypesEntry
+	) {
+		return;
+	}
+
+	if (openXmlState.hasWordDirectory) {
+		return {
+			ext: 'docx',
+			mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		};
+	}
+
+	if (openXmlState.hasPresentationDirectory) {
+		return {
+			ext: 'pptx',
+			mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+		};
+	}
+
+	if (openXmlState.hasSpreadsheetDirectory) {
+		return {
+			ext: 'xlsx',
+			mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		};
+	}
+
+	if (openXmlState.hasThreeDimensionalModelEntry) {
+		return {
+			ext: '3mf',
+			mime: 'model/3mf',
+		};
+	}
+}
+
+function getOpenXmlMimeTypeFromContentTypesXml(xmlContent) {
+	// We only need the `ContentType="...main+xml"` value, so a small string scan is enough and avoids full XML parsing.
+	const endPosition = xmlContent.indexOf('.main+xml"');
+	if (endPosition === -1) {
+		const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
+		if (xmlContent.includes(`ContentType="${mimeType}"`)) {
+			return mimeType;
+		}
+
+		return;
+	}
+
+	const truncatedContent = xmlContent.slice(0, endPosition);
+	const firstQuotePosition = truncatedContent.lastIndexOf('"');
+	// If no quote is found, `lastIndexOf` returns -1 and this intentionally falls back to the full truncated prefix.
+	return truncatedContent.slice(firstQuotePosition + 1);
+}
+
 export async function fileTypeFromTokenizer(tokenizer, options) {
 	return new FileTypeParser(options).fromTokenizer(tokenizer);
 }
@@ -190,25 +536,39 @@ export async function fileTypeStream(webStream, options) {
 
 export class FileTypeParser {
 	constructor(options) {
+		const normalizedMpegOffsetTolerance = normalizeMpegOffsetTolerance(options?.mpegOffsetTolerance);
 		this.options = {
-			mpegOffsetTolerance: 0,
 			...options,
+			mpegOffsetTolerance: normalizedMpegOffsetTolerance,
 		};
 
-		this.detectors = [...(options?.customDetectors ?? []),
+		this.detectors = [...(this.options.customDetectors ?? []),
 			{id: 'core', detect: this.detectConfident},
 			{id: 'core.imprecise', detect: this.detectImprecise}];
 		this.tokenizerOptions = {
-			abortSignal: options?.signal,
+			abortSignal: this.options.signal,
 		};
 	}
 
 	async fromTokenizer(tokenizer) {
 		const initialPosition = tokenizer.position;
-
 		// Iterate through all file-type detectors
 		for (const detector of this.detectors) {
-			const fileType = await detector.detect(tokenizer);
+			let fileType;
+			try {
+				fileType = await detector.detect(tokenizer);
+			} catch (error) {
+				if (error instanceof strtok3.EndOfStreamError) {
+					return;
+				}
+
+				if (error instanceof ParserHardLimitError) {
+					return;
+				}
+
+				throw error;
+			}
+
 			if (fileType) {
 				return fileType;
 			}
@@ -252,7 +612,7 @@ export class FileTypeParser {
 	}
 
 	async toDetectionStream(stream, options) {
-		const {sampleSize = reasonableDetectionSizeInBytes} = options;
+		const sampleSize = normalizeSampleSize(options?.sampleSize ?? reasonableDetectionSizeInBytes);
 		let detectedFileType;
 		let firstChunk;
 
@@ -394,7 +754,7 @@ export class FileTypeParser {
 
 		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
 			// Strip off UTF-8-BOM
-			this.tokenizer.ignore(3);
+			await this.tokenizer.ignore(3);
 			return this.detectConfident(tokenizer);
 		}
 
@@ -414,27 +774,24 @@ export class FileTypeParser {
 
 		if (this.check([0x1F, 0x8B, 0x8])) {
 			const gzipHandler = new GzipHandler(tokenizer);
-
-			const stream = gzipHandler.inflate();
-			let shouldCancelStream = true;
+			const limitedInflatedStream = createByteLimitedReadableStream(gzipHandler.inflate(), maximumNestedGzipDetectionSizeInBytes);
+			let compressedFileType;
 			try {
-				let compressedFileType;
-				try {
-					compressedFileType = await this.fromStream(stream);
-				} catch {
-					shouldCancelStream = false;
+				compressedFileType = await this.fromStream(limitedInflatedStream);
+			} catch (error) {
+				if (error?.name === 'AbortError') {
+					throw error;
 				}
 
-				if (compressedFileType && compressedFileType.ext === 'tar') {
-					return {
-						ext: 'tar.gz',
-						mime: 'application/gzip',
-					};
-				}
-			} finally {
-				if (shouldCancelStream) {
-					await stream.cancel();
-				}
+				// Decompression or inner-detection failures are expected for non-tar gzip files.
+			}
+
+			// We only need enough inflated bytes to confidently decide whether this is tar.gz.
+			if (compressedFileType?.ext === 'tar') {
+				return {
+					ext: 'tar.gz',
+					mime: 'application/gzip',
+				};
 			}
 
 			return {
@@ -451,17 +808,48 @@ export class FileTypeParser {
 		}
 
 		if (this.checkString('ID3')) {
-			await tokenizer.ignore(6); // Skip ID3 header until the header size
+			await safeIgnore(tokenizer, 6, {
+				maximumLength: 6,
+				reason: 'ID3 header prefix',
+			}); // Skip ID3 header until the header size
 			const id3HeaderLength = await tokenizer.readToken(uint32SyncSafeToken);
+			const isUnknownFileSize = hasUnknownFileSize(tokenizer);
+			if (
+				!Number.isFinite(id3HeaderLength)
+					|| id3HeaderLength < 0
+				// Keep ID3 probing bounded for unknown-size streams to avoid attacker-controlled large skips.
+				|| (
+					isUnknownFileSize
+					&& id3HeaderLength > maximumId3HeaderSizeInBytes
+				)
+			) {
+				return;
+			}
+
 			if (tokenizer.position + id3HeaderLength > tokenizer.fileInfo.size) {
-				// Guess file type based on ID3 header for backward compatibility
+				if (isUnknownFileSize) {
+					return;
+				}
+
 				return {
 					ext: 'mp3',
 					mime: 'audio/mpeg',
 				};
 			}
 
-			await tokenizer.ignore(id3HeaderLength);
+			try {
+				await safeIgnore(tokenizer, id3HeaderLength, {
+					maximumLength: isUnknownFileSize ? maximumId3HeaderSizeInBytes : tokenizer.fileInfo.size,
+					reason: 'ID3 payload',
+				});
+			} catch (error) {
+				if (error instanceof strtok3.EndOfStreamError) {
+					return;
+				}
+
+				throw error;
+			}
+
 			return this.fromTokenizer(tokenizer); // Skip ID3 header, recursion
 		}
 
@@ -547,72 +935,105 @@ export class FileTypeParser {
 		// Need to be before the `zip` check
 		if (this.check([0x50, 0x4B, 0x3, 0x4])) { // Local file header signature
 			let fileType;
-			await new ZipHandler(tokenizer).unzip(zipHeader => {
-				switch (zipHeader.filename) {
-					case 'META-INF/mozilla.rsa':
-						fileType = {
-							ext: 'xpi',
-							mime: 'application/x-xpinstall',
-						};
-						return {
-							stop: true,
-						};
-					case 'META-INF/MANIFEST.MF':
-						fileType = {
-							ext: 'jar',
-							mime: 'application/java-archive',
-						};
-						return {
-							stop: true,
-						};
-					case 'mimetype':
-						return {
-							async handler(fileData) {
-								// Use TextDecoder to decode the UTF-8 encoded data
-								const mimeType = new TextDecoder('utf-8').decode(fileData).trim();
-								fileType = getFileTypeFromMimeType(mimeType);
-							},
-							stop: true,
-						};
+			const openXmlState = createOpenXmlZipDetectionState();
 
-					case '[Content_Types].xml':
+			try {
+				await new ZipHandler(tokenizer).unzip(zipHeader => {
+					updateOpenXmlZipDetectionStateFromFilename(openXmlState, zipHeader.filename);
+
+					const isOpenXmlContentTypesEntry = zipHeader.filename === '[Content_Types].xml';
+					const openXmlFileTypeFromEntries = getOpenXmlFileTypeFromZipEntries(openXmlState);
+					if (
+						!isOpenXmlContentTypesEntry
+						&& openXmlFileTypeFromEntries
+					) {
+						fileType = openXmlFileTypeFromEntries;
 						return {
-							async handler(fileData) {
-								// Use TextDecoder to decode the UTF-8 encoded data
-								let xmlContent = new TextDecoder('utf-8').decode(fileData);
-								const endPos = xmlContent.indexOf('.main+xml"');
-								if (endPos === -1) {
-									const mimeType = 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml';
-									if (xmlContent.includes(`ContentType="${mimeType}"`)) {
+							stop: true,
+						};
+					}
+
+					switch (zipHeader.filename) {
+						case 'META-INF/mozilla.rsa':
+							fileType = {
+								ext: 'xpi',
+								mime: 'application/x-xpinstall',
+							};
+							return {
+								stop: true,
+							};
+						case 'META-INF/MANIFEST.MF':
+							fileType = {
+								ext: 'jar',
+								mime: 'application/java-archive',
+							};
+							return {
+								stop: true,
+							};
+						case 'mimetype':
+							if (!canReadZipEntryForDetection(zipHeader)) {
+								return {};
+							}
+
+							return {
+								async handler(fileData) {
+									// Use TextDecoder to decode the UTF-8 encoded data
+									const mimeType = new TextDecoder('utf-8').decode(fileData).trim();
+									fileType = getFileTypeFromMimeType(mimeType);
+								},
+								stop: true,
+							};
+
+						case '[Content_Types].xml': {
+							openXmlState.hasContentTypesEntry = true;
+
+							const maximumContentTypesEntrySize = hasUnknownFileSize(tokenizer) ? maximumZipEntrySizeInBytes : Number.MAX_SAFE_INTEGER;
+							if (!canReadZipEntryForDetection(zipHeader, maximumContentTypesEntrySize)) {
+								openXmlState.hasUnparseableContentTypes = true;
+								return {};
+							}
+
+							openXmlState.isParsingContentTypes = true;
+							return {
+								async handler(fileData) {
+									// Use TextDecoder to decode the UTF-8 encoded data
+									const xmlContent = new TextDecoder('utf-8').decode(fileData);
+									const mimeType = getOpenXmlMimeTypeFromContentTypesXml(xmlContent);
+									if (mimeType) {
 										fileType = getFileTypeFromMimeType(mimeType);
 									}
-								} else {
-									xmlContent = xmlContent.slice(0, Math.max(0, endPos));
-									const firstPos = xmlContent.lastIndexOf('"');
-									const mimeType = xmlContent.slice(Math.max(0, firstPos + 1));
-									fileType = getFileTypeFromMimeType(mimeType);
-								}
-							},
-							stop: true,
-						};
-					default:
-						if (/classes\d*\.dex/.test(zipHeader.filename)) {
-							fileType = {
-								ext: 'apk',
-								mime: 'application/vnd.android.package-archive',
+
+									openXmlState.hasParsedContentTypesEntry = true;
+									openXmlState.isParsingContentTypes = false;
+								},
+								stop: true,
 							};
-							return {stop: true};
 						}
 
-						return {};
-				}
-			}).catch(error => {
-				if (!(error instanceof strtok3.EndOfStreamError)) {
-					throw error; // Re-throw non-EndOfStreamError
-				}
-			});
+						default:
+							if (/classes\d*\.dex/.test(zipHeader.filename)) {
+								fileType = {
+									ext: 'apk',
+									mime: 'application/vnd.android.package-archive',
+								};
+								return {stop: true};
+							}
 
-			return fileType ?? {
+							return {};
+					}
+				});
+			} catch (error) {
+				if (!isRecoverableZipError(error)) {
+					throw error;
+				}
+
+				if (openXmlState.isParsingContentTypes) {
+					openXmlState.isParsingContentTypes = false;
+					openXmlState.hasUnparseableContentTypes = true;
+				}
+			}
+
+			return fileType ?? getOpenXmlFileTypeFromZipEntries(openXmlState) ?? {
 				ext: 'zip',
 				mime: 'application/zip',
 			};
@@ -817,7 +1238,10 @@ export class FileTypeParser {
 				}
 
 				const id = new Uint8Array(ic + 1);
-				await tokenizer.readBuffer(id);
+				await safeReadBuffer(tokenizer, id, undefined, {
+					maximumLength: id.length,
+					reason: 'EBML field',
+				});
 				return id;
 			}
 
@@ -838,20 +1262,47 @@ export class FileTypeParser {
 			}
 
 			async function readChildren(children) {
+				let ebmlElementCount = 0;
 				while (children > 0) {
+					ebmlElementCount++;
+					if (ebmlElementCount > maximumEbmlElementCount) {
+						return;
+					}
+
 					const element = await readElement();
+
 					if (element.id === 0x42_82) {
-						const rawValue = await tokenizer.readToken(new Token.StringType(element.len));
+						// `DocType` is a short string ("webm", "matroska", ...), reject implausible lengths to avoid large allocations.
+						if (element.len > maximumEbmlDocumentTypeSizeInBytes) {
+							return;
+						}
+
+						const documentTypeLength = getSafeBound(element.len, maximumEbmlDocumentTypeSizeInBytes, 'EBML DocType');
+						const rawValue = await tokenizer.readToken(new Token.StringType(documentTypeLength));
 						return rawValue.replaceAll(/\00.*$/g, ''); // Return DocType
 					}
 
-					await tokenizer.ignore(element.len); // ignore payload
+					if (
+						hasUnknownFileSize(tokenizer)
+						&& (
+							!Number.isFinite(element.len)
+							|| element.len < 0
+							|| element.len > maximumEbmlElementPayloadSizeInBytes
+						)
+					) {
+						return;
+					}
+
+					await safeIgnore(tokenizer, element.len, {
+						maximumLength: hasUnknownFileSize(tokenizer) ? maximumEbmlElementPayloadSizeInBytes : tokenizer.fileInfo.size,
+						reason: 'EBML payload',
+					}); // ignore payload
 					--children;
 				}
 			}
 
-			const re = await readElement();
-			const documentType = await readChildren(re.len);
+			const rootElement = await readElement();
+			const documentType = await readChildren(rootElement.len);
 
 			switch (documentType) {
 				case 'webm':
@@ -1203,6 +1654,16 @@ export class FileTypeParser {
 		// -- 8-byte signatures --
 
 		if (this.check([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])) {
+			const pngFileType = {
+				ext: 'png',
+				mime: 'image/png',
+			};
+
+			const apngFileType = {
+				ext: 'apng',
+				mime: 'image/apng',
+			};
+
 			// APNG format (https://wiki.mozilla.org/APNG_Specification)
 			// 1. Find the first IDAT (image data) chunk (49 44 41 54)
 			// 2. Check if there is an "acTL" chunk before the IDAT one (61 63 54 4C)
@@ -1220,7 +1681,13 @@ export class FileTypeParser {
 				};
 			}
 
+			const isUnknownPngStream = hasUnknownFileSize(tokenizer);
+			const pngScanStart = tokenizer.position;
 			do {
+				if (hasExceededUnknownSizeScanBudget(tokenizer, pngScanStart, maximumPngChunkSizeInBytes)) {
+					break;
+				}
+
 				const chunk = await readChunkHeader();
 				if (chunk.length < 0) {
 					return; // Invalid chunk length
@@ -1228,24 +1695,40 @@ export class FileTypeParser {
 
 				switch (chunk.type) {
 					case 'IDAT':
-						return {
-							ext: 'png',
-							mime: 'image/png',
-						};
+						return pngFileType;
 					case 'acTL':
-						return {
-							ext: 'apng',
-							mime: 'image/apng',
-						};
+						return apngFileType;
 					default:
-						await tokenizer.ignore(chunk.length + 4); // Ignore chunk-data + CRC
+						if (
+							isUnknownPngStream
+								&& chunk.length > maximumPngChunkSizeInBytes
+						) {
+							// Avoid huge attacker-controlled skips when probing unknown-size streams.
+							return;
+						}
+
+						try {
+							await safeIgnore(tokenizer, chunk.length + 4, {
+								maximumLength: isUnknownPngStream ? maximumPngChunkSizeInBytes + 4 : tokenizer.fileInfo.size,
+								reason: 'PNG chunk payload',
+							}); // Ignore chunk-data + CRC
+						} catch (error) {
+							if (
+								!isUnknownPngStream
+									&& (
+										error instanceof ParserHardLimitError
+										|| error instanceof strtok3.EndOfStreamError
+									)
+							) {
+								return pngFileType;
+							}
+
+							throw error;
+						}
 				}
 			} while (tokenizer.position + 8 < tokenizer.fileInfo.size);
 
-			return {
-				ext: 'png',
-				mime: 'image/png',
-			};
+			return pngFileType;
 		}
 
 		if (this.check([0x41, 0x52, 0x52, 0x4F, 0x57, 0x31, 0x00, 0x00])) {
@@ -1403,51 +1886,95 @@ export class FileTypeParser {
 
 		// ASF_Header_Object first 80 bytes
 		if (this.check([0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9])) {
-			async function readHeader() {
-				const guid = new Uint8Array(16);
-				await tokenizer.readBuffer(guid);
-				return {
-					id: guid,
-					size: Number(await tokenizer.readToken(Token.UINT64_LE)),
-				};
+			let isMalformedAsf = false;
+			try {
+				async function readHeader() {
+					const guid = new Uint8Array(16);
+					await safeReadBuffer(tokenizer, guid, undefined, {
+						maximumLength: guid.length,
+						reason: 'ASF header GUID',
+					});
+					return {
+						id: guid,
+						size: Number(await tokenizer.readToken(Token.UINT64_LE)),
+					};
+				}
+
+				await safeIgnore(tokenizer, 30, {
+					maximumLength: 30,
+					reason: 'ASF header prelude',
+				});
+				const isUnknownFileSize = hasUnknownFileSize(tokenizer);
+				const asfHeaderScanStart = tokenizer.position;
+				while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
+					if (hasExceededUnknownSizeScanBudget(tokenizer, asfHeaderScanStart, maximumUntrustedSkipSizeInBytes)) {
+						break;
+					}
+
+					const previousPosition = tokenizer.position;
+					const header = await readHeader();
+					let payload = header.size - 24;
+					if (
+						!Number.isFinite(payload)
+						|| payload < 0
+					) {
+						isMalformedAsf = true;
+						break;
+					}
+
+					if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
+						// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
+						const typeId = new Uint8Array(16);
+						payload -= await safeReadBuffer(tokenizer, typeId, undefined, {
+							maximumLength: typeId.length,
+							reason: 'ASF stream type GUID',
+						});
+
+						if (_check(typeId, [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
+							// Found audio:
+							return {
+								ext: 'asf',
+								mime: 'audio/x-ms-asf',
+							};
+						}
+
+						if (_check(typeId, [0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
+							// Found video:
+							return {
+								ext: 'asf',
+								mime: 'video/x-ms-asf',
+							};
+						}
+
+						break;
+					}
+
+					await safeIgnore(tokenizer, payload, {
+						maximumLength: isUnknownFileSize ? maximumUntrustedSkipSizeInBytes : tokenizer.fileInfo.size,
+						reason: 'ASF header payload',
+					});
+
+					// Safeguard against malformed files: break if the position did not advance.
+					if (tokenizer.position <= previousPosition) {
+						isMalformedAsf = true;
+						break;
+					}
+				}
+			} catch (error) {
+				if (
+					error instanceof strtok3.EndOfStreamError
+					|| error instanceof ParserHardLimitError
+				) {
+					if (hasUnknownFileSize(tokenizer)) {
+						isMalformedAsf = true;
+					}
+				} else {
+					throw error;
+				}
 			}
 
-			await tokenizer.ignore(30);
-			// Search for header should be in first 1KB of file.
-			while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
-				const previousPosition = tokenizer.position;
-				const header = await readHeader();
-				let payload = header.size - 24;
-				if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
-					// Sync on Stream-Properties-Object (B7DC0791-A9B7-11CF-8EE6-00C00C205365)
-					const typeId = new Uint8Array(16);
-					payload -= await tokenizer.readBuffer(typeId);
-
-					if (_check(typeId, [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
-						// Found audio:
-						return {
-							ext: 'asf',
-							mime: 'audio/x-ms-asf',
-						};
-					}
-
-					if (_check(typeId, [0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B])) {
-						// Found video:
-						return {
-							ext: 'asf',
-							mime: 'video/x-ms-asf',
-						};
-					}
-
-					break;
-				}
-
-				await tokenizer.ignore(payload);
-
-				// Safeguard against malformed files: break if the position did not advance.
-				if (tokenizer.position <= previousPosition) {
-					break;
-				}
+			if (isMalformedAsf) {
+				return;
 			}
 
 			// Default to ASF generic extension
@@ -1766,9 +2293,10 @@ export class FileTypeParser {
 	// Detections with limited supporting data, resulting in a higher likelihood of false positives
 	detectImprecise = async tokenizer => {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
+		const fileSize = getKnownFileSizeOrMaximum(tokenizer.fileInfo.size);
 
 		// Read initial sample size of 8 bytes
-		await tokenizer.peekBuffer(this.buffer, {length: Math.min(8, tokenizer.fileInfo.size), mayBeLess: true});
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(8, fileSize), mayBeLess: true});
 
 		if (
 			this.check([0x0, 0x0, 0x1, 0xBA])
@@ -1802,7 +2330,7 @@ export class FileTypeParser {
 		}
 
 		// Adjust buffer to `mpegOffsetTolerance`
-		await tokenizer.peekBuffer(this.buffer, {length: Math.min(2 + this.options.mpegOffsetTolerance, tokenizer.fileInfo.size), mayBeLess: true});
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(2 + this.options.mpegOffsetTolerance, fileSize), mayBeLess: true});
 
 		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
 		if (this.buffer.length >= (2 + this.options.mpegOffsetTolerance)) {
@@ -1817,7 +2345,7 @@ export class FileTypeParser {
 
 	async readTiffTag(bigEndian) {
 		const tagId = await this.tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
-		this.tokenizer.ignore(10);
+		await this.tokenizer.ignore(10);
 		switch (tagId) {
 			case 50_341:
 				return {
@@ -1835,6 +2363,13 @@ export class FileTypeParser {
 
 	async readTiffIFD(bigEndian) {
 		const numberOfTags = await this.tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
+		if (
+			hasUnknownFileSize(this.tokenizer)
+			&& (2 + (numberOfTags * 12)) > maximumTiffIfdOffsetInBytes
+		) {
+			return;
+		}
+
 		for (let n = 0; n < numberOfTags; ++n) {
 			const fileType = await this.readTiffTag(bigEndian);
 			if (fileType) {
@@ -1844,6 +2379,11 @@ export class FileTypeParser {
 	}
 
 	async readTiffHeader(bigEndian) {
+		const tiffFileType = {
+			ext: 'tif',
+			mime: 'image/tiff',
+		};
+
 		const version = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 2);
 		const ifdOffset = (bigEndian ? Token.UINT32_BE : Token.UINT32_LE).get(this.buffer, 4);
 
@@ -1872,19 +2412,37 @@ export class FileTypeParser {
 				}
 			}
 
-			await this.tokenizer.ignore(ifdOffset);
-			const fileType = await this.readTiffIFD(bigEndian);
-			return fileType ?? {
-				ext: 'tif',
-				mime: 'image/tiff',
-			};
+			const maximumTiffOffset = hasUnknownFileSize(this.tokenizer) ? maximumTiffIfdOffsetInBytes : this.tokenizer.fileInfo.size;
+
+			try {
+				await safeIgnore(this.tokenizer, ifdOffset, {
+					maximumLength: maximumTiffOffset,
+					reason: 'TIFF IFD offset',
+				});
+			} catch (error) {
+				if (error instanceof strtok3.EndOfStreamError) {
+					return;
+				}
+
+				throw error;
+			}
+
+			let fileType;
+			try {
+				fileType = await this.readTiffIFD(bigEndian);
+			} catch (error) {
+				if (error instanceof strtok3.EndOfStreamError) {
+					return;
+				}
+
+				throw error;
+			}
+
+			return fileType ?? tiffFileType;
 		}
 
 		if (version === 43) {	// Big TIFF file header
-			return {
-				ext: 'tif',
-				mime: 'image/tiff',
-			};
+			return tiffFileType;
 		}
 	}
 

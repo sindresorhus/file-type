@@ -5,13 +5,37 @@ Node.js specific entry point.
 import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import {pipeline, PassThrough, Readable} from 'node:stream';
 import * as strtok3 from 'strtok3';
-import {FileTypeParser as DefaultFileTypeParser, reasonableDetectionSizeInBytes} from './core.js';
+import {
+	FileTypeParser as DefaultFileTypeParser,
+	reasonableDetectionSizeInBytes,
+	normalizeSampleSize,
+} from './core.js';
+
+function isTokenizerStreamBoundsError(error) {
+	if (
+		!(error instanceof RangeError)
+		|| error.message !== 'offset is out of bounds'
+		|| typeof error.stack !== 'string'
+	) {
+		return false;
+	}
+
+	// Some malformed or non-byte Node.js streams can surface this tokenizer-internal range error.
+	// Note: This stack-trace check is fragile and may break if strtok3 restructures its internals.
+	return /strtok3[/\\]lib[/\\]stream[/\\]/.test(error.stack);
+}
 
 export class FileTypeParser extends DefaultFileTypeParser {
 	async fromStream(stream) {
 		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.tokenizerOptions) : strtok3.fromStream(stream, this.tokenizerOptions));
 		try {
 			return await super.fromTokenizer(tokenizer);
+		} catch (error) {
+			if (isTokenizerStreamBoundsError(error)) {
+				return;
+			}
+
+			throw error;
 		} finally {
 			await tokenizer.close();
 		}
@@ -31,7 +55,7 @@ export class FileTypeParser extends DefaultFileTypeParser {
 			return super.toDetectionStream(readableStream, options);
 		}
 
-		const {sampleSize = reasonableDetectionSizeInBytes} = options;
+		const sampleSize = normalizeSampleSize(options.sampleSize ?? reasonableDetectionSizeInBytes);
 
 		return new Promise((resolve, reject) => {
 			readableStream.on('error', reject);
