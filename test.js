@@ -1022,6 +1022,16 @@ test('stringToBytes encodes correctly for selected characters and encodings', t 
 	t.is(new TextDecoder('utf-16be').decode(new Uint8Array(stringToBytes('🦄', 'utf-16be'))), '🦄', 'Decoded value should match original value');
 });
 
+test('Does not hang on crafted ASF file with zero-size sub-header', async t => {
+	const buffer = Buffer.from('3026b2758e66cf11a6d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', 'hex');
+	const type = await fileTypeFromBuffer(buffer);
+
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
 test('Does not crash or hang if provided with a partial gunzip file', async t => {
 	const buffer = Uint8Array.from([31, 139, 8, 8, 137, 83, 29, 82, 0, 11]);
 	const type = await fileTypeFromBuffer(buffer);

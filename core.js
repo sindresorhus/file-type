@@ -1415,6 +1415,7 @@ export class FileTypeParser {
 			await tokenizer.ignore(30);
 			// Search for header should be in first 1KB of file.
 			while (tokenizer.position + 24 < tokenizer.fileInfo.size) {
+				const previousPosition = tokenizer.position;
 				const header = await readHeader();
 				let payload = header.size - 24;
 				if (_check(header.id, [0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65])) {
@@ -1442,6 +1443,11 @@ export class FileTypeParser {
 				}
 
 				await tokenizer.ignore(payload);
+
+				// Safeguard against malformed files: break if the position did not advance.
+				if (tokenizer.position <= previousPosition) {
+					break;
+				}
 			}
 
 			// Default to ASF generic extension
