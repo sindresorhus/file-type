@@ -401,10 +401,7 @@ function isRecoverableZipError(error) {
 		return true;
 	}
 
-	if (
-		error instanceof TypeError
-		&& recoverableZipErrorCodes.has(error.code)
-	) {
+	if (recoverableZipErrorCodes.has(error.code)) {
 		return true;
 	}
 
