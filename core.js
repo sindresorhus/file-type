@@ -1266,6 +1266,7 @@ export class FileTypeParser {
 						return;
 					}
 
+					const previousPosition = tokenizer.position;
 					const element = await readElement();
 
 					if (element.id === 0x42_82) {
@@ -1295,6 +1296,11 @@ export class FileTypeParser {
 						reason: 'EBML payload',
 					}); // ignore payload
 					--children;
+
+					// Safeguard against malformed files: bail if the position did not advance.
+					if (tokenizer.position <= previousPosition) {
+						return;
+					}
 				}
 			}
 
@@ -1685,6 +1691,7 @@ export class FileTypeParser {
 					break;
 				}
 
+				const previousPosition = tokenizer.position;
 				const chunk = await readChunkHeader();
 				if (chunk.length < 0) {
 					return; // Invalid chunk length
@@ -1722,6 +1729,10 @@ export class FileTypeParser {
 
 							throw error;
 						}
+				}
+				// Safeguard against malformed files: bail if the position did not advance.
+				if (tokenizer.position <= previousPosition) {
+					break;
 				}
 			} while (tokenizer.position + 8 < tokenizer.fileInfo.size);
 

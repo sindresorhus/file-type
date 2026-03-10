@@ -21,7 +21,7 @@ npm install file-type
 > [!IMPORTANT]
 > File type detection is based on binary signatures (magic numbers) and is a best-effort hint. It does not guarantee the file is actually of that type or that the file is valid/not malformed.
 >
-> Robustness against malformed input is best-effort. When processing untrusted files on a server, use a worker thread with a timeout (e.g., [`make-asynchronous`](https://github.com/sindresorhus/make-asynchronous)) to prevent malformed inputs from potentially blocking the event loop.
+> Robustness against malformed input is best-effort. When processing untrusted files on a server, enforce a reasonable file size limit and use a worker thread with a timeout (e.g., [`make-asynchronous`](https://github.com/sindresorhus/make-asynchronous)). These are not considered security issues in this package.
 
 ## Usage
 
