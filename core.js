@@ -23,6 +23,7 @@ const maximumId3HeaderSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumEbmlDocumentTypeSizeInBytes = 64;
 const maximumEbmlElementPayloadSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumEbmlElementCount = 256;
+const maximumDetectionReentryCount = 256;
 const maximumPngChunkSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumTiffIfdOffsetInBytes = maximumUntrustedSkipSizeInBytes;
 const recoverableZipErrorMessages = new Set([
@@ -547,7 +548,8 @@ export class FileTypeParser {
 		};
 	}
 
-	async fromTokenizer(tokenizer) {
+	async fromTokenizer(tokenizer, detectionReentryCount = 0) {
+		this.detectionReentryCount = detectionReentryCount;
 		const initialPosition = tokenizer.position;
 		// Iterate through all file-type detectors
 		for (const detector of this.detectors) {
@@ -750,6 +752,11 @@ export class FileTypeParser {
 		// -- 3-byte signatures --
 
 		if (this.check([0xEF, 0xBB, 0xBF])) { // UTF-8-BOM
+			if (this.detectionReentryCount >= maximumDetectionReentryCount) {
+				return;
+			}
+
+			this.detectionReentryCount++;
 			// Strip off UTF-8-BOM
 			await this.tokenizer.ignore(3);
 			return this.detectConfident(tokenizer);
@@ -847,7 +854,12 @@ export class FileTypeParser {
 				throw error;
 			}
 
-			return this.fromTokenizer(tokenizer); // Skip ID3 header, recursion
+			if (this.detectionReentryCount >= maximumDetectionReentryCount) {
+				return;
+			}
+
+			this.detectionReentryCount++;
+			return this.fromTokenizer(tokenizer, this.detectionReentryCount); // Skip ID3 header, recursion
 		}
 
 		// Musepack, SV7
@@ -1730,6 +1742,7 @@ export class FileTypeParser {
 							throw error;
 						}
 				}
+
 				// Safeguard against malformed files: bail if the position did not advance.
 				if (tokenizer.position <= previousPosition) {
 					break;

@@ -1346,6 +1346,104 @@ test('Malformed hardening corpus stays stable under hostile stream chunking', as
 	await assertUndefinedTypeFromHostileStreams(t, malformedEbml, 'malformed EBML oversized child');
 });
 
+test('Keeps UTF-8 BOM re-entry bounded', async t => {
+	const maximumDetectionReentryCount = 256;
+	const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
+	const xml = Buffer.from('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>');
+	const supportedPayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount}, () => bom),
+		xml,
+	]);
+	const excessivePayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => bom),
+		xml,
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(supportedPayload), {
+		ext: 'xml',
+		mime: 'application/xml',
+	});
+	t.is(await fileTypeFromBuffer(excessivePayload), undefined);
+});
+
+test('Keeps zero-length ID3 re-entry bounded', async t => {
+	const maximumDetectionReentryCount = 256;
+	const zeroLengthId3Header = Buffer.from([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+	const mpegFrame = Buffer.from([0xFF, 0xFB, 0x90, 0x64, 0x00, 0x00, 0x00, 0x00]);
+	const supportedPayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount}, () => zeroLengthId3Header),
+		mpegFrame,
+	]);
+	const excessivePayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => zeroLengthId3Header),
+		mpegFrame,
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(supportedPayload), {
+		ext: 'mp3',
+		mime: 'audio/mpeg',
+	});
+	t.is(await fileTypeFromBuffer(excessivePayload), undefined);
+});
+
+test('Keeps UTF-8 BOM stream re-entry bounded', async t => {
+	const maximumDetectionReentryCount = 256;
+	const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
+	const xml = Buffer.from('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>');
+	const excessivePayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => bom),
+		xml,
+	]);
+	const {state, stream} = createPatternWebStream(excessivePayload, [1]);
+
+	const type = await new FileTypeParser().fromStream(stream);
+	t.is(type, undefined);
+	t.true(state.emittedBytes <= ((maximumDetectionReentryCount + 1) * bom.length) + 32);
+});
+
+test('Keeps zero-length ID3 stream re-entry bounded', async t => {
+	const maximumDetectionReentryCount = 256;
+	const zeroLengthId3Header = Buffer.from([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+	const mpegFrame = Buffer.from([0xFF, 0xFB, 0x90, 0x64, 0x00, 0x00, 0x00, 0x00]);
+	const excessivePayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => zeroLengthId3Header),
+		mpegFrame,
+	]);
+	const {state, stream} = createPatternWebStream(excessivePayload, [1]);
+
+	const type = await new FileTypeParser().fromStream(stream);
+	t.is(type, undefined);
+	t.true(state.emittedBytes <= ((maximumDetectionReentryCount + 1) * zeroLengthId3Header.length) + 32);
+});
+
+test('FileTypeParser resets re-entry count between calls', async t => {
+	const maximumDetectionReentryCount = 256;
+	const parser = new FileTypeParser();
+	const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
+	const xml = Buffer.from('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>');
+	const excessiveBomPayload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => bom),
+		xml,
+	]);
+	const zeroLengthId3Header = Buffer.from([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+	const mpegFrame = Buffer.from([0xFF, 0xFB, 0x90, 0x64, 0x00, 0x00, 0x00, 0x00]);
+	const excessiveId3Payload = Buffer.concat([
+		...Array.from({length: maximumDetectionReentryCount + 1}, () => zeroLengthId3Header),
+		mpegFrame,
+	]);
+
+	t.is(await parser.fromBuffer(excessiveBomPayload), undefined);
+	t.deepEqual(await parser.fromBuffer(xml), {
+		ext: 'xml',
+		mime: 'application/xml',
+	});
+	t.is(await parser.fromBuffer(excessiveId3Payload), undefined);
+	t.deepEqual(await parser.fromBuffer(mpegFrame), {
+		ext: 'mp3',
+		mime: 'audio/mpeg',
+	});
+});
+
 test('Scans known-size ASF buffers beyond the stream safety window', async t => {
 	const metadataObject = createAsfObject(
 		Uint8Array.from([0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65]),
