@@ -27,7 +27,7 @@ function isTokenizerStreamBoundsError(error) {
 
 export class FileTypeParser extends DefaultFileTypeParser {
 	async fromStream(stream) {
-		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.tokenizerOptions) : strtok3.fromStream(stream, this.tokenizerOptions));
+		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.getTokenizerOptions()) : strtok3.fromStream(stream, this.getTokenizerOptions()));
 		try {
 			return await super.fromTokenizer(tokenizer);
 		} catch (error) {

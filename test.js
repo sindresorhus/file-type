@@ -1,6 +1,7 @@
 import process from 'node:process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import {readFile} from 'node:fs/promises';
 import stream from 'node:stream';
@@ -30,6 +31,8 @@ const missingTests = new Set([
 
 const [nodeMajorVersion] = process.versions.node.split('.').map(Number);
 const nodeVersionSupportingByteBlobStream = 20;
+const maximumZipTextEntrySizeInBytes = 1024 * 1024;
+const legacyOversizedZipTextEntrySizeInBytes = 16 * 1024 * 1024;
 
 const types = [...supportedExtensions].filter(extension => !missingTests.has(extension));
 
@@ -797,8 +800,27 @@ function assertZipFileType(t, type) {
 	});
 }
 
+function assertGzipFileType(t, type) {
+	t.deepEqual(type, {
+		ext: 'gz',
+		mime: 'application/gzip',
+	});
+}
+
+function assertTarGzipFileType(t, type) {
+	t.deepEqual(type, {
+		ext: 'tar.gz',
+		mime: 'application/gzip',
+	});
+}
+
 async function assertZipTypeFromBuffer(t, bytes) {
 	const type = await fileTypeFromBuffer(bytes);
+	assertZipFileType(t, type);
+}
+
+async function assertZipTypeFromBlob(t, bytes) {
+	const type = await fileTypeFromBlob(new Blob([bytes]));
 	assertZipFileType(t, type);
 }
 
@@ -807,9 +829,57 @@ async function assertZipTypeFromChunkedStream(t, bytes) {
 	assertZipFileType(t, type);
 }
 
+async function assertZipTypeFromWebStream(t, bytes, chunkPattern = [8]) {
+	const {stream} = createPatternWebStream(bytes, chunkPattern);
+	const type = await new FileTypeParser().fromStream(stream);
+	assertZipFileType(t, type);
+}
+
+async function assertFileTypeStreamNodeResult(t, bytes, expectedFileType, options = {}) {
+	const {
+		chunkSize = 64 * 1024,
+		sampleSize,
+	} = options;
+	const detectionStream = await fileTypeStream(new BufferedStream(bytes, chunkSize), {sampleSize});
+	try {
+		t.deepEqual(detectionStream.fileType, expectedFileType);
+		t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), bytes));
+	} finally {
+		detectionStream.destroy();
+	}
+}
+
+async function assertFileTypeStreamWebResult(t, bytes, expectedFileType, options = {}) {
+	const detectionStream = await fileTypeStream(new Blob([bytes]).stream(), options);
+	t.deepEqual(detectionStream.fileType, expectedFileType);
+	t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), bytes));
+}
+
+async function assertZipTypeFromFile(t, bytes) {
+	const filePath = await createTemporaryTestFile(t, bytes);
+	assertZipFileType(t, await fileTypeFromFile(filePath));
+}
+
 async function assertZipTypeFromBufferAndChunkedStream(t, bytes) {
 	await assertZipTypeFromBuffer(t, bytes);
 	await assertZipTypeFromChunkedStream(t, bytes);
+}
+
+async function createTemporaryTestFile(t, bytes, extension = 'zip') {
+	const temporaryDirectory = path.join(__dirname, '.ai-temporary');
+	await fs.promises.mkdir(temporaryDirectory, {recursive: true});
+	const filePath = path.join(temporaryDirectory, `file-type-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.${extension}`);
+	await fs.promises.writeFile(filePath, bytes);
+	t.teardown(async () => {
+		await fs.promises.unlink(filePath).catch(() => {});
+	});
+	return filePath;
+}
+
+async function createSparseTemporaryTestFile(t, bytes, size, extension = 'zip') {
+	const filePath = await createTemporaryTestFile(t, bytes, extension);
+	await fs.promises.truncate(filePath, size);
+	return filePath;
 }
 
 function createZipLocalFile({
@@ -839,6 +909,153 @@ function createZipLocalFile({
 	return Buffer.concat([Buffer.from(header), Buffer.from(compressedData)]);
 }
 
+function createZipDataDescriptor({compressedSize = 0, uncompressedSize = compressedSize, crc32 = 0} = {}) {
+	const descriptor = new Uint8Array(16);
+	const view = new DataView(descriptor.buffer);
+	view.setUint32(0, 0x08_07_4B_50, true);
+	view.setUint32(4, crc32, true);
+	view.setUint32(8, compressedSize, true);
+	view.setUint32(12, uncompressedSize, true);
+	return descriptor;
+}
+
+function createZipDataDescriptorFile({filename, compressedMethod = 0, compressedData = new Uint8Array(0), uncompressedSize = compressedData.length, descriptor = createZipDataDescriptor({compressedSize: compressedData.length, uncompressedSize})} = {}) {
+	return Buffer.concat([
+		createZipLocalFile({
+			filename,
+			generalPurposeBitFlag: 0x08,
+			compressedMethod,
+			compressedData,
+			compressedSize: 0,
+			uncompressedSize: 0,
+		}),
+		Buffer.from(descriptor),
+	]);
+}
+
+const descriptorBoundaryEpubFileType = {
+	ext: 'epub',
+	mime: 'application/epub+zip',
+};
+
+const descriptorBoundaryDocmFileType = {
+	ext: 'docm',
+	mime: 'application/vnd.ms-word.document.macroenabled.12',
+};
+
+const descriptorBoundaryContentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+
+function createZipWithLeadingDescriptorEntry(descriptorSize, trailingEntries) {
+	const irrelevantDescriptorEntry = createZipDataDescriptorFile({
+		filename: 'irrelevant.bin',
+		compressedData: Buffer.alloc(descriptorSize),
+	});
+
+	return Buffer.concat([irrelevantDescriptorEntry, ...trailingEntries]);
+}
+
+function createZipWithLeadingDescriptorMimetype(descriptorSize) {
+	return createZipWithLeadingDescriptorEntry(descriptorSize, [
+		createZipLocalFile({
+			filename: 'mimetype',
+			compressedData: new TextEncoder().encode('application/epub+zip'),
+		}),
+	]);
+}
+
+function createZipWithLeadingDescriptorContentTypes(descriptorSize) {
+	return createZipWithLeadingDescriptorEntry(descriptorSize, [
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+	]);
+}
+
+function createZipArchive(entries) {
+	const localFiles = [];
+	const centralDirectoryEntries = [];
+	let offset = 0;
+
+	for (const entry of entries) {
+		const {
+			filename,
+			generalPurposeBitFlag = 0,
+			compressedMethod = 0,
+			compressedData = new Uint8Array(0),
+			compressedSize = compressedData.length,
+			uncompressedSize = compressedData.length,
+		} = entry;
+		const filenameBytes = new TextEncoder().encode(filename);
+		const localFile = createZipLocalFile({
+			filename,
+			generalPurposeBitFlag,
+			compressedMethod,
+			compressedData,
+			compressedSize,
+			uncompressedSize,
+		});
+		localFiles.push(localFile);
+
+		const centralDirectoryEntry = new Uint8Array(46 + filenameBytes.length);
+		const view = new DataView(centralDirectoryEntry.buffer);
+		view.setUint32(0, 0x02_01_4B_50, true);
+		view.setUint16(4, 20, true);
+		view.setUint16(6, 20, true);
+		view.setUint16(8, generalPurposeBitFlag, true);
+		view.setUint16(10, compressedMethod, true);
+		view.setUint16(12, 0, true);
+		view.setUint16(14, 0, true);
+		view.setUint32(16, 0, true);
+		view.setUint32(20, compressedSize, true);
+		view.setUint32(24, uncompressedSize, true);
+		view.setUint16(28, filenameBytes.length, true);
+		view.setUint16(30, 0, true);
+		view.setUint16(32, 0, true);
+		view.setUint16(34, 0, true);
+		view.setUint16(36, 0, true);
+		view.setUint32(38, 0, true);
+		view.setUint32(42, offset, true);
+		centralDirectoryEntry.set(filenameBytes, 46);
+		centralDirectoryEntries.push(Buffer.from(centralDirectoryEntry));
+		offset += localFile.length;
+	}
+
+	const centralDirectory = Buffer.concat(centralDirectoryEntries);
+	const endOfCentralDirectory = new Uint8Array(22);
+	const view = new DataView(endOfCentralDirectory.buffer);
+	view.setUint32(0, 0x06_05_4B_50, true);
+	view.setUint16(4, 0, true);
+	view.setUint16(6, 0, true);
+	view.setUint16(8, entries.length, true);
+	view.setUint16(10, entries.length, true);
+	view.setUint32(12, centralDirectory.length, true);
+	view.setUint32(16, offset, true);
+	view.setUint16(20, 0, true);
+
+	return Buffer.concat([...localFiles, centralDirectory, Buffer.from(endOfCentralDirectory)]);
+}
+
+function createZipArchiveWithEntryAtIndex(entryCount, entryIndex, entry) {
+	const entries = [];
+	for (let index = 0; index < entryCount; ++index) {
+		if (index === entryIndex) {
+			entries.push(entry);
+			continue;
+		}
+
+		entries.push({
+			filename: `entry-${String(index).padStart(4, '0')}.txt`,
+		});
+	}
+
+	return createZipArchive(entries);
+}
+
 function toSyncSafeInteger(value) {
 	return Uint8Array.from([
 		(value >> 21) & 0x7F,
@@ -861,6 +1078,15 @@ function createRepeatedId3Payload(repetitions, payloadSizeInBytes) {
 	const output = new Uint8Array(segment.length * repetitions);
 	for (let index = 0; index < repetitions; index++) {
 		output.set(segment, index * segment.length);
+	}
+
+	return output;
+}
+
+function createNestedGzip(buffer, depth) {
+	let output = buffer;
+	for (let index = 0; index < depth; index++) {
+		output = gzipSync(output);
 	}
 
 	return output;
@@ -890,6 +1116,34 @@ function createAsfHeader(objects) {
 	return Buffer.concat([Buffer.from(header), ...objects.map(object => Buffer.from(object))]);
 }
 
+function createAsfStreamHeaderWithMetadataObjects(metadataObjectCount, streamTypeId) {
+	const metadataObjectId = Uint8Array.from([0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65]);
+	const metadataObjects = [];
+
+	for (let index = 0; index < metadataObjectCount; index++) {
+		metadataObjects.push(createAsfObject(metadataObjectId));
+	}
+
+	const streamPropertiesObject = createAsfObject(
+		Uint8Array.from([0x91, 0x07, 0xDC, 0xB7, 0xB7, 0xA9, 0xCF, 0x11, 0x8E, 0xE6, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65]),
+		streamTypeId,
+	);
+
+	return createAsfHeader([...metadataObjects, streamPropertiesObject]);
+}
+
+function createAsfAudioHeaderWithMetadataObjects(metadataObjectCount) {
+	return createAsfStreamHeaderWithMetadataObjects(metadataObjectCount, Uint8Array.from([0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B]));
+}
+
+function createAsfVideoHeaderWithMetadataObjects(metadataObjectCount) {
+	return createAsfStreamHeaderWithMetadataObjects(metadataObjectCount, Uint8Array.from([0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B]));
+}
+
+function createAsfUnknownStreamHeaderWithMetadataObjects(metadataObjectCount) {
+	return createAsfStreamHeaderWithMetadataObjects(metadataObjectCount, Uint8Array.from([0x00, 0x01, 0x02, 0x03, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B]));
+}
+
 function createPngChunk(type, data = new Uint8Array(0)) {
 	const chunk = new Uint8Array(12 + data.length);
 	const view = new DataView(chunk.buffer);
@@ -912,20 +1166,53 @@ function createPngWithAncillaryChunks(ancillaryChunkCount) {
 	return Buffer.concat([Buffer.from(signature), ...chunks]);
 }
 
-function createLittleEndianTiffWithTagIds(tagIds) {
+function createPngWithAncillaryChunksAndAnimationControl(ancillaryChunkCount) {
+	const signature = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+	const ihdrData = Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00]);
+	const animationControlData = Uint8Array.from([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+	const chunks = [Buffer.from(createPngChunk('IHDR', ihdrData))];
+
+	for (let index = 0; index < ancillaryChunkCount; index++) {
+		chunks.push(Buffer.from(createPngChunk('tEXt')));
+	}
+
+	chunks.push(
+		Buffer.from(createPngChunk('acTL', animationControlData)),
+		Buffer.from(createPngChunk('IDAT')),
+	);
+	return Buffer.concat([Buffer.from(signature), ...chunks]);
+}
+
+function createTiffWithTagIds(tagIds, bigEndian = false) {
 	const buffer = new Uint8Array(8 + 2 + (tagIds.length * 12) + 4);
 	const view = new DataView(buffer.buffer);
-	buffer.set([0x49, 0x49, 0x2A, 0x00], 0);
-	view.setUint32(4, 8, true);
-	view.setUint16(8, tagIds.length, true);
+	buffer.set(bigEndian ? [0x4D, 0x4D, 0x00, 0x2A] : [0x49, 0x49, 0x2A, 0x00], 0);
+	view.setUint32(4, 8, !bigEndian);
+	view.setUint16(8, tagIds.length, !bigEndian);
 
 	let offset = 10;
 	for (const tagId of tagIds) {
-		view.setUint16(offset, tagId, true);
+		view.setUint16(offset, tagId, !bigEndian);
 		offset += 12;
 	}
 
 	return buffer;
+}
+
+function createLittleEndianTiffWithTagIds(tagIds) {
+	return createTiffWithTagIds(tagIds);
+}
+
+function createLittleEndianTiffWithTagIdAtIndex(tagCount, tagIndex, tagId) {
+	const tagIds = Array.from({length: tagCount}, () => 0);
+	tagIds[tagIndex] = tagId;
+	return createLittleEndianTiffWithTagIds(tagIds);
+}
+
+function createBigEndianTiffWithTagIdAtIndex(tagCount, tagIndex, tagId) {
+	const tagIds = Array.from({length: tagCount}, () => 0);
+	tagIds[tagIndex] = tagId;
+	return createTiffWithTagIds(tagIds, true);
 }
 
 test('odd file sizes', async t => {
@@ -1489,6 +1776,242 @@ test('Scans many ASF header objects for known-size buffers', async t => {
 	});
 });
 
+test('Scans ASF stream properties at the header object limit', async t => {
+	const type = await fileTypeFromBuffer(createAsfAudioHeaderWithMetadataObjects(511));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('fileTypeFromFile scans ASF stream properties at the header object limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createAsfAudioHeaderWithMetadataObjects(511), 'asf');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('fileTypeFromBlob scans ASF stream properties at the header object limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createAsfAudioHeaderWithMetadataObjects(511)]));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('Detects ASF video when stream properties appear at the header object limit', async t => {
+	const type = await fileTypeFromBuffer(createAsfVideoHeaderWithMetadataObjects(511));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('fileTypeFromFile detects ASF video when stream properties appear at the header object limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createAsfVideoHeaderWithMetadataObjects(511), 'asf');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('fileTypeFromBlob detects ASF video when stream properties appear at the header object limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createAsfVideoHeaderWithMetadataObjects(511)]));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('Falls back to generic ASF when an unknown stream type appears at the header object limit', async t => {
+	const type = await fileTypeFromBuffer(createAsfUnknownStreamHeaderWithMetadataObjects(511));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('fileTypeFromFile falls back to generic ASF when an unknown stream type appears at the header object limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createAsfUnknownStreamHeaderWithMetadataObjects(511), 'asf');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('fileTypeFromBlob falls back to generic ASF when an unknown stream type appears at the header object limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createAsfUnknownStreamHeaderWithMetadataObjects(511)]));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Falls back to generic ASF when stream properties appear after the header object limit', async t => {
+	const type = await fileTypeFromBuffer(createAsfAudioHeaderWithMetadataObjects(512));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('fileTypeFromFile falls back to generic ASF when stream properties appear after the header object limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createAsfAudioHeaderWithMetadataObjects(512), 'asf');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('fileTypeFromBlob falls back to generic ASF when stream properties appear after the header object limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createAsfAudioHeaderWithMetadataObjects(512)]));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Streamed ASF detection keeps scanning at the header object limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfAudioHeaderWithMetadataObjects(511), 17));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('Streamed ASF detection keeps scanning at the header object limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfAudioHeaderWithMetadataObjects(511), 1));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('Web Stream ASF detection keeps scanning at the header object limit', async t => {
+	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(511), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('Web Stream ASF detection keeps scanning at the header object limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(511), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'audio/x-ms-asf',
+	});
+});
+
+test('Streamed ASF video detection keeps scanning at the header object limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfVideoHeaderWithMetadataObjects(511), 17));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('Streamed ASF video detection keeps scanning at the header object limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfVideoHeaderWithMetadataObjects(511), 1));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('Web Stream ASF video detection keeps scanning at the header object limit', async t => {
+	const {stream} = createPatternWebStream(createAsfVideoHeaderWithMetadataObjects(511), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('Web Stream ASF video detection keeps scanning at the header object limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createAsfVideoHeaderWithMetadataObjects(511), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'video/x-ms-asf',
+	});
+});
+
+test('Streamed ASF detection falls back to generic ASF for an unknown stream type at the header object limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), 17));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Streamed ASF detection falls back to generic ASF for an unknown stream type at the header object limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), 1));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Web Stream ASF detection falls back to generic ASF for an unknown stream type at the header object limit', async t => {
+	const {stream} = createPatternWebStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Web Stream ASF detection falls back to generic ASF for an unknown stream type at the header object limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Streamed ASF detection falls back after the header object limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfAudioHeaderWithMetadataObjects(512), 17));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Streamed ASF detection falls back after the header object limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createAsfAudioHeaderWithMetadataObjects(512), 1));
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Web Stream ASF detection falls back after the header object limit', async t => {
+	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(512), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
+test('Web Stream ASF detection falls back after the header object limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(512), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf',
+	});
+});
+
 test('Scans many ASF header objects for streamed inputs', async t => {
 	const metadataObjectId = Uint8Array.from([0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65]);
 	const fillerObjects = [];
@@ -1646,12 +2169,128 @@ test('Does not use directory fallback when [Content_Types].xml cannot be read', 
 	await assertZipTypeFromBufferAndChunkedStream(t, orderedZip);
 });
 
-test('Allows large known-size [Content_Types].xml entries', async t => {
+test('Falls back to zip for malformed [Content_Types].xml entries that overstate their size', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedSize: 1024,
+		uncompressedSize: 1024,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not classify partial [Content_Types].xml data when its declared size is larger than the bytes present', async t => {
+	const xml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(xml),
+		compressedSize: xml.length + 1,
+		uncompressedSize: xml.length + 1,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not classify partial deflated [Content_Types].xml data when its declared size is larger than the bytes present', async t => {
+	const xml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const compressed = deflateRawSync(Buffer.from(xml));
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: compressed,
+		compressedSize: compressed.length + 1,
+		uncompressedSize: xml.length,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not use directory fallback when malformed oversized [Content_Types].xml appears after a Word entry', async t => {
 	const wordEntry = createZipLocalFile({
 		filename: 'word/document.xml',
 		compressedData: new TextEncoder().encode('<w:document/>'),
 	});
-	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat(2 * 1024 * 1024);
+	const malformedContentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedSize: 1024,
+		uncompressedSize: 1024,
+	});
+	const orderedZip = Buffer.concat([wordEntry, malformedContentTypesEntry]);
+
+	await assertZipTypeFromBuffer(t, orderedZip);
+	await assertZipTypeFromBlob(t, orderedZip);
+	await assertZipTypeFromChunkedStream(t, orderedZip);
+	await assertZipTypeFromFile(t, orderedZip);
+});
+
+test('fileTypeFromFile does not abort on malformed [Content_Types].xml entries larger than Int32 reads', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedSize: 0x80_00_00_00,
+		uncompressedSize: 0x80_00_00_00,
+	});
+	const filePath = await createTemporaryTestFile(t, malformedZip);
+	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+		cwd: __dirname,
+		encoding: 'utf8',
+	});
+
+	t.is(result.signal, null);
+	t.is(result.status, 0);
+	t.deepEqual(JSON.parse(result.stdout.trim()), {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('fileTypeFromFile does not throw on sparse [Content_Types].xml entries beyond the ZIP text probe limit', async t => {
+	const compressedSize = 512 * 1024 * 1024;
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedSize,
+		uncompressedSize: compressedSize,
+	});
+	const filePath = await createSparseTemporaryTestFile(t, malformedZip, malformedZip.length + compressedSize);
+	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+		cwd: __dirname,
+		encoding: 'utf8',
+	});
+
+	t.is(result.signal, null);
+	t.is(result.status, 0);
+	t.deepEqual(JSON.parse(result.stdout.trim()), {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('Falls back to zip for malformed [Content_Types].xml entries larger than Int32 reads on buffer and blob inputs', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedSize: 0x80_00_00_00,
+		uncompressedSize: 0x80_00_00_00,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+});
+
+test('Allows known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
 	const oversizedContentTypesEntry = createZipLocalFile({
 		filename: '[Content_Types].xml',
 		compressedData: new TextEncoder().encode(contentTypesXml),
@@ -1662,6 +2301,636 @@ test('Allows large known-size [Content_Types].xml entries', async t => {
 		ext: 'docm',
 		mime: 'application/vnd.ms-word.document.macroenabled.12',
 	});
+});
+
+test('fileTypeFromFile allows known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
+	const oversizedContentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, oversizedContentTypesEntry]);
+	const filePath = await createTemporaryTestFile(t, orderedZip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromBlob allows known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
+	const oversizedContentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, oversizedContentTypesEntry]);
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([orderedZip])), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Detects [Content_Types].xml entries at the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	t.deepEqual(await fileTypeFromBuffer(orderedZip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeFromBlob(new Blob([orderedZip])), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromFile detects [Content_Types].xml entries at the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+	const filePath = await createTemporaryTestFile(t, orderedZip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Streamed detection keeps [Content_Types].xml scanning at the ZIP text probe limit with one-byte chunks', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(orderedZip, 1)), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Web Stream detection keeps [Content_Types].xml scanning at the ZIP text probe limit with one-byte chunks', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+	const {stream} = createPatternWebStream(orderedZip, [1]);
+
+	t.deepEqual(await new FileTypeParser().fromStream(stream), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Falls back to zip when [Content_Types].xml entries exceed the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertZipTypeFromBuffer(t, orderedZip);
+	await assertZipTypeFromBlob(t, orderedZip);
+	await assertZipTypeFromFile(t, orderedZip);
+	await assertZipTypeFromChunkedStream(t, orderedZip);
+});
+
+test('Web Stream detection falls back when [Content_Types].xml entries exceed the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertZipTypeFromWebStream(t, orderedZip, [1]);
+});
+
+test('.fileTypeStream() detects [Content_Types].xml entries at the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() detects [Content_Types].xml entries at the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back to zip for stored [Content_Types].xml entries at the ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for stored [Content_Types].xml entries at the ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() detects deflated [Content_Types].xml entries at the ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('.fileTypeStream() detects deflated [Content_Types].xml entries at the ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for deflated [Content_Types].xml entries at the previous ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for deflated [Content_Types].xml entries at the previous ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back when [Content_Types].xml entries exceed the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back when [Content_Types].xml entries exceed the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back for [Content_Types].xml entries at the previous ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back for [Content_Types].xml entries at the previous ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(contentTypesXml),
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() detects deflated [Content_Types].xml entries at the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() detects deflated [Content_Types].xml entries at the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back when deflated [Content_Types].xml entries exceed the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back when deflated [Content_Types].xml entries exceed the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back for deflated [Content_Types].xml entries at the previous ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamNodeResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('.fileTypeStream() falls back for deflated [Content_Types].xml entries at the previous ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamWebResult(t, orderedZip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: orderedZip.length});
+});
+
+test('Falls back to zip for deflated [Content_Types].xml entries at the previous ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertZipTypeFromBuffer(t, orderedZip);
+	await assertZipTypeFromBlob(t, orderedZip);
+	await assertZipTypeFromFile(t, orderedZip);
+});
+
+test('All APIs detect deflated [Content_Types].xml entries at the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+	const filePath = await createTemporaryTestFile(t, orderedZip);
+
+	t.deepEqual(await fileTypeFromBuffer(orderedZip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeFromBlob(new Blob([orderedZip])), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(orderedZip, 1)), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Web Stream detection keeps deflated [Content_Types].xml scanning at the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat(maximumZipTextEntrySizeInBytes - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(orderedZip, [1]).stream), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Falls back to zip when deflated [Content_Types].xml entries exceed the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertZipTypeFromBuffer(t, orderedZip);
+	await assertZipTypeFromBlob(t, orderedZip);
+	await assertZipTypeFromFile(t, orderedZip);
+	await assertZipTypeFromChunkedStream(t, orderedZip);
+});
+
+test('Web Stream detection falls back when deflated [Content_Types].xml entries exceed the ZIP text probe limit', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const xmlPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = xmlPrefix + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - xmlPrefix.length);
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: contentTypesXml.length,
+	});
+	const orderedZip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	await assertZipTypeFromWebStream(t, orderedZip, [1]);
 });
 
 test('Allows many pre-IDAT PNG chunks for known-size buffers', async t => {
@@ -1676,6 +2945,245 @@ test('Allows many pre-IDAT PNG chunks for known-size buffers', async t => {
 test('Allows many pre-IDAT PNG chunks for streamed inputs', async t => {
 	const buffer = createPngWithAncillaryChunks(257);
 	const type = await fileTypeNodeFromStream(new BufferedStream(buffer, 16));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Detects PNG when IDAT appears at the PNG chunk scan limit', async t => {
+	const buffer = createPngWithAncillaryChunks(510);
+	const type = await fileTypeFromBuffer(buffer);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromFile detects PNG when IDAT appears at the PNG chunk scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createPngWithAncillaryChunks(510), 'png');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromBlob detects PNG when IDAT appears at the PNG chunk scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createPngWithAncillaryChunks(510)]));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed PNG detection keeps scanning at the PNG chunk limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunks(510), 9));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed PNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunks(510), 1));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream PNG detection keeps scanning at the PNG chunk limit', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(510), [1, 2, 1, 3]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream PNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(510), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Falls back to PNG when IDAT appears after the PNG chunk scan limit', async t => {
+	const type = await fileTypeFromBuffer(createPngWithAncillaryChunks(511));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromFile falls back to PNG when IDAT appears after the PNG chunk scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createPngWithAncillaryChunks(511), 'png');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromBlob falls back to PNG when IDAT appears after the PNG chunk scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createPngWithAncillaryChunks(511)]));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed PNG detection falls back after the PNG chunk limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunks(511), 9));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed PNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunks(511), 1));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream PNG detection falls back after the PNG chunk limit', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(511), [1, 2, 1, 3]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream PNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(511), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Detects APNG when acTL appears at the PNG chunk scan limit', async t => {
+	const buffer = createPngWithAncillaryChunksAndAnimationControl(510);
+	const type = await fileTypeFromBuffer(buffer);
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('fileTypeFromFile detects APNG when acTL appears at the PNG chunk scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createPngWithAncillaryChunksAndAnimationControl(510), 'png');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('fileTypeFromBlob detects APNG when acTL appears at the PNG chunk scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createPngWithAncillaryChunksAndAnimationControl(510)]));
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('Falls back to PNG when acTL appears after the PNG chunk scan limit', async t => {
+	const buffer = createPngWithAncillaryChunksAndAnimationControl(511);
+	const type = await fileTypeFromBuffer(buffer);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromFile falls back to PNG when acTL appears after the PNG chunk scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createPngWithAncillaryChunksAndAnimationControl(511), 'png');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('fileTypeFromBlob falls back to PNG when acTL appears after the PNG chunk scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createPngWithAncillaryChunksAndAnimationControl(511)]));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed APNG detection keeps scanning at the PNG chunk limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunksAndAnimationControl(510), 9));
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('Streamed APNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunksAndAnimationControl(510), 1));
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('Web Stream APNG detection keeps scanning at the PNG chunk limit', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(510), [1, 2, 1, 3]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('Web Stream APNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(510), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'apng',
+		mime: 'image/apng',
+	});
+});
+
+test('Streamed APNG detection falls back after the PNG chunk limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunksAndAnimationControl(511), 9));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Streamed APNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createPngWithAncillaryChunksAndAnimationControl(511), 1));
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream APNG detection falls back after the PNG chunk limit', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(511), [1, 2, 1, 3]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'png',
+		mime: 'image/png',
+	});
+});
+
+test('Web Stream APNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(511), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
 		ext: 'png',
 		mime: 'image/png',
@@ -1704,21 +3212,632 @@ test('Allows many TIFF tags for streamed inputs', async t => {
 	});
 });
 
+test('Detects TIFF tags at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('fileTypeFromFile detects TIFF tags at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('fileTypeFromBlob detects TIFF tags at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706)]));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Streamed TIFF detection keeps scanning at the TIFF tag limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), 16));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Streamed TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), 1));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Web Stream TIFF detection keeps scanning at the TIFF tag limit', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Web Stream TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Detects big-endian TIFF tags at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('fileTypeFromFile detects big-endian TIFF tags at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('fileTypeFromBlob detects big-endian TIFF tags at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706)]));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Big-endian streamed TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706), 1));
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Big-endian Web Stream TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'dng',
+		mime: 'image/x-adobe-dng',
+	});
+});
+
+test('Detects ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_341));
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('fileTypeFromFile detects ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_341), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('fileTypeFromBlob detects ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_341)]));
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('Web Stream ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_341), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('Detects big-endian ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341));
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('fileTypeFromFile detects big-endian ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('fileTypeFromBlob detects big-endian ARW when its TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341)]));
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('Big-endian streamed ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341), 1));
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('Big-endian Web Stream ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'arw',
+		mime: 'image/x-sony-arw',
+	});
+});
+
+test('Returns generic TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(512, 511, 0));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromFile returns generic TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createLittleEndianTiffWithTagIdAtIndex(512, 511, 0), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromBlob returns generic TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createLittleEndianTiffWithTagIdAtIndex(512, 511, 0)]));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Returns generic big-endian TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(512, 511, 0));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromFile returns generic big-endian TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createBigEndianTiffWithTagIdAtIndex(512, 511, 0), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromBlob returns generic big-endian TIFF when no recognized TIFF tag appears at the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createBigEndianTiffWithTagIdAtIndex(512, 511, 0)]));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Streamed TIFF detection returns generic TIFF after scanning the full tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 0), 1));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Web Stream TIFF detection returns generic TIFF after scanning the full tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 0), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Web Stream TIFF detection returns generic big-endian TIFF after scanning the full tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 0), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic TIFF when the DNG tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(513, 0, 50_706));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic big-endian TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromFile falls back to generic big-endian TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromBlob falls back to generic big-endian TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706)]));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic big-endian TIFF when the DNG tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(513, 0, 50_706));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromFile falls back to generic TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const filePath = await createTemporaryTestFile(t, createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), 'tif');
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('fileTypeFromBlob falls back to generic TIFF when tags appear after the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBlob(new Blob([createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706)]));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Streamed TIFF detection falls back after the TIFF tag limit', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), 16));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Streamed TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), 1));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Big-endian streamed TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706), 1));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Big-endian Web Stream TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic TIFF when the ARW tag appears after the TIFF tag scan limit', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_341));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic TIFF when the ARW tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const type = await fileTypeFromBuffer(createLittleEndianTiffWithTagIdAtIndex(513, 0, 50_341));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Falls back to generic big-endian TIFF when the ARW tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const type = await fileTypeFromBuffer(createBigEndianTiffWithTagIdAtIndex(513, 0, 50_341));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Web Stream TIFF detection falls back after the TIFF tag limit', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), [3, 5, 2, 7]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Web Stream TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Streamed TIFF detection falls back when the DNG tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const type = await fileTypeNodeFromStream(new BufferedStream(createLittleEndianTiffWithTagIdAtIndex(513, 0, 50_706), 1));
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
+test('Web Stream TIFF detection falls back when the big-endian DNG tag appears before the TIFF tag scan limit but the IFD is too large', async t => {
+	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(513, 0, 50_706), [1]);
+	const type = await new FileTypeParser().fromStream(stream);
+	t.deepEqual(type, {
+		ext: 'tif',
+		mime: 'image/tiff',
+	});
+});
+
 test('Does not scan unbounded inflated gzip payload while probing for tar.gz', async t => {
 	const repeatedId3Payload = createRepeatedId3Payload(3, 8 * 1024 * 1024);
 	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
 	const gzipPayload = gzipSync(Buffer.concat([Buffer.from(repeatedId3Payload), tarFixture]));
 	const bufferType = await fileTypeFromBuffer(gzipPayload);
-	t.deepEqual(bufferType, {
-		ext: 'gz',
-		mime: 'application/gzip',
-	});
+	assertGzipFileType(t, bufferType);
 
 	const streamType = await fileTypeNodeFromStream(new BufferedStream(gzipPayload, 128));
-	t.deepEqual(streamType, {
-		ext: 'gz',
-		mime: 'application/gzip',
-	});
+	assertGzipFileType(t, streamType);
+});
+
+test('Still detects tar.gz with a single gzip layer', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const gzipPayload = createNestedGzip(tarFixture, 1);
+
+	assertTarGzipFileType(t, await fileTypeFromBuffer(gzipPayload));
+	assertTarGzipFileType(t, await fileTypeFromBlob(new Blob([gzipPayload])));
+
+	const filePath = await createTemporaryTestFile(t, gzipPayload, 'gz');
+	assertTarGzipFileType(t, await fileTypeFromFile(filePath));
+	assertTarGzipFileType(t, await fileTypeNodeFromStream(new BufferedStream(gzipPayload, 1)));
+
+	const {stream} = createPatternWebStream(gzipPayload, [1]);
+	assertTarGzipFileType(t, await new FileTypeParser().fromStream(stream));
+});
+
+test('Stops nested gzip probing after one layer', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+
+	assertGzipFileType(t, await fileTypeFromBuffer(nestedGzipPayload));
+	assertGzipFileType(t, await fileTypeFromBlob(new Blob([nestedGzipPayload])));
+
+	const filePath = await createTemporaryTestFile(t, nestedGzipPayload, 'gz');
+	assertGzipFileType(t, await fileTypeFromFile(filePath));
+	assertGzipFileType(t, await fileTypeNodeFromStream(new BufferedStream(nestedGzipPayload, 1)));
+
+	const {stream} = createPatternWebStream(nestedGzipPayload, [1]);
+	assertGzipFileType(t, await new FileTypeParser().fromStream(stream));
+});
+
+test('.fileTypeStream() reports nested gzip as plain gzip and preserves the original bytes', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const detectionStream = await fileTypeStream(new BufferedStream(nestedGzipPayload, 1));
+	assertGzipFileType(t, detectionStream.fileType);
+
+	try {
+		const streamBytes = await getStreamAsUint8Array(detectionStream);
+		t.true(areUint8ArraysEqual(streamBytes, nestedGzipPayload));
+	} finally {
+		detectionStream.destroy();
+	}
+});
+
+test('.fileTypeStream() reports nested gzip as plain gzip and preserves the original bytes for Web Streams', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const detectionStream = await fileTypeStream(new Blob([nestedGzipPayload]).stream());
+	assertGzipFileType(t, detectionStream.fileType);
+
+	const streamBytes = await getStreamAsUint8Array(detectionStream);
+	t.true(areUint8ArraysEqual(streamBytes, nestedGzipPayload));
+});
+
+test('Reused FileTypeParser resets gzip probe depth after nested gzip fallback', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+
+	assertGzipFileType(t, await parser.fromBuffer(nestedGzipPayload));
+	assertTarGzipFileType(t, await parser.fromBuffer(singleLayerGzipPayload));
+
+	const {stream: nestedWebStream} = createPatternWebStream(nestedGzipPayload, [1]);
+	assertGzipFileType(t, await parser.fromStream(nestedWebStream));
+
+	const {stream: tarWebStream} = createPatternWebStream(singleLayerGzipPayload, [1]);
+	assertTarGzipFileType(t, await parser.fromStream(tarWebStream));
+});
+
+test('Reused FileTypeParser resets gzip probe depth after a malformed gzip probe', async t => {
+	const malformedGzip = Uint8Array.from([31, 139, 8, 8, 137, 83, 29, 82, 0, 11]);
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+
+	assertGzipFileType(t, await parser.fromBuffer(malformedGzip));
+	assertTarGzipFileType(t, await parser.fromBuffer(singleLayerGzipPayload));
+
+	const {stream: malformedStream} = createPatternWebStream(malformedGzip, [1]);
+	assertGzipFileType(t, await parser.fromStream(malformedStream));
+
+	const {stream: tarWebStream} = createPatternWebStream(singleLayerGzipPayload, [1]);
+	assertTarGzipFileType(t, await parser.fromStream(tarWebStream));
+});
+
+test('Reused FileTypeParser resets gzip probe depth after an aborted nested gzip probe', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+
+	class AbortStream extends stream.Readable {
+		constructor(buffer) {
+			super();
+			this.buffer = buffer;
+			this.sent = false;
+		}
+
+		_read() {
+			if (this.sent) {
+				return;
+			}
+
+			this.sent = true;
+			this.push(this.buffer.subarray(0, 16));
+			queueMicrotask(() => {
+				const error = new Error('aborted nested gzip probe');
+				error.name = 'AbortError';
+				this.destroy(error);
+			});
+		}
+	}
+
+	const parser = new FileTypeParser();
+	const error = await t.throwsAsync(parser.fromStream(new AbortStream(nestedGzipPayload)));
+	t.is(error.name, 'AbortError');
+	assertTarGzipFileType(t, await parser.fromBuffer(singleLayerGzipPayload));
+});
+
+test('Reused FileTypeParser resets gzip probe depth across blob and file inputs', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+	const filePath = await createTemporaryTestFile(t, singleLayerGzipPayload, 'gz');
+
+	assertGzipFileType(t, await parser.fromBlob(new Blob([nestedGzipPayload])));
+	assertTarGzipFileType(t, await parser.fromFile(filePath));
+});
+
+test('Reused FileTypeParser handles repeated nested gzip fallbacks before detecting tar.gz', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+
+	assertGzipFileType(t, await parser.fromBuffer(nestedGzipPayload));
+	assertGzipFileType(t, await parser.fromBlob(new Blob([nestedGzipPayload])));
+
+	const {stream: nestedWebStream} = createPatternWebStream(nestedGzipPayload, [1]);
+	assertGzipFileType(t, await parser.fromStream(nestedWebStream));
+
+	assertTarGzipFileType(t, await parser.fromBuffer(singleLayerGzipPayload));
+});
+
+test('Reused FileTypeParser isolates tokenizer options across Node stream, blob, Web Stream, and file inputs', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+	const filePath = await createTemporaryTestFile(t, singleLayerGzipPayload, 'gz');
+
+	assertGzipFileType(t, await parser.fromStream(new BufferedStream(nestedGzipPayload, 1)));
+	assertTarGzipFileType(t, await parser.fromBlob(new Blob([singleLayerGzipPayload])));
+
+	const {stream: nestedWebStream} = createPatternWebStream(nestedGzipPayload, [1]);
+	assertGzipFileType(t, await parser.fromStream(nestedWebStream));
+	assertTarGzipFileType(t, await parser.fromFile(filePath));
+});
+
+test('Reused FileTypeParser handles repeated nested gzip blob probes before detecting tar.gz from blob input', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const parser = new FileTypeParser();
+
+	assertGzipFileType(t, await parser.fromBlob(new Blob([nestedGzipPayload])));
+	assertGzipFileType(t, await parser.fromBlob(new Blob([nestedGzipPayload])));
+	assertTarGzipFileType(t, await parser.fromBlob(new Blob([singleLayerGzipPayload])));
+});
+
+test('Reused FileTypeParser handles tokenizer-backed inputs after an aborted nested gzip Node stream probe', async t => {
+	const tarFixture = await readFile(path.join(__dirname, 'fixture', 'fixture.tar'));
+	const nestedGzipPayload = createNestedGzip(tarFixture, 2);
+	const singleLayerGzipPayload = createNestedGzip(tarFixture, 1);
+	const filePath = await createTemporaryTestFile(t, singleLayerGzipPayload, 'gz');
+
+	class AbortStream extends stream.Readable {
+		constructor(buffer) {
+			super();
+			this.buffer = buffer;
+			this.sent = false;
+		}
+
+		_read() {
+			if (this.sent) {
+				return;
+			}
+
+			this.sent = true;
+			this.push(this.buffer.subarray(0, 16));
+			queueMicrotask(() => {
+				const error = new Error('aborted nested gzip stream before tokenizer-backed reuse');
+				error.name = 'AbortError';
+				this.destroy(error);
+			});
+		}
+	}
+
+	const parser = new FileTypeParser();
+	const error = await t.throwsAsync(parser.fromStream(new AbortStream(nestedGzipPayload)));
+	t.is(error.name, 'AbortError');
+	assertTarGzipFileType(t, await parser.fromBlob(new Blob([singleLayerGzipPayload])));
+	assertTarGzipFileType(t, await parser.fromFile(filePath));
 });
 
 test('Does not allocate huge memory for oversized ZIP mimetype entries', async t => {
@@ -1731,9 +3850,543 @@ test('Does not allocate huge memory for oversized ZIP mimetype entries', async t
 	});
 });
 
+test('Does not allocate huge memory for oversized ZIP mimetype entries from blob input', async t => {
+	const buffer = createOversizedZipMimetypeEntry();
+	await assertZipTypeFromBlob(t, buffer);
+});
+
 test('Does not allocate huge memory for oversized ZIP mimetype entries in stream mode', async t => {
 	const buffer = createOversizedZipMimetypeEntry();
 	await assertZipTypeFromChunkedStream(t, buffer);
+});
+
+test('Falls back to zip for malformed ZIP mimetype entries that overstate their size from file input', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: 'mimetype',
+		compressedSize: 1024,
+		uncompressedSize: 1024,
+	});
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not classify partial ZIP mimetype data when its declared size is larger than the bytes present', async t => {
+	const mimeType = 'application/epub+zip';
+	const malformedZip = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType),
+		compressedSize: mimeType.length + 1,
+		uncompressedSize: mimeType.length + 1,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not classify partial deflated ZIP mimetype data when its declared size is larger than the bytes present', async t => {
+	const mimeType = 'application/epub+zip';
+	const compressed = deflateRawSync(Buffer.from(mimeType));
+	const malformedZip = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: compressed,
+		compressedSize: compressed.length + 1,
+		uncompressedSize: mimeType.length,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('fileTypeFromFile does not abort on malformed ZIP mimetype entries larger than Int32 reads', async t => {
+	const malformedZip = createOversizedZipMimetypeEntry();
+	const filePath = await createTemporaryTestFile(t, malformedZip);
+	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+		cwd: __dirname,
+		encoding: 'utf8',
+	});
+
+	t.is(result.signal, null);
+	t.is(result.status, 0);
+	t.deepEqual(JSON.parse(result.stdout.trim()), {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('fileTypeFromFile does not throw on sparse ZIP mimetype entries beyond the ZIP text probe limit', async t => {
+	const compressedSize = 512 * 1024 * 1024;
+	const malformedZip = createZipLocalFile({
+		filename: 'mimetype',
+		compressedSize,
+		uncompressedSize: compressedSize,
+	});
+	const filePath = await createSparseTemporaryTestFile(t, malformedZip, malformedZip.length + compressedSize);
+	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+		cwd: __dirname,
+		encoding: 'utf8',
+	});
+
+	t.is(result.signal, null);
+	t.is(result.status, 0);
+	t.deepEqual(JSON.parse(result.stdout.trim()), {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('Detects ZIP mimetype entries at the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(mimetypeEntry), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+	t.deepEqual(await fileTypeFromBlob(new Blob([mimetypeEntry])), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('fileTypeFromFile detects ZIP mimetype entries at the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+	const filePath = await createTemporaryTestFile(t, mimetypeEntry);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Streamed detection keeps ZIP mimetype scanning at the ZIP text probe limit with one-byte chunks', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(mimetypeEntry, 1)), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Web Stream detection keeps ZIP mimetype scanning at the ZIP text probe limit with one-byte chunks', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+	const {stream} = createPatternWebStream(mimetypeEntry, [1]);
+
+	t.deepEqual(await new FileTypeParser().fromStream(stream), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Falls back to zip when ZIP mimetype entries exceed the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length)),
+	});
+
+	await assertZipTypeFromBuffer(t, mimetypeEntry);
+	await assertZipTypeFromBlob(t, mimetypeEntry);
+	await assertZipTypeFromFile(t, mimetypeEntry);
+	await assertZipTypeFromChunkedStream(t, mimetypeEntry);
+});
+
+test('Web Stream detection falls back when ZIP mimetype entries exceed the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length)),
+	});
+
+	await assertZipTypeFromWebStream(t, mimetypeEntry, [1]);
+});
+
+test('.fileTypeStream() detects ZIP mimetype entries at the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() detects ZIP mimetype entries at the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back when ZIP mimetype entries exceed the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length)),
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back when ZIP mimetype entries exceed the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length)),
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back for ZIP mimetype entries at the previous ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back for ZIP mimetype entries at the previous ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() detects deflated ZIP mimetype entries at the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() detects deflated ZIP mimetype entries at the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back to zip for stored ZIP mimetype entries at the ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for stored ZIP mimetype entries at the ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode(mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length)),
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() detects deflated ZIP mimetype entries at the ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('.fileTypeStream() detects deflated ZIP mimetype entries at the ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for deflated ZIP mimetype entries at the previous ZIP text probe limit with the default sampleSize for Node streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back to zip for deflated ZIP mimetype entries at the previous ZIP text probe limit with the default sampleSize for Web Streams', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back when deflated ZIP mimetype entries exceed the ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back when deflated ZIP mimetype entries exceed the ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back for deflated ZIP mimetype entries at the previous ZIP text probe limit for Web Streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamWebResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('.fileTypeStream() falls back for deflated ZIP mimetype entries at the previous ZIP text probe limit for Node streams with a large sampleSize', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertFileTypeStreamNodeResult(t, mimetypeEntry, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: mimetypeEntry.length});
+});
+
+test('Falls back to zip for deflated ZIP mimetype entries at the previous ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(legacyOversizedZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertZipTypeFromBuffer(t, mimetypeEntry);
+	await assertZipTypeFromBlob(t, mimetypeEntry);
+	await assertZipTypeFromFile(t, mimetypeEntry);
+});
+
+test('All APIs detect deflated ZIP mimetype entries at the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+	const filePath = await createTemporaryTestFile(t, mimetypeEntry);
+
+	t.deepEqual(await fileTypeFromBuffer(mimetypeEntry), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+	t.deepEqual(await fileTypeFromBlob(new Blob([mimetypeEntry])), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(mimetypeEntry, 1)), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Web Stream detection keeps deflated ZIP mimetype scanning at the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat(maximumZipTextEntrySizeInBytes - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(mimetypeEntry, [1]).stream), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Falls back to zip when deflated ZIP mimetype entries exceed the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertZipTypeFromBuffer(t, mimetypeEntry);
+	await assertZipTypeFromBlob(t, mimetypeEntry);
+	await assertZipTypeFromFile(t, mimetypeEntry);
+	await assertZipTypeFromChunkedStream(t, mimetypeEntry);
+});
+
+test('Web Stream detection falls back when deflated ZIP mimetype entries exceed the ZIP text probe limit', async t => {
+	const mimeType = 'application/epub+zip';
+	const mimetype = mimeType + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - mimeType.length);
+	const mimetypeEntry = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: mimetype.length,
+	});
+
+	await assertZipTypeFromWebStream(t, mimetypeEntry, [1]);
+});
+
+test('Falls back to zip for malformed deflated ZIP mimetype entries that overstate compressed size', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: Uint8Array.from([0x00, 0x00, 0x00, 0x00, 0x00]),
+		compressedSize: 1024,
+		uncompressedSize: 20,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
 });
 
 test('Does not throw on malformed ZIP with unexpected follow-up signature', async t => {
@@ -1757,6 +4410,41 @@ test('Does not throw on malformed ZIP deflate entry in [Content_Types].xml', asy
 	await assertZipTypeFromBufferAndChunkedStream(t, malformedZip);
 });
 
+test('Falls back to zip for malformed deflated [Content_Types].xml entries that overstate compressed size', async t => {
+	const malformedZip = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: Uint8Array.from([0x00, 0x00, 0x00, 0x00, 0x00]),
+		compressedSize: 1024,
+		uncompressedSize: 20,
+	});
+
+	await assertZipTypeFromBuffer(t, malformedZip);
+	await assertZipTypeFromBlob(t, malformedZip);
+	await assertZipTypeFromChunkedStream(t, malformedZip);
+	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Does not use directory fallback when malformed deflated oversized [Content_Types].xml appears after a Word entry', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const malformedContentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: Uint8Array.from([0x00, 0x00, 0x00, 0x00, 0x00]),
+		compressedSize: 1024,
+		uncompressedSize: 20,
+	});
+	const orderedZip = Buffer.concat([wordEntry, malformedContentTypesEntry]);
+
+	await assertZipTypeFromBuffer(t, orderedZip);
+	await assertZipTypeFromBlob(t, orderedZip);
+	await assertZipTypeFromChunkedStream(t, orderedZip);
+	await assertZipTypeFromFile(t, orderedZip);
+});
+
 test('Keeps ZIP [Content_Types].xml inflate probing bounded for streams', async t => {
 	const mimeMarker = 'ContentType="application/vnd.ms-word.document.macroenabled.main+xml"';
 	const oversizedXml = mimeMarker + 'A'.repeat((2 * 1024 * 1024) - mimeMarker.length);
@@ -1770,8 +4458,8 @@ test('Keeps ZIP [Content_Types].xml inflate probing bounded for streams', async 
 	await assertZipTypeFromChunkedStream(t, zip);
 });
 
-test('Allows large deflated known-size [Content_Types].xml entries', async t => {
-	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat(2 * 1024 * 1024);
+test('Allows deflated known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
 	const compressed = deflateRawSync(Buffer.from(contentTypesXml, 'utf8'));
 	const zip = Buffer.concat([
 		createZipLocalFile({
@@ -1787,6 +4475,51 @@ test('Allows large deflated known-size [Content_Types].xml entries', async t => 
 	]);
 	const type = await fileTypeFromBuffer(zip);
 	t.deepEqual(type, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromFile allows deflated known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
+	const compressed = deflateRawSync(Buffer.from(contentTypesXml, 'utf8'));
+	const zip = Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedMethod: 8,
+			compressedData: compressed,
+			uncompressedSize: Buffer.byteLength(contentTypesXml),
+		}),
+	]);
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromBlob allows deflated known-size [Content_Types].xml entries below the ZIP text probe limit', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + ' '.repeat((maximumZipTextEntrySizeInBytes / 2) - 128);
+	const compressed = deflateRawSync(Buffer.from(contentTypesXml, 'utf8'));
+	const zip = Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedMethod: 8,
+			compressedData: compressed,
+			uncompressedSize: Buffer.byteLength(contentTypesXml),
+		}),
+	]);
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
 		ext: 'docm',
 		mime: 'application/vnd.ms-word.document.macroenabled.12',
 	});
@@ -1812,6 +4545,899 @@ test('Does not throw on ZIP with streamed [Content_Types].xml entry without desc
 		uncompressedSize: 0,
 	});
 	await assertZipTypeFromBufferAndChunkedStream(t, malformedZip);
+});
+
+test('Detects small ZIP mimetype descriptor entries', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	const bufferType = await fileTypeFromBuffer(streamedZip);
+	t.deepEqual(bufferType, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+
+	const streamType = await fileTypeNodeFromStream(new BufferedStream(streamedZip, 8));
+	t.deepEqual(streamType, {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('fileTypeFromFile detects small ZIP mimetype descriptor entries', async t => {
+	const filePath = await createTemporaryTestFile(t, createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	}));
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Detects small ZIP mimetype descriptor entries with one-byte stream chunks', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(streamedZip, 1)), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Detects small ZIP [Content_Types].xml descriptor entries', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	const bufferType = await fileTypeFromBuffer(streamedZip);
+	t.deepEqual(bufferType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+
+	const streamType = await fileTypeNodeFromStream(new BufferedStream(streamedZip, 8));
+	t.deepEqual(streamType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Detects small deflated ZIP [Content_Types].xml descriptor entries', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: Buffer.byteLength(contentTypesXml),
+	});
+
+	const bufferType = await fileTypeFromBuffer(streamedZip);
+	t.deepEqual(bufferType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+
+	const streamType = await fileTypeNodeFromStream(new BufferedStream(streamedZip, 8));
+	t.deepEqual(streamType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Ignores ZIP descriptor signature bytes inside descriptor-backed [Content_Types].xml entries', async t => {
+	const contentTypesXml = Buffer.concat([
+		Buffer.from('<?xml version="1.0" encoding="UTF-8"?><Types>'),
+		Buffer.from([0x50, 0x4B, 0x07, 0x08]),
+		Buffer.from('<Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	]);
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedData: contentTypesXml,
+	});
+	const filePath = await createTemporaryTestFile(t, streamedZip);
+
+	t.deepEqual(await fileTypeFromBuffer(streamedZip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(streamedZip, 1)), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromFile detects small deflated ZIP [Content_Types].xml descriptor entries', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const filePath = await createTemporaryTestFile(t, createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: Buffer.byteLength(contentTypesXml),
+	}));
+
+	const type = await fileTypeFromFile(filePath);
+	t.deepEqual(type, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Allows unknown-size ZIP [Content_Types].xml descriptor probing at the exact size limit', async t => {
+	const maximumZipEntrySizeInBytes = 1024 * 1024;
+	const contentTypesPrefix = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const contentTypesXml = new TextEncoder().encode(contentTypesPrefix + 'A'.repeat(maximumZipEntrySizeInBytes - Buffer.byteLength(contentTypesPrefix)));
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedData: contentTypesXml,
+	});
+	const filePath = await createTemporaryTestFile(t, streamedZip);
+
+	t.deepEqual(await fileTypeFromBuffer(streamedZip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(streamedZip, 8)), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Keeps unknown-size ZIP [Content_Types].xml descriptor probing bounded', async t => {
+	const contentTypesXml = new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + 'A'.repeat((1024 * 1024) + 1));
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedData: contentTypesXml,
+	});
+
+	await assertZipTypeFromBufferAndChunkedStream(t, streamedZip);
+});
+
+test('fileTypeFromFile keeps unknown-size ZIP [Content_Types].xml descriptor probing bounded', async t => {
+	const contentTypesXml = new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>' + 'A'.repeat((1024 * 1024) + 1));
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedData: contentTypesXml,
+	});
+
+	await assertZipTypeFromFile(t, streamedZip);
+});
+
+test('Keeps unknown-size ZIP mimetype descriptor probing bounded', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip' + 'A'.repeat((1024 * 1024) + 1)),
+	});
+
+	await assertZipTypeFromBufferAndChunkedStream(t, streamedZip);
+});
+
+test('fileTypeFromFile keeps unknown-size ZIP mimetype descriptor probing bounded', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip' + 'A'.repeat((1024 * 1024) + 1)),
+	});
+
+	await assertZipTypeFromFile(t, streamedZip);
+});
+
+test('Detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryEpubFileType);
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), descriptorBoundaryEpubFileType);
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 1)), descriptorBoundaryEpubFileType);
+});
+
+test('fileTypeFromFile detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), descriptorBoundaryEpubFileType);
+});
+
+test('Web Stream detection keeps ZIP mimetype detection when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [1]).stream), descriptorBoundaryEpubFileType);
+});
+
+test('.fileTypeStream() detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit for Node streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for Node streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit for Node streams with one-byte chunks and a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, descriptorBoundaryEpubFileType, {
+		chunkSize: 1,
+		sampleSize: zip.length,
+	});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for Node streams with one-byte chunks and a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {
+		chunkSize: 1,
+		sampleSize: zip.length,
+	});
+});
+
+test('.fileTypeStream() falls back when a descriptor-backed entry before ZIP mimetype detection is at the scan limit for Node streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for Node streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit for Web Streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for Web Streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when a descriptor-backed entry before ZIP mimetype detection is at the scan limit for Web Streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('Falls back to zip when an oversized descriptor-backed entry precedes ZIP mimetype detection', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertZipTypeFromBuffer(t, zip);
+	await assertZipTypeFromBlob(t, zip);
+	await assertZipTypeFromFile(t, zip);
+	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+test('Web Stream detection falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection', async t => {
+	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertZipTypeFromWebStream(t, zip, [1]);
+});
+
+test('Detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), descriptorBoundaryDocmFileType);
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 1)), descriptorBoundaryDocmFileType);
+});
+
+test('fileTypeFromFile detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), descriptorBoundaryDocmFileType);
+});
+
+test('Web Stream detection keeps ZIP [Content_Types].xml detection when a descriptor-backed entry before it is at the scan limit', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [1]).stream), descriptorBoundaryDocmFileType);
+});
+
+test('.fileTypeStream() detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit for Web Streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for Web Streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when a descriptor-backed entry before ZIP [Content_Types].xml detection is at the scan limit for Node streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for Node streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('.fileTypeStream() detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit for Node streams with one-byte chunks and a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, descriptorBoundaryDocmFileType, {
+		chunkSize: 1,
+		sampleSize: zip.length,
+	});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for Node streams with one-byte chunks and a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {
+		chunkSize: 1,
+		sampleSize: zip.length,
+	});
+});
+
+test('.fileTypeStream() detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit for Node streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamNodeResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for Node streams with a large sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertFileTypeStreamNodeResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: zip.length});
+});
+
+test('.fileTypeStream() falls back when a descriptor-backed entry before ZIP [Content_Types].xml detection is at the scan limit for Web Streams with the default sampleSize', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
+
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('Falls back to zip when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertZipTypeFromBuffer(t, zip);
+	await assertZipTypeFromBlob(t, zip);
+	await assertZipTypeFromFile(t, zip);
+	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+test('Web Stream detection falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection', async t => {
+	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
+
+	await assertZipTypeFromWebStream(t, zip, [1]);
+});
+
+test('Falls back to zip on invalid ZIP descriptor signature', async t => {
+	const streamedZip = createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+		descriptor: new Uint8Array(16),
+	});
+
+	await assertZipTypeFromBufferAndChunkedStream(t, streamedZip);
+});
+
+test('fileTypeFromFile falls back to zip on invalid ZIP descriptor signature', async t => {
+	const filePath = await createTemporaryTestFile(t, createZipDataDescriptorFile({
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+		descriptor: new Uint8Array(16),
+	}));
+
+	assertZipFileType(t, await fileTypeFromFile(filePath));
+});
+
+test('Detects EPUB when the ZIP entry count is at the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('fileTypeFromFile detects EPUB when the ZIP entry count is at the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('fileTypeFromBlob detects EPUB when the ZIP entry count is at the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Streamed ZIP detection still detects EPUB when the ZIP entry count is at the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 8)), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Falls back to zip when the ZIP entry count exceeds the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	await assertZipTypeFromBuffer(t, zip);
+});
+
+test('fileTypeFromFile falls back to zip when the ZIP entry count exceeds the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	await assertZipTypeFromFile(t, zip);
+});
+
+test('fileTypeFromBlob falls back to zip when the ZIP entry count exceeds the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	assertZipFileType(t, await fileTypeFromBlob(new Blob([zip])));
+});
+
+test('Streamed ZIP detection falls back to zip when the entry count exceeds the limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+test('Detects DOCM when [Content_Types].xml appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromFile detects DOCM when [Content_Types].xml appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('fileTypeFromBlob detects DOCM when [Content_Types].xml appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Streamed ZIP detection still detects DOCM when [Content_Types].xml appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 8)), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Falls back to zip when [Content_Types].xml first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	await assertZipTypeFromBuffer(t, zip);
+});
+
+test('Still detects DOCM in over-limit ZIP archives when [Content_Types].xml appears before the entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 0, {
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('Still detects EPUB in over-limit ZIP archives when the mimetype entry appears before the entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 0, {
+		filename: 'mimetype',
+		compressedData: new TextEncoder().encode('application/epub+zip'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
+});
+
+test('Detects JAR when META-INF/MANIFEST.MF appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'jar',
+		mime: 'application/java-archive',
+	});
+});
+
+test('fileTypeFromFile detects JAR when META-INF/MANIFEST.MF appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'jar',
+		mime: 'application/java-archive',
+	});
+});
+
+test('fileTypeFromBlob detects JAR when META-INF/MANIFEST.MF appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
+		ext: 'jar',
+		mime: 'application/java-archive',
+	});
+});
+
+test('Streamed ZIP detection still detects JAR when META-INF/MANIFEST.MF appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 8)), {
+		ext: 'jar',
+		mime: 'application/java-archive',
+	});
+});
+
+test('Still detects JAR in over-limit ZIP archives when META-INF/MANIFEST.MF appears before the entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 0, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'jar',
+		mime: 'application/java-archive',
+	});
+});
+
+test('Falls back to zip when META-INF/MANIFEST.MF first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	await assertZipTypeFromBuffer(t, zip);
+});
+
+test('fileTypeFromFile falls back to zip when META-INF/MANIFEST.MF first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	await assertZipTypeFromFile(t, zip);
+});
+
+test('fileTypeFromBlob falls back to zip when META-INF/MANIFEST.MF first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	assertZipFileType(t, await fileTypeFromBlob(new Blob([zip])));
+});
+
+test('Streamed ZIP detection falls back to zip when META-INF/MANIFEST.MF first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/MANIFEST.MF',
+		compressedData: new TextEncoder().encode('Manifest-Version: 1.0\n'),
+	});
+
+	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+test('Detects XPI when META-INF/mozilla.rsa appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'xpi',
+		mime: 'application/x-xpinstall',
+	});
+});
+
+test('fileTypeFromFile detects XPI when META-INF/mozilla.rsa appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'xpi',
+		mime: 'application/x-xpinstall',
+	});
+});
+
+test('fileTypeFromBlob detects XPI when META-INF/mozilla.rsa appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
+		ext: 'xpi',
+		mime: 'application/x-xpinstall',
+	});
+});
+
+test('Streamed ZIP detection still detects XPI when META-INF/mozilla.rsa appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 8)), {
+		ext: 'xpi',
+		mime: 'application/x-xpinstall',
+	});
+});
+
+test('Still detects XPI in over-limit ZIP archives when META-INF/mozilla.rsa appears before the entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 0, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'xpi',
+		mime: 'application/x-xpinstall',
+	});
+});
+
+test('Falls back to zip when META-INF/mozilla.rsa first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	await assertZipTypeFromBuffer(t, zip);
+});
+
+test('fileTypeFromFile falls back to zip when META-INF/mozilla.rsa first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	await assertZipTypeFromFile(t, zip);
+});
+
+test('fileTypeFromBlob falls back to zip when META-INF/mozilla.rsa first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	assertZipFileType(t, await fileTypeFromBlob(new Blob([zip])));
+});
+
+test('Streamed ZIP detection falls back to zip when META-INF/mozilla.rsa first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'META-INF/mozilla.rsa',
+		compressedData: new Uint8Array(0),
+	});
+
+	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+test('Detects APK when classes.dex appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'apk',
+		mime: 'application/vnd.android.package-archive',
+	});
+});
+
+test('fileTypeFromFile detects APK when classes.dex appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+	const filePath = await createTemporaryTestFile(t, zip);
+
+	t.deepEqual(await fileTypeFromFile(filePath), {
+		ext: 'apk',
+		mime: 'application/vnd.android.package-archive',
+	});
+});
+
+test('fileTypeFromBlob detects APK when classes.dex appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), {
+		ext: 'apk',
+		mime: 'application/vnd.android.package-archive',
+	});
+});
+
+test('Streamed ZIP detection still detects APK when classes.dex appears at the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1024, 1023, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	t.deepEqual(await fileTypeNodeFromStream(new BufferedStream(zip, 8)), {
+		ext: 'apk',
+		mime: 'application/vnd.android.package-archive',
+	});
+});
+
+test('Still detects APK in over-limit ZIP archives when classes.dex appears before the entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 0, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'apk',
+		mime: 'application/vnd.android.package-archive',
+	});
+});
+
+test('Falls back to zip when classes.dex first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	await assertZipTypeFromBuffer(t, zip);
+});
+
+test('fileTypeFromFile falls back to zip when classes.dex first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	await assertZipTypeFromFile(t, zip);
+});
+
+test('fileTypeFromBlob falls back to zip when classes.dex first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	assertZipFileType(t, await fileTypeFromBlob(new Blob([zip])));
+});
+
+test('Streamed ZIP detection falls back to zip when classes.dex first appears after the ZIP entry count limit', async t => {
+	const zip = createZipArchiveWithEntryAtIndex(1025, 1024, {
+		filename: 'classes.dex',
+		compressedData: new TextEncoder().encode('dex\n035\0'),
+	});
+
+	await assertZipTypeFromChunkedStream(t, zip);
 });
 
 test('.fileTypeStream() clamps invalid sampleSize values', async t => {
