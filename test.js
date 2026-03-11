@@ -548,3 +548,13 @@ test('corrupt MKV throws', async t => {
 	const filePath = path.join(__dirname, 'fixture/fixture-corrupt.mkv');
 	await t.throwsAsync(FileType.fromFile(filePath), {message: /out of range/});
 });
+
+test('Does not hang on crafted ASF file with zero-size sub-header', async t => {
+	const buffer = Buffer.from('3026b2758e66cf11a6d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', 'hex');
+	const type = await FileType.fromBuffer(buffer);
+
+	t.deepEqual(type, {
+		ext: 'asf',
+		mime: 'application/vnd.ms-asf'
+	});
+});
