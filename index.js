@@ -4,6 +4,8 @@ Node.js specific entry point.
 
 import {ReadableStream as WebReadableStream} from 'node:stream/web';
 import {pipeline, PassThrough, Readable} from 'node:stream';
+import fs from 'node:fs/promises';
+import {constants as fileSystemConstants} from 'node:fs';
 import * as strtok3 from 'strtok3';
 import {
 	FileTypeParser as DefaultFileTypeParser,
@@ -42,7 +44,21 @@ export class FileTypeParser extends DefaultFileTypeParser {
 	}
 
 	async fromFile(path) {
-		const tokenizer = await strtok3.fromFile(path);
+		// TODO: Remove this when `strtok3.fromFile()` safely rejects non-regular filesystem objects without a pathname race.
+		const fileHandle = await fs.open(path, fileSystemConstants.O_RDONLY | fileSystemConstants.O_NONBLOCK);
+		const fileStat = await fileHandle.stat();
+		if (!fileStat.isFile()) {
+			await fileHandle.close();
+			return;
+		}
+
+		const tokenizer = new strtok3.FileTokenizer(fileHandle, {
+			...this.getTokenizerOptions(),
+			fileInfo: {
+				path,
+				size: fileStat.size,
+			},
+		});
 		try {
 			return await super.fromTokenizer(tokenizer);
 		} finally {

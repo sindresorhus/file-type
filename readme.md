@@ -10,6 +10,9 @@ This package is for detecting binary-based file formats, not text-based formats 
 
 We accept contributions for commonly used modern file formats, not historical or obscure ones. Open an issue first for discussion.
 
+> [!IMPORTANT]
+> NO SECURITY REPORTS WILL BE ACCEPTED RIGHT NOW. I'm currently hardening the parser and all the low-quality AI-generated security reports is just a huge waste of time.
+
 ## Install
 
 ```sh
