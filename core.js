@@ -237,8 +237,7 @@ ZipHandler.prototype.inflate = async function (zipHeader, fileData, callback) {
 		throw new Error(`Unsupported ZIP compression method: ${zipHeader.compressedMethod}`);
 	}
 
-	const maximumLength = hasUnknownFileSize(this.tokenizer) ? maximumZipEntrySizeInBytes : Number.MAX_SAFE_INTEGER;
-	const uncompressedData = await decompressDeflateRawWithLimit(fileData, {maximumLength});
+	const uncompressedData = await decompressDeflateRawWithLimit(fileData, {maximumLength: maximumZipEntrySizeInBytes});
 	return callback(uncompressedData);
 };
 

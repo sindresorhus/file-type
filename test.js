@@ -865,6 +865,24 @@ async function assertZipTypeFromBufferAndChunkedStream(t, bytes) {
 	await assertZipTypeFromChunkedStream(t, bytes);
 }
 
+async function assertZipTypeFromAllDirectInputs(t, bytes) {
+	await assertZipTypeFromBuffer(t, bytes);
+	await assertZipTypeFromBlob(t, bytes);
+	await assertZipTypeFromFile(t, bytes);
+	await assertZipTypeFromChunkedStream(t, bytes);
+}
+
+async function assertFileTypeStreamFallsBackToZipWithLargeSampleSize(t, bytes) {
+	await assertFileTypeStreamNodeResult(t, bytes, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: bytes.length});
+	await assertFileTypeStreamWebResult(t, bytes, {
+		ext: 'zip',
+		mime: 'application/zip',
+	}, {sampleSize: bytes.length});
+}
+
 async function createTemporaryTestFile(t, bytes, extension = 'zip') {
 	const temporaryDirectory = path.join(__dirname, '.ai-temporary');
 	await fs.promises.mkdir(temporaryDirectory, {recursive: true});
@@ -972,6 +990,36 @@ function createZipWithLeadingDescriptorContentTypes(descriptorSize) {
 		createZipLocalFile({
 			filename: '[Content_Types].xml',
 			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+	]);
+}
+
+function createZipTextEntryExceedingProbeLimit(text) {
+	return text + ' '.repeat((maximumZipTextEntrySizeInBytes + 1) - text.length);
+}
+
+function createDeflatedZipWithUnderstatedMimetypeSize() {
+	const mimetype = createZipTextEntryExceedingProbeLimit('application/epub+zip');
+	return createZipLocalFile({
+		filename: 'mimetype',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(mimetype)),
+		uncompressedSize: 1,
+	});
+}
+
+function createDeflatedZipWithUnderstatedContentTypesSize() {
+	const contentTypesXml = createZipTextEntryExceedingProbeLimit(descriptorBoundaryContentTypesXml);
+	return Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedMethod: 8,
+			compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+			uncompressedSize: 1,
 		}),
 	]);
 }
@@ -4389,6 +4437,18 @@ test('Falls back to zip for malformed deflated ZIP mimetype entries that oversta
 	await assertZipTypeFromFile(t, malformedZip);
 });
 
+test('Falls back to zip for deflated ZIP mimetype entries that understate uncompressed size', async t => {
+	const mimetypeEntry = createDeflatedZipWithUnderstatedMimetypeSize();
+
+	await assertZipTypeFromAllDirectInputs(t, mimetypeEntry);
+});
+
+test('.fileTypeStream() falls back for deflated ZIP mimetype entries that understate uncompressed size with a large sampleSize', async t => {
+	const mimetypeEntry = createDeflatedZipWithUnderstatedMimetypeSize();
+
+	await assertFileTypeStreamFallsBackToZipWithLargeSampleSize(t, mimetypeEntry);
+});
+
 test('Does not throw on malformed ZIP with unexpected follow-up signature', async t => {
 	const zipLocalFile = createZipLocalFile({
 		filename: 'a',
@@ -4423,6 +4483,18 @@ test('Falls back to zip for malformed deflated [Content_Types].xml entries that 
 	await assertZipTypeFromBlob(t, malformedZip);
 	await assertZipTypeFromChunkedStream(t, malformedZip);
 	await assertZipTypeFromFile(t, malformedZip);
+});
+
+test('Falls back to zip for deflated [Content_Types].xml entries that understate uncompressed size', async t => {
+	const zip = createDeflatedZipWithUnderstatedContentTypesSize();
+
+	await assertZipTypeFromAllDirectInputs(t, zip);
+});
+
+test('.fileTypeStream() falls back for deflated [Content_Types].xml entries that understate uncompressed size with a large sampleSize', async t => {
+	const zip = createDeflatedZipWithUnderstatedContentTypesSize();
+
+	await assertFileTypeStreamFallsBackToZipWithLargeSampleSize(t, zip);
 });
 
 test('Does not use directory fallback when malformed deflated oversized [Content_Types].xml appears after a Word entry', async t => {
