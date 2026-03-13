@@ -2128,6 +2128,55 @@ test('Oversized ID3 web stream keeps hostile reads bounded', async t => {
 	t.true(state.emittedBytes <= 40);
 });
 
+test('Repeated non-zero ID3 Node stream probing stays cumulatively bounded', async t => {
+	const maximumId3HeaderSizeInBytes = 16 * 1024 * 1024;
+	const chunkSize = 64 * 1024;
+	const payload = createRepeatedId3Payload(80, 256 * 1024);
+	const stream = new PatternChunkStream(payload, [chunkSize]);
+
+	const type = await fileTypeNodeFromStream(stream);
+	t.is(type, undefined);
+	t.true(stream.emittedBytes <= maximumId3HeaderSizeInBytes + chunkSize);
+});
+
+test('Repeated non-zero ID3 Web stream probing stays cumulatively bounded', async t => {
+	const maximumId3HeaderSizeInBytes = 16 * 1024 * 1024;
+	const chunkSize = 64 * 1024;
+	const payload = createRepeatedId3Payload(80, 256 * 1024);
+	const {state, stream} = createPatternWebStream(payload, [chunkSize]);
+
+	const type = await new FileTypeParser().fromStream(stream);
+	t.is(type, undefined);
+	t.true(state.emittedBytes <= maximumId3HeaderSizeInBytes + chunkSize);
+});
+
+test('Repeated non-zero ID3 Node streams still detect MP3 below the cumulative limit', async t => {
+	const payload = Buffer.concat([
+		Buffer.from(createRepeatedId3Payload(8, 64 * 1024)),
+		Buffer.from([0xFF, 0xFB, 0x90, 0x64, 0x00, 0x00, 0x00, 0x00]),
+	]);
+	const type = await fileTypeNodeFromStream(new BufferedStream(payload, 1024));
+
+	t.deepEqual(type, {
+		ext: 'mp3',
+		mime: 'audio/mpeg',
+	});
+});
+
+test('Repeated non-zero ID3 Web streams still detect MP3 below the cumulative limit', async t => {
+	const payload = Buffer.concat([
+		Buffer.from(createRepeatedId3Payload(8, 64 * 1024)),
+		Buffer.from([0xFF, 0xFB, 0x90, 0x64, 0x00, 0x00, 0x00, 0x00]),
+	]);
+	const {stream} = createPatternWebStream(payload, [1024]);
+	const type = await new FileTypeParser().fromStream(stream);
+
+	t.deepEqual(type, {
+		ext: 'mp3',
+		mime: 'audio/mpeg',
+	});
+});
+
 test('Does not throw on malformed PNG stream with oversized chunk length', async t => {
 	const bytes = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x7F, 0xFF, 0xFF, 0xFF, 0x7A, 0x7A, 0x7A, 0x7A]);
 	await assertUndefinedTypeFromChunkedStream(t, bytes);

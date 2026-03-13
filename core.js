@@ -1001,7 +1001,10 @@ export class FileTypeParser {
 				// Keep ID3 probing bounded for unknown-size streams to avoid attacker-controlled large skips.
 				|| (
 					isUnknownFileSize
-					&& id3HeaderLength > maximumId3HeaderSizeInBytes
+					&& (
+						id3HeaderLength > maximumId3HeaderSizeInBytes
+						|| (tokenizer.position + id3HeaderLength) > maximumId3HeaderSizeInBytes
+					)
 				)
 			) {
 				return;
