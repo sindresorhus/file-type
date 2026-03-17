@@ -29,7 +29,8 @@ function isTokenizerStreamBoundsError(error) {
 
 export class FileTypeParser extends DefaultFileTypeParser {
 	async fromStream(stream) {
-		const tokenizer = await (stream instanceof WebReadableStream ? strtok3.fromWebStream(stream, this.getTokenizerOptions()) : strtok3.fromStream(stream, this.getTokenizerOptions()));
+		this.options.signal?.throwIfAborted();
+		const tokenizer = await (stream instanceof WebReadableStream ? this.createTokenizerFromWebStream(stream) : strtok3.fromStream(stream, this.getTokenizerOptions()));
 		try {
 			return await super.fromTokenizer(tokenizer);
 		} catch (error) {
@@ -39,11 +40,18 @@ export class FileTypeParser extends DefaultFileTypeParser {
 
 			throw error;
 		} finally {
-			await tokenizer.close();
+			// TODO: Remove this when `strtok3.fromStream()` closes the underlying Readable instead of only aborting tokenizer reads.
+			if (
+				stream instanceof Readable
+				&& !stream.destroyed
+			) {
+				stream.destroy();
+			}
 		}
 	}
 
 	async fromFile(path) {
+		this.options.signal?.throwIfAborted();
 		// TODO: Remove this when `strtok3.fromFile()` safely rejects non-regular filesystem objects without a pathname race.
 		const fileHandle = await fs.open(path, fileSystemConstants.O_RDONLY | fileSystemConstants.O_NONBLOCK);
 		const fileStat = await fileHandle.stat();
@@ -59,11 +67,7 @@ export class FileTypeParser extends DefaultFileTypeParser {
 				size: fileStat.size,
 			},
 		});
-		try {
-			return await super.fromTokenizer(tokenizer);
-		} finally {
-			await tokenizer.close();
-		}
+		return super.fromTokenizer(tokenizer);
 	}
 
 	async toDetectionStream(readableStream, options = {}) {
@@ -71,36 +75,69 @@ export class FileTypeParser extends DefaultFileTypeParser {
 			return super.toDetectionStream(readableStream, options);
 		}
 
-		const sampleSize = normalizeSampleSize(options.sampleSize ?? reasonableDetectionSizeInBytes);
+		const {sampleSize = reasonableDetectionSizeInBytes} = options;
+		const {signal} = this.options;
+		const normalizedSampleSize = normalizeSampleSize(sampleSize);
+
+		signal?.throwIfAborted();
 
 		return new Promise((resolve, reject) => {
-			readableStream.on('error', reject);
+			let isSettled = false;
 
-			readableStream.once('readable', () => {
+			const cleanup = () => {
+				readableStream.off('error', onError);
+				readableStream.off('readable', onReadable);
+				signal?.removeEventListener('abort', onAbort);
+			};
+
+			const settle = (callback, value) => {
+				if (isSettled) {
+					return;
+				}
+
+				isSettled = true;
+				cleanup();
+				callback(value);
+			};
+
+			const onError = error => {
+				settle(reject, error);
+			};
+
+			const onAbort = () => {
+				if (!readableStream.destroyed) {
+					readableStream.destroy();
+				}
+
+				settle(reject, signal.reason);
+			};
+
+			const onReadable = () => {
 				(async () => {
 					try {
-						// Set up output stream
 						const pass = new PassThrough();
 						const outputStream = pipeline ? pipeline(readableStream, pass, () => {}) : readableStream.pipe(pass);
-
-						// Read the input stream and detect the filetype
-						const chunk = readableStream.read(sampleSize) ?? readableStream.read() ?? new Uint8Array(0);
+						const chunk = readableStream.read(normalizedSampleSize) ?? readableStream.read() ?? new Uint8Array(0);
 						try {
 							pass.fileType = await this.fromBuffer(chunk);
 						} catch (error) {
 							if (error instanceof strtok3.EndOfStreamError) {
 								pass.fileType = undefined;
 							} else {
-								reject(error);
+								settle(reject, error);
 							}
 						}
 
-						resolve(outputStream);
+						settle(resolve, outputStream);
 					} catch (error) {
-						reject(error);
+						settle(reject, error);
 					}
 				})();
-			});
+			};
+
+			readableStream.on('error', onError);
+			readableStream.once('readable', onReadable);
+			signal?.addEventListener('abort', onAbort, {once: true});
 		});
 	}
 }

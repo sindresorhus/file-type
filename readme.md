@@ -441,7 +441,7 @@ import {FileTypeParser} from 'file-type';
 
 const abortController = new AbortController()
 
-const parser = new FileTypeParser({abortSignal: abortController.signal});
+const parser = new FileTypeParser({signal: abortController.signal});
 
 const promise = parser.fromStream(blob.stream());
 

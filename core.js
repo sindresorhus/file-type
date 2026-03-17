@@ -24,6 +24,7 @@ const maximumUnknownSizePayloadProbeSizeInBytes = maximumZipEntrySizeInBytes;
 const maximumZipTextEntrySizeInBytes = maximumZipEntrySizeInBytes;
 const maximumNestedGzipDetectionSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumNestedGzipProbeDepth = 1;
+const unknownSizeGzipProbeTimeoutInMilliseconds = 100;
 const maximumId3HeaderSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumEbmlDocumentTypeSizeInBytes = 64;
 const maximumEbmlElementPayloadSizeInBytes = maximumUnknownSizePayloadProbeSizeInBytes;
@@ -47,6 +48,7 @@ const recoverableZipErrorMessagePrefixes = [
 	'Unsupported ZIP compression method:',
 	'ZIP entry compressed data exceeds ',
 	'ZIP entry decompressed data exceeds ',
+	'Expected data-descriptor-signature at position ',
 ];
 const recoverableZipErrorCodes = new Set([
 	'Z_BUF_ERROR',
@@ -55,6 +57,27 @@ const recoverableZipErrorCodes = new Set([
 ]);
 
 class ParserHardLimitError extends Error {}
+
+function patchWebByobTokenizerClose(tokenizer) {
+	const streamReader = tokenizer?.streamReader;
+	if (streamReader?.constructor?.name !== 'WebStreamByobReader') {
+		return tokenizer;
+	}
+
+	const {reader} = streamReader;
+	const cancelAndRelease = async () => {
+		await reader.cancel();
+		reader.releaseLock();
+	};
+
+	streamReader.close = cancelAndRelease;
+	streamReader.abort = async () => {
+		streamReader.interrupted = true;
+		await cancelAndRelease();
+	};
+
+	return tokenizer;
+}
 
 function getSafeBound(value, maximum, reason) {
 	if (
@@ -533,12 +556,52 @@ function _check(buffer, headers, options) {
 }
 
 export function normalizeSampleSize(sampleSize) {
-	// Accept odd caller input, but preserve valid caller-requested probe depth.
+	// `sampleSize` is an explicit caller-controlled tuning knob, not untrusted file input.
+	// Preserve valid caller-requested probe depth here; applications must bound attacker-derived option values themselves.
 	if (!Number.isFinite(sampleSize)) {
 		return reasonableDetectionSizeInBytes;
 	}
 
 	return Math.max(1, Math.trunc(sampleSize));
+}
+
+function readByobReaderWithSignal(reader, buffer, signal) {
+	if (signal === undefined) {
+		return reader.read(buffer);
+	}
+
+	signal.throwIfAborted();
+
+	return new Promise((resolve, reject) => {
+		const cleanup = () => {
+			signal.removeEventListener('abort', onAbort);
+		};
+
+		const onAbort = () => {
+			const abortReason = signal.reason;
+			cleanup();
+
+			(async () => {
+				try {
+					await reader.cancel(abortReason);
+				} catch {}
+			})();
+
+			reject(abortReason);
+		};
+
+		signal.addEventListener('abort', onAbort, {once: true});
+		(async () => {
+			try {
+				const result = await reader.read(buffer);
+				cleanup();
+				resolve(result);
+			} catch (error) {
+				cleanup();
+				reject(error);
+			}
+		})();
+	});
 }
 
 function normalizeMpegOffsetTolerance(mpegOffsetTolerance) {
@@ -752,7 +815,11 @@ export class FileTypeParser {
 		};
 	}
 
-	async fromTokenizer(tokenizer, detectionReentryCount = 0) {
+	createTokenizerFromWebStream(stream) {
+		return patchWebByobTokenizerClose(strtok3.fromWebStream(stream, this.getTokenizerOptions()));
+	}
+
+	async parseTokenizer(tokenizer, detectionReentryCount = 0) {
 		this.detectionReentryCount = detectionReentryCount;
 		const initialPosition = tokenizer.position;
 		// Iterate through all file-type detectors
@@ -782,6 +849,14 @@ export class FileTypeParser {
 		}
 	}
 
+	async fromTokenizer(tokenizer) {
+		try {
+			return await this.parseTokenizer(tokenizer);
+		} finally {
+			await tokenizer.close();
+		}
+	}
+
 	async fromBuffer(input) {
 		if (!(input instanceof Uint8Array || input instanceof ArrayBuffer)) {
 			throw new TypeError(`Expected the \`input\` argument to be of type \`Uint8Array\` or \`ArrayBuffer\`, got \`${typeof input}\``);
@@ -797,21 +872,15 @@ export class FileTypeParser {
 	}
 
 	async fromBlob(blob) {
+		this.options.signal?.throwIfAborted();
 		const tokenizer = strtok3.fromBlob(blob, this.getTokenizerOptions());
-		try {
-			return await this.fromTokenizer(tokenizer);
-		} finally {
-			await tokenizer.close();
-		}
+		return this.fromTokenizer(tokenizer);
 	}
 
 	async fromStream(stream) {
-		const tokenizer = strtok3.fromWebStream(stream, this.getTokenizerOptions());
-		try {
-			return await this.fromTokenizer(tokenizer);
-		} finally {
-			await tokenizer.close();
-		}
+		this.options.signal?.throwIfAborted();
+		const tokenizer = this.createTokenizerFromWebStream(stream);
+		return this.fromTokenizer(tokenizer);
 	}
 
 	async toDetectionStream(stream, options) {
@@ -822,7 +891,7 @@ export class FileTypeParser {
 		const reader = stream.getReader({mode: 'byob'});
 		try {
 			// Read the first chunk from the stream
-			const {value: chunk, done} = await reader.read(new Uint8Array(sampleSize));
+			const {value: chunk, done} = await readByobReaderWithSignal(reader, new Uint8Array(sampleSize), this.options.signal);
 			firstChunk = chunk;
 			if (!done && chunk) {
 				try {
@@ -859,6 +928,71 @@ export class FileTypeParser {
 		return newStream;
 	}
 
+	async detectGzip(tokenizer) {
+		if (this.gzipProbeDepth >= maximumNestedGzipProbeDepth) {
+			return {
+				ext: 'gz',
+				mime: 'application/gzip',
+			};
+		}
+
+		const gzipHandler = new GzipHandler(tokenizer);
+		const limitedInflatedStream = createByteLimitedReadableStream(gzipHandler.inflate(), maximumNestedGzipDetectionSizeInBytes);
+		const hasUnknownSize = hasUnknownFileSize(tokenizer);
+		let timeout;
+		let probeSignal;
+		let probeParser;
+		let compressedFileType;
+
+		if (hasUnknownSize) {
+			const timeoutController = new AbortController();
+			timeout = setTimeout(() => {
+				timeoutController.abort(new DOMException(`Operation timed out after ${unknownSizeGzipProbeTimeoutInMilliseconds} ms`, 'TimeoutError'));
+			}, unknownSizeGzipProbeTimeoutInMilliseconds);
+			probeSignal = this.options.signal === undefined
+				? timeoutController.signal
+				// eslint-disable-next-line n/no-unsupported-features/node-builtins
+				: AbortSignal.any([this.options.signal, timeoutController.signal]);
+			probeParser = new FileTypeParser({
+				...this.options,
+				signal: probeSignal,
+			});
+			probeParser.gzipProbeDepth = this.gzipProbeDepth + 1;
+		} else {
+			this.gzipProbeDepth++;
+		}
+
+		try {
+			compressedFileType = await (probeParser ?? this).fromStream(limitedInflatedStream);
+		} catch (error) {
+			if (
+				error?.name === 'AbortError'
+				&& probeSignal?.reason?.name !== 'TimeoutError'
+			) {
+				throw error;
+			}
+
+			// Timeout, decompression, or inner-detection failures are expected for non-tar gzip files.
+		} finally {
+			clearTimeout(timeout);
+			if (!hasUnknownSize) {
+				this.gzipProbeDepth--;
+			}
+		}
+
+		if (compressedFileType?.ext === 'tar') {
+			return {
+				ext: 'tar.gz',
+				mime: 'application/gzip',
+			};
+		}
+
+		return {
+			ext: 'gz',
+			mime: 'application/gzip',
+		};
+	}
+
 	check(header, options) {
 		return _check(this.buffer, header, options);
 	}
@@ -877,6 +1011,13 @@ export class FileTypeParser {
 		}
 
 		this.tokenizer = tokenizer;
+
+		if (hasUnknownFileSize(tokenizer)) {
+			await tokenizer.peekBuffer(this.buffer, {length: 3, mayBeLess: true});
+			if (this.check([0x1F, 0x8B, 0x8])) {
+				return this.detectGzip(tokenizer);
+			}
+		}
 
 		await tokenizer.peekBuffer(this.buffer, {length: 32, mayBeLess: true});
 
@@ -981,41 +1122,7 @@ export class FileTypeParser {
 		}
 
 		if (this.check([0x1F, 0x8B, 0x8])) {
-			if (this.gzipProbeDepth >= maximumNestedGzipProbeDepth) {
-				return {
-					ext: 'gz',
-					mime: 'application/gzip',
-				};
-			}
-
-			const gzipHandler = new GzipHandler(tokenizer);
-			const limitedInflatedStream = createByteLimitedReadableStream(gzipHandler.inflate(), maximumNestedGzipDetectionSizeInBytes);
-			let compressedFileType;
-			try {
-				this.gzipProbeDepth++;
-				compressedFileType = await this.fromStream(limitedInflatedStream);
-			} catch (error) {
-				if (error?.name === 'AbortError') {
-					throw error;
-				}
-
-				// Decompression or inner-detection failures are expected for non-tar gzip files.
-			} finally {
-				this.gzipProbeDepth--;
-			}
-
-			// We only need enough inflated bytes to confidently decide whether this is tar.gz.
-			if (compressedFileType?.ext === 'tar') {
-				return {
-					ext: 'tar.gz',
-					mime: 'application/gzip',
-				};
-			}
-
-			return {
-				ext: 'gz',
-				mime: 'application/gzip',
-			};
+			return this.detectGzip(tokenizer);
 		}
 
 		if (this.check([0x42, 0x5A, 0x68])) {
@@ -1076,7 +1183,7 @@ export class FileTypeParser {
 			}
 
 			this.detectionReentryCount++;
-			return this.fromTokenizer(tokenizer, this.detectionReentryCount); // Skip ID3 header, recursion
+			return this.parseTokenizer(tokenizer, this.detectionReentryCount); // Skip ID3 header, recursion
 		}
 
 		// Musepack, SV7

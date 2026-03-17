@@ -1,6 +1,7 @@
 import process from 'node:process';
 import os from 'node:os';
 import path from 'node:path';
+import http from 'node:http';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -10,6 +11,7 @@ import {deflateRawSync, gzipSync} from 'node:zlib';
 import test from 'ava';
 import {readableNoopStream} from 'noop-stream';
 import {Parser as ReadmeParser} from 'commonmark';
+import {fromFile} from 'strtok3';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
@@ -19,6 +21,7 @@ import {
 	fileTypeFromStream as fileTypeNodeFromStream,
 	fileTypeFromFile,
 	fileTypeFromBlob,
+	fileTypeFromTokenizer,
 	fileTypeStream,
 	supportedExtensions,
 	supportedMimeTypes,
@@ -567,6 +570,262 @@ test('.fileTypeFromStream() method - be able to abort operation', async t => {
 	abortController.abort(); // Abort asynchronous operation: reading from shortStream
 	const error = await t.throwsAsync(promiseFileType);
 	t.true(error instanceof strtok3.AbortError, 'Expect error te be an instanceof AbortError');
+});
+
+test('.fileTypeFromStream() method - rejects immediately when the Node.js signal is already aborted', async t => {
+	const stalledStream = new stream.PassThrough();
+	const abortController = new AbortController();
+	const timeoutMilliseconds = 200;
+	abortController.abort();
+	const error = await t.throwsAsync(Promise.race([
+		fileTypeNodeFromStream(stalledStream, {signal: abortController.signal}),
+		new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
+			}, timeoutMilliseconds);
+		}),
+	]));
+	stalledStream.destroy();
+	t.is(error.name, 'AbortError');
+});
+
+test('.fileTypeFromStream() cancels a Web byte stream after successful detection', async t => {
+	const jpegHeader = Buffer.from([0xFF, 0xD8, 0xFF, 0xDB]);
+	const filler = Buffer.alloc(64 * 1024);
+	const totalBytes = 4 * 1024 * 1024;
+	let bodyBytesSent = 0;
+	let responseClosed = false;
+	let interval;
+
+	const server = http.createServer((request, response) => {
+		response.on('close', () => {
+			responseClosed = true;
+			clearInterval(interval);
+		});
+		response.writeHead(200, {
+			'Content-Type': 'image/jpeg',
+			'Content-Length': String(totalBytes),
+		});
+		response.write(jpegHeader);
+		let sent = jpegHeader.length;
+		interval = setInterval(() => {
+			if (sent >= totalBytes) {
+				clearInterval(interval);
+				response.end();
+				return;
+			}
+
+			const chunkLength = Math.min(filler.length, totalBytes - sent);
+			sent += chunkLength;
+			bodyBytesSent += chunkLength;
+			response.write(filler.subarray(0, chunkLength));
+		}, 10);
+		interval.unref?.();
+	});
+
+	await new Promise(resolve => {
+		server.listen(0, '127.0.0.1', resolve);
+	});
+
+	try {
+		const {port} = server.address();
+		const response = await fetch(`http://127.0.0.1:${port}/image.jpg`);
+		const fileType = await fileTypeNodeFromStream(response.body);
+		t.deepEqual(fileType, {
+			ext: 'jpg',
+			mime: 'image/jpeg',
+		});
+		await new Promise(resolve => {
+			setTimeout(resolve, 80);
+		});
+
+		t.true(responseClosed);
+		t.true(bodyBytesSent < 128 * 1024);
+	} finally {
+		clearInterval(interval);
+		server.closeAllConnections?.();
+		server.close();
+	}
+});
+
+test('.fileTypeFromStream() destroys a Node.js stream after successful detection', async t => {
+	const jpegHeader = Buffer.from([0xFF, 0xD8, 0xFF, 0xDB]);
+	const filler = Buffer.alloc(64 * 1024);
+	const totalBytes = 4 * 1024 * 1024;
+	let bodyBytesSent = 0;
+	let requestAborted = false;
+	let responseClosed = false;
+	let interval;
+
+	const server = http.createServer((request, response) => {
+		request.on('aborted', () => {
+			requestAborted = true;
+		});
+		response.on('close', () => {
+			responseClosed = true;
+			clearInterval(interval);
+		});
+		response.writeHead(200, {
+			'Content-Type': 'image/jpeg',
+			'Content-Length': String(totalBytes),
+		});
+		response.write(jpegHeader);
+		let sent = jpegHeader.length;
+		interval = setInterval(() => {
+			if (sent >= totalBytes) {
+				clearInterval(interval);
+				response.end();
+				return;
+			}
+
+			const chunkLength = Math.min(filler.length, totalBytes - sent);
+			sent += chunkLength;
+			bodyBytesSent += chunkLength;
+			response.write(filler.subarray(0, chunkLength));
+		}, 10);
+		interval.unref?.();
+	});
+
+	await new Promise(resolve => {
+		server.listen(0, '127.0.0.1', resolve);
+	});
+
+	try {
+		const {port} = server.address();
+		const response = await new Promise((resolve, reject) => {
+			http.get(`http://127.0.0.1:${port}/image.jpg`, resolve).on('error', reject);
+		});
+		const fileType = await fileTypeNodeFromStream(response);
+		t.deepEqual(fileType, {
+			ext: 'jpg',
+			mime: 'image/jpeg',
+		});
+		await new Promise(resolve => {
+			setTimeout(resolve, 80);
+		});
+
+		t.true(requestAborted);
+		t.true(responseClosed);
+		t.true(response.destroyed);
+		t.true(bodyBytesSent < 128 * 1024);
+	} finally {
+		clearInterval(interval);
+		server.closeAllConnections?.();
+		server.close();
+	}
+});
+
+test('.fileTypeStream() method - be able to abort stalled Node.js stream detection', async t => {
+	class StalledStream extends stream.PassThrough {
+		constructor() {
+			super();
+			this.destroyCallCount = 0;
+		}
+
+		destroy(error) {
+			this.destroyCallCount++;
+			return super.destroy(error);
+		}
+	}
+
+	const stalledStream = new StalledStream();
+	const abortController = new AbortController();
+	const timeoutMilliseconds = 400;
+	setTimeout(() => {
+		abortController.abort();
+	}, 50);
+	const error = await t.throwsAsync(Promise.race([
+		fileTypeStream(stalledStream, {signal: abortController.signal}),
+		new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
+			}, timeoutMilliseconds);
+		}),
+	]));
+	t.is(error.name, 'AbortError');
+	t.true(stalledStream.destroyed);
+	t.is(stalledStream.destroyCallCount, 1);
+});
+
+test('.fileTypeStream() method - be able to abort stalled Web stream detection', async t => {
+	const stalledStream = new ReadableStream({
+		type: 'bytes',
+		pull() {
+			return new Promise(() => {});
+		},
+	});
+	const abortController = new AbortController();
+	const timeoutMilliseconds = 400;
+	setTimeout(() => {
+		abortController.abort();
+	}, 50);
+	const error = await t.throwsAsync(Promise.race([
+		fileTypeStream(stalledStream, {signal: abortController.signal}),
+		new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
+			}, timeoutMilliseconds);
+		}),
+	]));
+	t.is(error.name, 'AbortError');
+});
+
+test('.fileTypeFromStream() returns gzip for a stalled unknown-size Node.js gzip stream', async t => {
+	const gzipPrefix = Uint8Array.from([31, 139, 8, 8, 137, 83, 29, 82, 0, 11]);
+	const timeoutMilliseconds = 300;
+
+	class PrefixThenStallStream extends stream.Readable {
+		constructor() {
+			super();
+			this.sent = false;
+		}
+
+		_read() {
+			if (this.sent) {
+				return;
+			}
+
+			this.sent = true;
+			this.push(gzipPrefix);
+		}
+	}
+
+	const type = await Promise.race([
+		fileTypeNodeFromStream(new PrefixThenStallStream()),
+		new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
+			}, timeoutMilliseconds);
+		}),
+	]);
+	assertGzipFileType(t, type);
+});
+
+test('.fileTypeFromStream() returns gzip for a stalled unknown-size Web gzip stream', async t => {
+	const gzipPrefix = Uint8Array.from([31, 139, 8, 8, 137, 83, 29, 82, 0, 11]);
+	const timeoutMilliseconds = 300;
+	const stalledStream = new ReadableStream({
+		type: 'bytes',
+		pull(controller) {
+			if (this.sent) {
+				return new Promise(() => {});
+			}
+
+			this.sent = true;
+			controller.enqueue(gzipPrefix);
+			return new Promise(() => {});
+		},
+	});
+
+	const type = await Promise.race([
+		new FileTypeParser().fromStream(stalledStream),
+		new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
+			}, timeoutMilliseconds);
+		}),
+	]);
+	assertGzipFileType(t, type);
 });
 
 test('supportedExtensions.has', t => {
@@ -1959,6 +2218,30 @@ test('fileTypeFromTokenizer should return undefined when a custom detector chang
 
 	const result = await parser.fromTokenizer(strtok3.fromBuffer(uint8ArrayContent));
 	t.is(result, undefined);
+});
+
+test('fileTypeFromTokenizer should close the tokenizer it consumes', async t => {
+	const tokenizer = await fromFile(path.join(__dirname, 'fixture', 'fixture.jpg'));
+
+	const result = await fileTypeFromTokenizer(tokenizer);
+
+	t.deepEqual(result, {
+		ext: 'jpg',
+		mime: 'image/jpeg',
+	});
+	t.is(tokenizer.fileHandle.fd, -1);
+});
+
+test('FileTypeParser.fromTokenizer should close the tokenizer it consumes', async t => {
+	const tokenizer = await fromFile(path.join(__dirname, 'fixture', 'fixture.jpg'));
+
+	const result = await new FileTypeParser().fromTokenizer(tokenizer);
+
+	t.deepEqual(result, {
+		ext: 'jpg',
+		mime: 'image/jpeg',
+	});
+	t.is(tokenizer.fileHandle.fd, -1);
 });
 
 test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance option', async t => {
@@ -6636,6 +6919,13 @@ test('fileTypeFromFile falls back to zip on invalid ZIP descriptor signature', a
 	}));
 
 	assertZipFileType(t, await fileTypeFromFile(filePath));
+});
+
+test('Known-size inputs fall back to zip when ZIP descriptor scanning finds a false positive', async t => {
+	const zip = fs.readFileSync(path.join(__dirname, 'fixture', 'fixture.3mf')).subarray(0, 322);
+	zip[250] = 28;
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
 });
 
 test('Detects EPUB when the ZIP entry count is at the limit', async t => {
