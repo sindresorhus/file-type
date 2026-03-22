@@ -589,6 +589,26 @@ test('.fileTypeFromStream() method - rejects immediately when the Node.js signal
 	t.is(error.name, 'AbortError');
 });
 
+test('Does not falsely detect DWG for non-digit version strings like scientific notation', async t => {
+	const buffer = Buffer.from('AC1e+3<html><script>alert(1)</script>');
+	t.is(await fileTypeFromBuffer(buffer), undefined);
+});
+
+test('ID3 sync-safe integer masks MSBs on all bytes to prevent type confusion', async t => {
+	// Byte 2 has MSB set (0x80), making the buggy parser compute 16384 instead of 0.
+	// JPEG magic at offset 16394 would fool the old parser into detecting JPEG.
+	const buffer = new Uint8Array(17_000);
+	// ID3 header: "ID3" + version 3.0 + no flags + size [0x00, 0x00, 0x80, 0x00]
+	buffer.set([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00]);
+	// Place JPEG magic at position 16394 (where the buggy parser would look)
+	buffer[16_394] = 0xFF;
+	buffer[16_395] = 0xD8;
+	buffer[16_396] = 0xFF;
+	// With the fix, the parser sees size=0 and detects at position 10 (no JPEG there).
+	const result = await fileTypeFromBuffer(buffer);
+	t.not(result?.mime, 'image/jpeg');
+});
+
 test('.fileTypeFromStream() cancels a Web byte stream after successful detection', async t => {
 	const jpegHeader = Buffer.from([0xFF, 0xD8, 0xFF, 0xDB]);
 	const filler = Buffer.alloc(64 * 1024);
@@ -2944,7 +2964,7 @@ test('Repeated unknown EBML Web stream probing stays cumulatively bounded', asyn
 
 	const type = await new FileTypeParser().fromStream(stream);
 	t.is(type, undefined);
-	t.true(state.emittedBytes <= maximumEbmlScanBudgetInBytes + (2 * chunkSize));
+	t.true(state.emittedBytes <= maximumEbmlScanBudgetInBytes + (5 * chunkSize));
 });
 
 test('Repeated unknown EBML Node streams still detect WebM below the cumulative limit', async t => {

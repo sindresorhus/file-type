@@ -55,6 +55,6 @@ ID3 UINT32 sync-safe tokenizer token.
 28 bits (representing up to 256MB) integer, the msb is 0 to avoid "false syncsignals".
 */
 export const uint32SyncSafeToken = {
-	get: (buffer, offset) => (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2]) << 7) | ((buffer[offset + 1]) << 14) | ((buffer[offset]) << 21),
+	get: (buffer, offset) => (buffer[offset + 3] & 0x7F) | ((buffer[offset + 2] & 0x7F) << 7) | ((buffer[offset + 1] & 0x7F) << 14) | ((buffer[offset] & 0x7F) << 21),
 	len: 4,
 };

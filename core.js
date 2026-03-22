@@ -58,25 +58,13 @@ const recoverableZipErrorCodes = new Set([
 
 class ParserHardLimitError extends Error {}
 
-function patchWebByobTokenizerClose(tokenizer) {
-	const streamReader = tokenizer?.streamReader;
-	if (streamReader?.constructor?.name !== 'WebStreamByobReader') {
-		return tokenizer;
-	}
-
-	const {reader} = streamReader;
-	const cancelAndRelease = async () => {
-		await reader.cancel();
-		reader.releaseLock();
-	};
-
-	streamReader.close = cancelAndRelease;
-	streamReader.abort = async () => {
-		streamReader.interrupted = true;
-		await cancelAndRelease();
-	};
-
-	return tokenizer;
+// Wrap stream in an identity TransformStream to avoid BYOB readers.
+// Node.js has a bug where calling controller.close() inside a BYOB stream's
+// pull() callback does not resolve pending reader.read() calls, causing
+// permanent hangs on streams shorter than the requested read size.
+// Using a default (non-BYOB) reader via TransformStream avoids this.
+function toDefaultStream(stream) {
+	return stream.pipeThrough(new TransformStream());
 }
 
 function getSafeBound(value, maximum, reason) {
@@ -816,7 +804,7 @@ export class FileTypeParser {
 	}
 
 	createTokenizerFromWebStream(stream) {
-		return patchWebByobTokenizerClose(strtok3.fromWebStream(stream, this.getTokenizerOptions()));
+		return strtok3.fromWebStream(toDefaultStream(stream), this.getTokenizerOptions());
 	}
 
 	async parseTokenizer(tokenizer, detectionReentryCount = 0) {
@@ -1942,7 +1930,7 @@ export class FileTypeParser {
 
 		if (this.checkString('AC')) {
 			const version = new Token.StringType(4, 'latin1').get(this.buffer, 2);
-			if (version.match('^d*') && version >= 1000 && version <= 1050) {
+			if (/^\d+$/.test(version) && version >= 1000 && version <= 1050) {
 				return {
 					ext: 'dwg',
 					mime: 'image/vnd.dwg',
