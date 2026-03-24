@@ -14,23 +14,23 @@
 	"exports": {
 		".": {
 			"node": {
-				"types": "./index.d.ts",
-				"import": "./index.js",
-				"module-sync": "./index.js"
+				"types": "./source/index.d.ts",
+				"import": "./source/index.js",
+				"module-sync": "./source/index.js"
 			},
 			"default": {
-				"types": "./core.d.ts",
-				"import": "./core.js",
-				"module-sync": "./core.js"
+				"types": "./source/core.d.ts",
+				"import": "./source/core.js",
+				"module-sync": "./source/core.js"
 			}
 		},
 		"./core": {
-			"types": "./core.d.ts",
-			"default": "./core.js"
+			"types": "./source/core.d.ts",
+			"default": "./source/core.js"
 		},
 		"./node": {
-			"types": "./index.d.ts",
-			"default": "./index.js"
+			"types": "./source/index.d.ts",
+			"default": "./source/index.js"
 		}
 	},
 	"sideEffects": false,
@@ -41,12 +41,7 @@
 		"test": "xo && ava && tsd"
 	},
 	"files": [
-		"index.js",
-		"index.d.ts",
-		"core.js",
-		"core.d.ts",
-		"supported.js",
-		"util.js"
+		"source"
 	],
 	"keywords": [
 		"mime",
@@ -286,5 +281,6 @@
 	},
 	"ava": {
 		"serial": true
-	}
+	},
+	"types": "source/index.d.ts"
 }

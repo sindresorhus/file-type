@@ -15,7 +15,7 @@ import {fromFile} from 'strtok3';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
-import {stringToBytes} from './util.js';
+import {stringToBytes} from './source/tokens.js';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream as fileTypeNodeFromStream,
@@ -26,7 +26,7 @@ import {
 	supportedExtensions,
 	supportedMimeTypes,
 	FileTypeParser,
-} from './index.js';
+} from './source/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -869,13 +869,21 @@ test('validate the input argument type', async t => {
 });
 
 test('validate the repo has all extensions and mimes in sync', t => {
-	// File: core.js (base truth)
+	// File: source/*.js (base truth)
 	function readIndexJS() {
-		const core = fs.readFileSync('core.js', {encoding: 'utf8'});
-		const extensionArray = core.match(/(?<=ext:\s')(.*)(?=',)/g);
-		const mimeArray = core.match(/(?<=mime:\s')(.*)(?=')/g);
-		const extensions = new Set(extensionArray);
-		const mimes = new Set(mimeArray);
+		const sourceFiles = ['source/core.js', 'source/detectors/zip.js', 'source/detectors/ebml.js', 'source/detectors/png.js', 'source/detectors/asf.js'];
+		const extensions = new Set();
+		const mimes = new Set();
+		for (const file of sourceFiles) {
+			const content = fs.readFileSync(file, {encoding: 'utf8'});
+			for (const extension of content.match(/(?<=ext:\s')(.*)(?=',)/g) ?? []) {
+				extensions.add(extension);
+			}
+
+			for (const mime of content.match(/(?<=mime:\s')(.*)(?=')/g) ?? []) {
+				mimes.add(mime);
+			}
+		}
 
 		return {
 			exts: extensions,
@@ -3172,7 +3180,7 @@ test('fileTypeFromFile returns undefined for FIFOs without blocking', async t =>
 
 	const filePath = await createTemporaryFifo(t);
 	const script = `
-		import {fileTypeFromFile} from ${JSON.stringify(new URL('index.js', import.meta.url).href)};
+		import {fileTypeFromFile} from ${JSON.stringify(new URL('source/index.js', import.meta.url).href)};
 		const type = await fileTypeFromFile(${JSON.stringify(filePath)});
 		console.log(JSON.stringify(type));
 	`;
@@ -3214,7 +3222,7 @@ test('fileTypeFromFile returns undefined when the path becomes a FIFO before ope
 			await fs.symlink(fifoPath, linkPath);
 			return originalOpen(...arguments_);
 		};
-		const {fileTypeFromFile} = await import(${JSON.stringify(new URL('index.js', import.meta.url).href)});
+		const {fileTypeFromFile} = await import(${JSON.stringify(new URL('source/index.js', import.meta.url).href)});
 		const type = await fileTypeFromFile(linkPath);
 		console.log(JSON.stringify(type));
 	`;
@@ -3391,7 +3399,7 @@ test('fileTypeFromFile does not abort on malformed [Content_Types].xml entries l
 		uncompressedSize: 0x80_00_00_00,
 	});
 	const filePath = await createTemporaryTestFile(t, malformedZip);
-	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const script = `import {fileTypeFromFile} from './source/index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
 	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
 		cwd: __dirname,
 		encoding: 'utf8',
@@ -3413,7 +3421,7 @@ test('fileTypeFromFile does not throw on sparse [Content_Types].xml entries beyo
 		uncompressedSize: compressedSize,
 	});
 	const filePath = await createSparseTemporaryTestFile(t, malformedZip, malformedZip.length + compressedSize);
-	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const script = `import {fileTypeFromFile} from './source/index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
 	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
 		cwd: __dirname,
 		encoding: 'utf8',
@@ -5202,7 +5210,7 @@ test('Does not classify partial deflated ZIP mimetype data when its declared siz
 test('fileTypeFromFile does not abort on malformed ZIP mimetype entries larger than Int32 reads', async t => {
 	const malformedZip = createOversizedZipMimetypeEntry();
 	const filePath = await createTemporaryTestFile(t, malformedZip);
-	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const script = `import {fileTypeFromFile} from './source/index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
 	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
 		cwd: __dirname,
 		encoding: 'utf8',
@@ -5224,7 +5232,7 @@ test('fileTypeFromFile does not throw on sparse ZIP mimetype entries beyond the 
 		uncompressedSize: compressedSize,
 	});
 	const filePath = await createSparseTemporaryTestFile(t, malformedZip, malformedZip.length + compressedSize);
-	const script = `import {fileTypeFromFile} from './index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
+	const script = `import {fileTypeFromFile} from './source/index.js'; console.log(JSON.stringify(await fileTypeFromFile(${JSON.stringify(filePath)})));`;
 	const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
 		cwd: __dirname,
 		encoding: 'utf8',
