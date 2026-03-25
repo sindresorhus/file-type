@@ -474,6 +474,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`jpx`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jxl`](https://en.wikipedia.org/wiki/JPEG_XL) - JPEG XL image format
 - [`jxr`](https://en.wikipedia.org/wiki/JPEG_XR) - Joint Photographic Experts Group extended range
+- [`key`](https://en.wikipedia.org/wiki/Keynote_(presentation_software)) - Apple Keynote presentation
 - [`ktx`](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) - OpenGL and OpenGL ES textures
 - [`lnk`](https://en.wikipedia.org/wiki/Shortcut_%28computing%29#Microsoft_Windows) - Microsoft Windows file shortcut
 - [`lz`](https://en.wikipedia.org/wiki/Lzip) - Archive file
@@ -500,6 +501,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`mxf`](https://en.wikipedia.org/wiki/Material_Exchange_Format) - Material Exchange Format
 - [`nef`](https://www.nikonusa.com/en/learn-and-explore/a/products-and-innovation/nikon-electronic-format-nef.html) - Nikon Electronic Format image file
 - [`nes`](https://fileinfo.com/extension/nes) - Nintendo NES ROM
+- [`numbers`](https://en.wikipedia.org/wiki/Numbers_(spreadsheet)) - Apple Numbers spreadsheet
 - [`odg`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for drawing
 - [`odp`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for presentations
 - [`ods`](https://en.wikipedia.org/wiki/OpenDocument) - OpenDocument for spreadsheets
@@ -516,6 +518,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`otp`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for presentations
 - [`ots`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for spreadsheets
 - [`ott`](https://en.wikipedia.org/wiki/OpenDocument_technical_specification#Templates) - OpenDocument template for word processing
+- [`pages`](https://en.wikipedia.org/wiki/Pages_(word_processor)) - Apple Pages document
 - [`parquet`](https://en.wikipedia.org/wiki/Apache_Parquet) - Apache Parquet
 - [`pcap`](https://wiki.wireshark.org/Development/LibpcapFileFormat) - Libpcap File Format
 - [`pdf`](https://en.wikipedia.org/wiki/Portable_Document_Format) - Portable Document Format

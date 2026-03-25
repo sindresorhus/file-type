@@ -3194,6 +3194,76 @@ test('OOXML directory heuristic detects 3mf when [Content_Types].xml is beyond t
 	});
 });
 
+test('iWork: detects Keynote (.key)', async t => {
+	const expected = {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/MasterSlide.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: detects Keynote (.key) with numbered MasterSlide', async t => {
+	const expected = {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/MasterSlide-2.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: detects Numbers (.numbers)', async t => {
+	const expected = {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/Tables/Table-1.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: detects Pages (.pages)', async t => {
+	const expected = {ext: 'pages', mime: 'application/vnd.apple.pages'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/CalculationEngine.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: detects Numbers (.numbers) with multiple table entries', async t => {
+	const expected = {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/Tables/Table-1.iwa'}),
+		createZipLocalFile({filename: 'Index/Tables/Tile-1.iwa'}),
+		createZipLocalFile({filename: 'Metadata/DocumentIdentifier'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: Keynote takes priority when both MasterSlide and Tables entries exist', async t => {
+	const expected = {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+		createZipLocalFile({filename: 'Index/MasterSlide.iwa'}),
+		createZipLocalFile({filename: 'Index/Tables/Table-1.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('iWork: does not detect iWork without Index/Document.iwa', async t => {
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/MasterSlide.iwa'}),
+	]);
+	await assertZipTypeFromBufferAndChunkedStream(t, zip);
+});
+
 test('Does not use OOXML directory fallback when [Content_Types].xml parses but remains unresolved', async t => {
 	const spreadsheetEntry = createZipLocalFile({
 		filename: 'xl/workbook.bin',

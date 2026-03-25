@@ -139,6 +139,47 @@ function canReadZipEntryForDetection(zipHeader, maximumSize = maximumZipEntrySiz
 	return true;
 }
 
+// -- iWork helpers --
+
+function createIWorkZipDetectionState() {
+	return {
+		hasDocumentEntry: false,
+		hasMasterSlideEntry: false,
+		hasTablesEntry: false,
+	};
+}
+
+function updateIWorkZipDetectionStateFromFilename(iWorkState, filename) {
+	if (filename === 'Index/Document.iwa') {
+		iWorkState.hasDocumentEntry = true;
+	}
+
+	if (filename.startsWith('Index/MasterSlide')) {
+		iWorkState.hasMasterSlideEntry = true;
+	}
+
+	if (filename.startsWith('Index/Tables/')) {
+		iWorkState.hasTablesEntry = true;
+	}
+}
+
+function getIWorkFileTypeFromZipEntries(iWorkState) {
+	if (!iWorkState.hasDocumentEntry) {
+		return;
+	}
+
+	if (iWorkState.hasMasterSlideEntry) {
+		return {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	}
+
+	if (iWorkState.hasTablesEntry) {
+		return {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
+	}
+
+	// Pages has no unique secondary marker; Index/Document.iwa alone is the Pages signature.
+	return {ext: 'pages', mime: 'application/vnd.apple.pages'};
+}
+
 // -- OpenXML helpers --
 
 function getFileTypeFromMimeType(mimeType) {
@@ -473,10 +514,18 @@ ZipHandler.prototype.unzip = async function (fileCallback) {
 export async function detectZip(tokenizer) {
 	let fileType;
 	const openXmlState = createOpenXmlZipDetectionState();
+	const iWorkState = createIWorkZipDetectionState();
 
 	try {
 		await new ZipHandler(tokenizer).unzip(zipHeader => {
 			updateOpenXmlZipDetectionStateFromFilename(openXmlState, zipHeader.filename);
+			updateIWorkZipDetectionStateFromFilename(iWorkState, zipHeader.filename);
+
+			// Early exit for Keynote or Numbers when markers are definitive
+			if (iWorkState.hasDocumentEntry && (iWorkState.hasMasterSlideEntry || iWorkState.hasTablesEntry)) {
+				fileType = getIWorkFileTypeFromZipEntries(iWorkState);
+				return {stop: true};
+			}
 
 			const isOpenXmlContentTypesEntry = zipHeader.filename === '[Content_Types].xml';
 			const openXmlFileTypeFromEntries = getOpenXmlFileTypeFromZipEntries(openXmlState);
@@ -575,7 +624,7 @@ export async function detectZip(tokenizer) {
 		}
 	}
 
-	return fileType ?? getOpenXmlFileTypeFromZipEntries(openXmlState) ?? {
+	return fileType ?? getOpenXmlFileTypeFromZipEntries(openXmlState) ?? getIWorkFileTypeFromZipEntries(iWorkState) ?? {
 		ext: 'zip',
 		mime: 'application/zip',
 	};

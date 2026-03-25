@@ -181,6 +181,9 @@ export const extensions = [
 	'tar.gz',
 	'reg',
 	'dat',
+	'key',
+	'numbers',
+	'pages',
 ];
 
 export const mimeTypes = [
@@ -359,4 +362,7 @@ export const mimeTypes = [
 	'application/x-ms-regedit',
 	'application/x-ft-windows-registry-hive',
 	'application/x-jmp-data',
+	'application/vnd.apple.keynote',
+	'application/vnd.apple.numbers',
+	'application/vnd.apple.pages',
 ];

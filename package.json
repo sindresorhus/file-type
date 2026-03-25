@@ -243,7 +243,10 @@
 		"ppsx",
 		"tar.gz",
 		"reg",
-		"dat"
+		"dat",
+		"key",
+		"numbers",
+		"pages"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.4.1",
