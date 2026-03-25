@@ -1,10 +1,8 @@
-import {createReadStream} from 'node:fs';
-import {Readable} from 'node:stream';
 import {ReadableStream as NodeReadableStream} from 'node:stream/web';
 import {expectType} from 'tsd';
-import {fromFile} from 'strtok3';
 import {
 	type FileTypeResult as FileTypeResultBrowser,
+	type AnyWebReadableByteStreamWithFileType,
 } from './core.js';
 import {
 	fileTypeFromBlob,
@@ -13,28 +11,34 @@ import {
 	fileTypeFromStream,
 	fileTypeStream,
 	type FileTypeResult,
-	type ReadableStreamWithFileType,
 	FileTypeParser,
 } from './index.js';
 
-// `fileTypeStream`: accepts options merged from StreamOptions & FileTypeOptions
+// `fileTypeStream`: accepts StreamOptions & FileTypeOptions
 (async () => {
-	const stream = createReadStream('myFile');
-	expectType<ReadableStreamWithFileType>(await fileTypeStream(stream, {sampleSize: 256, customDetectors: []}));
+	const webStream = new ReadableStream<Uint8Array>();
+	expectType<AnyWebReadableByteStreamWithFileType>(await fileTypeStream(webStream, {sampleSize: 256}));
+	expectType<AnyWebReadableByteStreamWithFileType>(await fileTypeStream(webStream, {sampleSize: 256, customDetectors: []}));
+	expectType<AnyWebReadableByteStreamWithFileType>(await fileTypeStream(webStream, {signal: AbortSignal.timeout(1000)}));
 })();
 
-// `FileTypeParser`: tests generic input types and mixed options
+// `FileTypeParser`: tests generic input types and options
 (async () => {
-	const fileTypeParser = new FileTypeParser({customDetectors: []});
-	const nodeStream = new Readable();
+	const fileTypeParser = new FileTypeParser({customDetectors: [], signal: AbortSignal.timeout(1000)});
+	const fileTypeParserWithMpeg = new FileTypeParser({mpegOffsetTolerance: 10});
 	const webStream = new ReadableStream<Uint8Array>();
 	const nodeWebStream = new NodeReadableStream<Uint8Array>();
 
-	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(nodeStream));
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(webStream));
 	expectType<FileTypeResult | undefined>(await fileTypeParser.fromStream(nodeWebStream));
 
-	expectType<ReadableStreamWithFileType>(await fileTypeParser.toDetectionStream(nodeStream, {sampleSize: 256, customDetectors: []}));
+	expectType<AnyWebReadableByteStreamWithFileType>(await fileTypeParser.toDetectionStream(webStream, {sampleSize: 256}));
+})();
+
+// `fileTypeFromStream`: accepts FileTypeOptions
+(async () => {
+	const webStream = new ReadableStream<Uint8Array>();
+	expectType<FileTypeResult | undefined>(await fileTypeFromStream(webStream, {signal: AbortSignal.timeout(1000)}));
 })();
 
 // Test that Blob overload returns browser-specific result

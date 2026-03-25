@@ -54,52 +54,6 @@ console.log(await fileTypeFromBuffer(buffer));
 Determine file type from a stream:
 
 ```js
-import fs from 'node:fs';
-import {fileTypeFromStream} from 'file-type';
-
-const stream = fs.createReadStream('Unicorn.mp4');
-
-console.log(await fileTypeFromStream(stream));
-//=> {ext: 'mp4', mime: 'video/mp4'}
-```
-
-The stream method can also be used to read from a remote location:
-
-```js
-import got from 'got';
-import {fileTypeFromStream} from 'file-type';
-
-const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
-
-const stream = got.stream(url);
-
-console.log(await fileTypeFromStream(stream));
-//=> {ext: 'jpg', mime: 'image/jpeg'}
-```
-
-Another stream example:
-
-```js
-import stream from 'node:stream';
-import fs from 'node:fs';
-import crypto from 'node:crypto';
-import {fileTypeStream} from 'file-type';
-
-const read = fs.createReadStream('encrypted.enc');
-const decipher = crypto.createDecipheriv(alg, key, iv);
-
-const streamWithFileType = await fileTypeStream(stream.pipeline(read, decipher));
-
-console.log(streamWithFileType.fileType);
-//=> {ext: 'mov', mime: 'video/quicktime'}
-
-const write = fs.createWriteStream(`decrypted.${streamWithFileType.fileType.ext}`);
-streamWithFileType.pipe(write);
-```
-
-### Browser
-
-```js
 import {fileTypeFromStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
@@ -161,10 +115,6 @@ The file path to parse.
 
 Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
-If the engine is Node.js, this may also be a [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable).
-
-Direct support for Node.js streams will be dropped in the future, when Node.js streams can be converted to Web streams (see [`toWeb()`](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options)).
-
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
 Returns a `Promise` for an object with the detected file type:
@@ -176,9 +126,12 @@ Or `undefined` when there is no match.
 
 #### stream
 
-Type: [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [Node.js `stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+Type: [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
 
 A readable stream representing file data.
+
+> [!TIP]
+> If you have a Node.js `stream.Readable`, convert it with [`Readable.toWeb()`](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options).
 
 ### fileTypeFromBlob(blob, options)
 
@@ -283,11 +236,11 @@ Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
 
-**Note:** When using Node.js, a `stream.Readable` may be provided as well.
+#### webStream
 
-#### readableStream
+Type: [Web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
 
-Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
+The input stream.
 
 #### options
 
@@ -305,24 +258,17 @@ The sample size in bytes.
 #### Example
 
 ```js
-import got from 'got';
 import {fileTypeStream} from 'file-type';
 
 const url = 'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg';
 
-const stream1 = got.stream(url);
-const stream2 = await fileTypeStream(stream1, {sampleSize: 1024});
+const response = await fetch(url);
+const stream = await fileTypeStream(response.body, {sampleSize: 1024});
 
-if (stream2.fileType?.mime === 'image/jpeg') {
-	// stream2 can be used to stream the JPEG image (from the very beginning of the stream)
+if (stream.fileType?.mime === 'image/jpeg') {
+	// stream can be used to stream the JPEG image (from the very beginning of the stream)
 }
 ```
-
-#### readableStream
-
-Type: [`stream.Readable`](https://nodejs.org/api/stream.html#stream_class_stream_readable)
-
-The input stream.
 
 ### supportedExtensions
 

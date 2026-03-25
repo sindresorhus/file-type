@@ -5,6 +5,7 @@ Primary entry point, Node.js specific entry point is index.js
 import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
 import {GzipHandler} from '@tokenizer/inflate';
+import {concatUint8Arrays} from 'uint8array-extras';
 import {
 	stringToBytes,
 	tarHeaderChecksumMatches,
@@ -70,43 +71,25 @@ function toDefaultStream(stream) {
 	return stream.pipeThrough(new TransformStream());
 }
 
-function readByobReaderWithSignal(reader, buffer, signal) {
+function readWithSignal(reader, signal) {
 	if (signal === undefined) {
-		return reader.read(buffer);
+		return reader.read();
 	}
 
 	signal.throwIfAborted();
 
-	return new Promise((resolve, reject) => {
-		const cleanup = () => {
-			signal.removeEventListener('abort', onAbort);
-		};
-
-		const onAbort = () => {
-			const abortReason = signal.reason;
-			cleanup();
-
-			(async () => {
+	return Promise.race([
+		reader.read(),
+		new Promise((_resolve, reject) => {
+			signal.addEventListener('abort', async () => {
 				try {
-					await reader.cancel(abortReason);
+					await reader.cancel(signal.reason);
 				} catch {}
-			})();
 
-			reject(abortReason);
-		};
-
-		signal.addEventListener('abort', onAbort, {once: true});
-		(async () => {
-			try {
-				const result = await reader.read(buffer);
-				cleanup();
-				resolve(result);
-			} catch (error) {
-				cleanup();
-				reject(error);
-			}
-		})();
-	});
+				reject(signal.reason);
+			}, {once: true});
+		}),
+	]);
 }
 
 function createByteLimitedReadableStream(stream, maximumBytes) {
@@ -275,40 +258,49 @@ export class FileTypeParser {
 	}
 
 	async toDetectionStream(stream, options) {
+		this.options.signal?.throwIfAborted();
 		const sampleSize = normalizeSampleSize(options?.sampleSize ?? reasonableDetectionSizeInBytes);
 		let detectedFileType;
-		let firstChunk;
 
-		const reader = stream.getReader({mode: 'byob'});
+		const reader = stream.getReader();
+		const chunks = [];
+		let totalSize = 0;
+
 		try {
-			// Read the first chunk from the stream
-			const {value: chunk, done} = await readByobReaderWithSignal(reader, new Uint8Array(sampleSize), this.options.signal);
-			firstChunk = chunk;
-			if (!done && chunk) {
-				try {
-					// Attempt to detect the file type from the chunk
-					detectedFileType = await this.fromBuffer(chunk.subarray(0, sampleSize));
-				} catch (error) {
-					if (!(error instanceof strtok3.EndOfStreamError)) {
-						throw error; // Re-throw non-EndOfStreamError
-					}
-
-					detectedFileType = undefined;
+			while (totalSize < sampleSize) {
+				const {value, done} = await readWithSignal(reader, this.options.signal);
+				if (done || !value) {
+					break;
 				}
-			}
 
-			firstChunk = chunk;
+				chunks.push(value);
+				totalSize += value.length;
+			}
 		} finally {
-			reader.releaseLock(); // Ensure the reader is released
+			reader.releaseLock();
 		}
 
-		// Create a new ReadableStream to manage locking issues
+		if (totalSize > 0) {
+			const sample = chunks.length === 1 ? chunks[0] : concatUint8Arrays(chunks);
+			try {
+				detectedFileType = await this.fromBuffer(sample.subarray(0, sampleSize));
+			} catch (error) {
+				if (!(error instanceof strtok3.EndOfStreamError)) {
+					throw error;
+				}
+
+				detectedFileType = undefined;
+			}
+		}
+
+		// Prepend collected chunks and pipe the rest through
 		const transformStream = new TransformStream({
-			async start(controller) {
-				controller.enqueue(firstChunk); // Enqueue the initial chunk
+			start(controller) {
+				for (const chunk of chunks) {
+					controller.enqueue(chunk);
+				}
 			},
 			transform(chunk, controller) {
-				// Pass through the chunks without modification
 				controller.enqueue(chunk);
 			},
 		});

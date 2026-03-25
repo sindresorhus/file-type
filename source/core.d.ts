@@ -3,7 +3,7 @@ Typings for primary entry point, Node.js specific typings can be found in index.
 */
 
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
-import type {ITokenizer, AnyWebByteStream} from 'strtok3';
+import type {ITokenizer} from 'strtok3';
 
 /**
 Either the Node.js ReadableStream or the `lib.dom.d.ts` ReadableStream.
@@ -41,11 +41,13 @@ Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/e
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
+If you have a Node.js `stream.Readable`, convert it with [`Readable.toWeb()`](https://nodejs.org/api/stream.html#streamreadabletowebstreamreadable-options).
+
 @param stream - A [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) streaming a file to examine.
 @param options - Options to override default behavior.
 @returns A `Promise` for an object with the detected file type, or `undefined` when there is no match.
 */
-export function fileTypeFromStream(stream: AnyWebByteStream, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
+export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
@@ -190,6 +192,11 @@ export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
 
 	/**
+	An `AbortSignal` to cancel the detection.
+	*/
+	signal?: AbortSignal;
+
+	/**
 	Specifies the byte tolerance for locating the first MPEG audio frame (e.g. `.mp1`, `.mp2`, `.mp3`, `.aac`).
 
 	Allows detection to handle slight sync offsets between the expected and actual frame start. Common in malformed or incorrectly muxed files, which, while technically invalid, do occur in the wild.
@@ -212,14 +219,14 @@ export type AnyWebReadableByteStreamWithFileType = AnyWebReadableStream<Uint8Arr
 /**
 Workaround for using `bundler` as the module-resolution in TypeScript.
 */
-export function fileTypeFromFile(filePath: string, options?: {customDetectors?: Iterable<Detector>}): Promise<FileTypeResult | undefined>;
+export function fileTypeFromFile(filePath: string, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
 This method can be handy to put in a stream pipeline, but it comes with a price. Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type. The sample size impacts the file detection resolution. A smaller sample size will result in lower probability of the best file type detection.
 */
-export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions & FileTypeOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
 export declare class FileTypeParser {
 	/**
@@ -229,7 +236,7 @@ export declare class FileTypeParser {
 	*/
 	detectors: Detector[];
 
-	constructor(options?: {customDetectors?: Iterable<Detector>; signal?: AbortSignal});
+	constructor(options?: FileTypeOptions);
 
 	/**
 	Works the same way as {@link fileTypeFromBuffer}, additionally taking into account custom detectors (if any were provided to the constructor).
@@ -247,7 +254,12 @@ export declare class FileTypeParser {
 	fromBlob(blob: Blob): Promise<FileTypeResult | undefined>;
 
 	/**
+	Works the same way as {@link fileTypeFromStream}, additionally taking into account custom detectors (if any were provided to the constructor).
+	*/
+	fromStream(stream: AnyWebReadableStream<Uint8Array>): Promise<FileTypeResult | undefined>;
+
+	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
 	*/
-	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions & FileTypeOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }
