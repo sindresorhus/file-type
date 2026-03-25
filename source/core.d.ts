@@ -1,5 +1,5 @@
 /**
-Typings for primary entry point, Node.js specific typings can be found in index.d.ts
+Typings for primary entry point. Node.js specific typings can be found in index.d.ts.
 */
 
 import type {ReadableStream as WebReadableStream} from 'node:stream/web';
@@ -28,9 +28,9 @@ Detect the file type of a `Uint8Array` or `ArrayBuffer`.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
-If file access is available, it is recommended to use `.fromFile()` instead.
+If file access is available, it is recommended to use `fileTypeFromFile()` instead.
 
-@param buffer - An Uint8Array or ArrayBuffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
+@param buffer - A Uint8Array or ArrayBuffer representing file data. It works best if the buffer contains the entire file. It may work with a smaller portion as well.
 @param options - Options to override default behavior.
 @returns The detected file type, or `undefined` when there is no match.
 */
@@ -60,7 +60,7 @@ A tokenizer propagates the internal read functions, allowing alternative transpo
 @param options - Options to override default behavior.
 @returns The detected file type, or `undefined` when there is no match.
 
-An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it is able to *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
+An example is [`@tokenizer/http`](https://github.com/Borewit/tokenizer-http), which requests data using [HTTP-range-requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). A difference with a conventional stream and the [*tokenizer*](https://github.com/Borewit/strtok3#tokenizer), is that it can *ignore* (seek, fast-forward) in the stream. For example, you may only need and read the first 6 bytes, and the last 128 bytes, which may be an advantage in case reading the entire file would take longer.
 
 @example
 ```
@@ -125,10 +125,8 @@ A custom file type detector.
 Custom file type detectors are plugins designed to extend the default detection capabilities.
 They allow support for uncommon file types, non-binary formats, or customized detection behavior.
 
-Detectors can be added via the constructor options or by modifying `FileTypeParser#detectors` directly.
-Detectors provided through the constructor are executed before the default ones.
-
 Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
+Detectors provided through the constructor are executed before the default ones.
 
 ### Example adding a detector
 
@@ -141,8 +139,11 @@ const fileType = await parser.fromFile('sample.kml');
 console.log(fileType);
 ```
 
-### Available-third party file-type detectors
+### Available third-party file-type detectors
 
+- [@file-type/av](https://github.com/Borewit/file-type-av): Improves detection of audio and video file formats, with accurate differentiation between the two
+- [@file-type/cfbf](https://github.com/Borewit/file-type-cfbf): Detects Compound File Binary Format (CFBF) based formats, such as Office 97–2003 documents and `.msi`.
+- [@file-type/pdf](https://github.com/Borewit/file-type-pdf): Detects PDF based file types, such as Adobe Illustrator
 - [@file-type/xml](https://github.com/Borewit/file-type-xml): Detects common XML file types, such as GLM, KML, MusicXML, RSS, SVG, and XHTML
 
 ### Detector execution flow
@@ -154,13 +155,14 @@ If a detector returns `undefined`, the following rules apply:
 
 ### Example writing a custom detector
 
-Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
+Below is an example of a custom detector. This can be passed to the `FileTypeParser` via the `customDetectors` option.
 
 ```
 import {FileTypeParser} from 'file-type';
 
-const customDetectors = [
-	async tokenizer => {
+const unicornDetector = {
+	id: 'unicorn',
+	async detect(tokenizer) {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" in ASCII decimal
 
 		const buffer = new Uint8Array(unicornHeader.length);
@@ -170,11 +172,11 @@ const customDetectors = [
 		}
 
 		return undefined;
-	},
-];
+	}
+};
 
 const buffer = new Uint8Array([85, 78, 73, 67, 79, 82, 78]);
-const parser = new FileTypeParser({customDetectors});
+const parser = new FileTypeParser({customDetectors: [unicornDetector]});
 const fileType = await parser.fromBuffer(buffer);
 console.log(fileType); // {ext: 'unicorn', mime: 'application/unicorn'}
 ```
@@ -203,7 +205,7 @@ export type FileTypeOptions = {
 
 	A tolerance of 10 bytes covers most cases.
 
- 	@default 0
+	@default 0
 	*/
 	mpegOffsetTolerance?: number;
 };

@@ -10,9 +10,6 @@ This package is for detecting binary-based file formats, not text-based formats 
 
 We accept contributions for commonly used modern file formats, not historical or obscure ones. Open an issue first for discussion.
 
-> [!IMPORTANT]
-> NO SECURITY REPORTS WILL BE ACCEPTED RIGHT NOW. I'm currently hardening the parser and all the low-quality AI-generated security reports is just a huge waste of time.
-
 ## Install
 
 ```sh
@@ -69,7 +66,7 @@ console.log(fileType);
 
 ### fileTypeFromBuffer(buffer, options)
 
-Detect the file type of a `Uint8Array`, or `ArrayBuffer`.
+Detect the file type of a `Uint8Array` or `ArrayBuffer`.
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
 
@@ -96,7 +93,7 @@ This is for Node.js only.
 
 To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob-options).
 
-The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the buffer.
+The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the file.
 
 Returns a `Promise` for an object with the detected file type:
 
@@ -111,7 +108,7 @@ Type: `string`
 
 The file path to parse.
 
-### fileTypeFromStream(stream)
+### fileTypeFromStream(stream, options)
 
 Detect the file type of a [web `ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream).
 
@@ -135,7 +132,7 @@ A readable stream representing file data.
 
 ### fileTypeFromBlob(blob, options)
 
-Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Blob),
+Detect the file type of a [`Blob`](https://developer.mozilla.org/docs/Web/API/Blob).
 
 > [!TIP]
 > A [`File` object](https://developer.mozilla.org/docs/Web/API/File) is a `Blob` and can be passed in here.
@@ -204,7 +201,6 @@ import {S3Client} from '@aws-sdk/client-s3';
 import {makeChunkedTokenizerFromS3} from '@tokenizer/s3';
 import {fileTypeFromTokenizer} from 'file-type';
 
-// Initialize the S3 client
 // Initialize S3 client
 const s3 = new S3Client();
 
@@ -231,7 +227,7 @@ A file source implementing the [tokenizer interface](https://github.com/Borewit/
 
 Returns a `Promise` which resolves to the original readable stream argument, but with an added `fileType` property, which is an object like the one returned from `fileTypeFromFile()`.
 
-This method can be handy to put in between a stream, but it comes with a price.
+This method can be handy to put in a stream pipeline, but it comes with a price.
 Internally `stream()` builds up a buffer of `sampleSize` bytes, used as a sample, to determine the file type.
 The sample size impacts the file detection resolution.
 A smaller sample size will result in lower probability of the best file type detection.
@@ -309,14 +305,10 @@ A tolerance of 10 bytes covers most cases.
 Custom file type detectors are plugins designed to extend the default detection capabilities.
 They allow support for uncommon file types, non-binary formats, or customized detection behavior.
 
-Detectors can be added via the constructor options or by modifying `FileTypeParser#detectors` directly.
+Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 Detectors provided through the constructor are executed before the default ones.
 
-Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
-
 ### Example adding a detector
-
-For example:
 
 ```js
 import {FileTypeParser} from 'file-type';
@@ -343,14 +335,14 @@ If a detector returns `undefined`, the following rules apply:
 
 ### Writing your own custom detector
 
-Below is an example of a custom detector array. This can be passed to the `FileTypeParser` via the `fileTypeOptions` argument.
+Below is an example of a custom detector. This can be passed to the `FileTypeParser` via the `customDetectors` option.
 
 ```js
 import {FileTypeParser} from 'file-type';
 
 const unicornDetector = {
 	id: 'unicorn', // May be used to recognize the detector in the detector list
-  	async detect(tokenizer) {
+	async detect(tokenizer) {
 		const unicornHeader = [85, 78, 73, 67, 79, 82, 78]; // "UNICORN" in ASCII decimal
 
 		const buffer = new Uint8Array(unicornHeader.length);
@@ -375,7 +367,10 @@ console.log(fileType); // {ext: 'unicorn', mime: 'application/unicorn'}
 @param fileType - The file type detected by standard or previous custom detectors, or `undefined` if no match is found.
 @returns The detected file type, or `undefined` if no match is found.
 */
-export type Detector = (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
+export type Detector = {
+	id: string;
+	detect: (tokenizer: ITokenizer, fileType?: FileTypeResult) => Promise<FileTypeResult | undefined>;
+};
 ```
 
 ## Abort signal
@@ -385,7 +380,7 @@ Some async operations can be aborted by passing an [`AbortSignal`](https://devel
 ```js
 import {FileTypeParser} from 'file-type';
 
-const abortController = new AbortController()
+const abortController = new AbortController();
 
 const parser = new FileTypeParser({signal: abortController.signal});
 
@@ -530,7 +525,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`ppsx`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions#PowerPoint) - Office PowerPoint 2007 slide show
 - [`pptm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft PowerPoint macro-enabled document
 - [`pptx`](https://en.wikipedia.org/wiki/Office_Open_XML) - Microsoft PowerPoint document
-- [`ps`](https://en.wikipedia.org/wiki/Postscript) - Postscript
+- [`ps`](https://en.wikipedia.org/wiki/Postscript) - PostScript
 - [`psd`](https://en.wikipedia.org/wiki/Adobe_Photoshop#File_format) - Adobe Photoshop document
 - [`pst`](https://en.wikipedia.org/wiki/Personal_Storage_Table) - Personal Storage Table file
 - [`qcp`](https://en.wikipedia.org/wiki/QCP) - Tagged and chunked data
@@ -547,7 +542,7 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 - [`skp`](https://en.wikipedia.org/wiki/SketchUp) - SketchUp
 - [`spx`](https://en.wikipedia.org/wiki/Ogg) - Audio file
 - [`sqlite`](https://www.sqlite.org/fileformat2.html) - SQLite file
-- [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tesselated Geometry File Format (ASCII only)
+- [`stl`](https://en.wikipedia.org/wiki/STL_(file_format)) - Standard Tessellated Geometry File Format (ASCII only)
 - [`swf`](https://en.wikipedia.org/wiki/SWF) - Adobe Flash Player file
 - [`tar`](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) - Tape archive or tarball
 - [`tar.gz`](https://en.wikipedia.org/wiki/Gzip) - Gzipped tape archive (tarball)
@@ -579,28 +574,14 @@ abortController.abort(); // Abort file-type reading from the Blob stream.
 
 *[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
-The following file types will not be accepted, but most of them are supported by [third-party detector](#available-third-party-file-type-detectors)
+The following file types will not be accepted, but most of them are supported by [third-party detectors](#available-third-party-file-type-detectors).
 - [MS-CFB: Microsoft Compound File Binary File Format based formats](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b)
 	- `.doc` - Microsoft Word 97-2003 Document
 	- `.xls` - Microsoft Excel 97-2003 Document
-	- `.ppt` - Microsoft PowerPoint97-2003 Document
+	- `.ppt` - Microsoft PowerPoint 97-2003 Document
 	- `.msi` - Microsoft Windows Installer
 - `.csv` - [Reason.](https://github.com/sindresorhus/file-type/issues/264#issuecomment-568439196)
 - `.svg`
-
-#### tokenizer
-
-Type: [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer)
-
-Usable as source of the examined file.
-
-#### fileType
-
-Type: `FileTypeResult`
-
-An object having an `ext` (extension) and `mime` (mime type) property.
-
-Detected by the standard detections or a previous custom detection. Undefined if no matching fileTypeResult could be found.
 
 ## Related
 

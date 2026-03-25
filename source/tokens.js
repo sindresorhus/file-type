@@ -32,7 +32,7 @@ Checks whether the TAR checksum is valid.
 @returns {boolean} `true` if the TAR checksum is valid, otherwise `false`.
 */
 export function tarHeaderChecksumMatches(arrayBuffer, offset = 0) {
-	const readSum = Number.parseInt(new StringType(6).get(arrayBuffer, 148).replace(/\0.*$/, '').trim(), 8); // Read sum in header
+	const readSum = Number.parseInt(new StringType(6).get(arrayBuffer, 148).replace(/\0.*$/v, '').trim(), 8); // Read sum in header
 	if (Number.isNaN(readSum)) {
 		return false;
 	}

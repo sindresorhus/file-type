@@ -1,6 +1,5 @@
-<!-- # Security Policy
+# Security Policy
 
-To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security). Tidelift will coordinate the fix and disclosure.
- -->
+To report a security vulnerability, please submit it [here](https://github.com/sindresorhus/file-type/security/advisories/new).
 
-Not accepted. I'm probably already fixing things.
+No AI slop will be accepted.

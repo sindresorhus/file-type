@@ -81,12 +81,9 @@ function readWithSignal(reader, signal) {
 	return Promise.race([
 		reader.read(),
 		new Promise((_resolve, reject) => {
-			signal.addEventListener('abort', async () => {
-				try {
-					await reader.cancel(signal.reason);
-				} catch {}
-
+			signal.addEventListener('abort', () => {
 				reject(signal.reason);
+				reader.cancel(signal.reason).catch(() => {});
 			}, {once: true});
 		}),
 	]);
@@ -334,7 +331,6 @@ export class FileTypeParser {
 			}, unknownSizeGzipProbeTimeoutInMilliseconds);
 			probeSignal = this.options.signal === undefined
 				? timeoutController.signal
-				// eslint-disable-next-line n/no-unsupported-features/node-builtins
 				: AbortSignal.any([this.options.signal, timeoutController.signal]);
 			probeParser = new FileTypeParser({
 				...this.options,
@@ -524,7 +520,7 @@ export class FileTypeParser {
 			const isUnknownFileSize = hasUnknownFileSize(tokenizer);
 			if (
 				!Number.isFinite(id3HeaderLength)
-					|| id3HeaderLength < 0
+				|| id3HeaderLength < 0
 				// Keep ID3 probing bounded for unknown-size streams to avoid attacker-controlled large skips.
 				|| (
 					isUnknownFileSize
@@ -974,7 +970,7 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('{\\rtf')) {
+		if (this.checkString(String.raw`{\rtf`)) {
 			return {
 				ext: 'rtf',
 				mime: 'application/rtf',
@@ -1121,7 +1117,7 @@ export class FileTypeParser {
 
 		if (this.checkString('AC')) {
 			const version = new Token.StringType(4, 'latin1').get(this.buffer, 2);
-			if (/^\d+$/.test(version) && version >= 1000 && version <= 1050) {
+			if (/^\d+$/v.test(version) && version >= 1000 && version <= 1050) {
 				return {
 					ext: 'dwg',
 					mime: 'image/vnd.dwg',

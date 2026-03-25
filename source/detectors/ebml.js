@@ -71,7 +71,7 @@ export async function detectEbml(tokenizer) {
 
 				const documentTypeLength = getSafeBound(element.len, maximumEbmlDocumentTypeSizeInBytes, 'EBML DocType');
 				const rawValue = await tokenizer.readToken(new Token.StringType(documentTypeLength));
-				return rawValue.replaceAll(/\00.*$/g, ''); // Return DocType
+				return rawValue.replaceAll(/\0.*$/gv, ''); // Return DocType
 			}
 
 			if (

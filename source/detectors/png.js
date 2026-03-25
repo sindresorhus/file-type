@@ -87,7 +87,7 @@ export async function detectPng(tokenizer) {
 
 				if (
 					isUnknownPngStream
-						&& chunk.length > maximumPngChunkSizeInBytes
+					&& chunk.length > maximumPngChunkSizeInBytes
 				) {
 					// Avoid huge attacker-controlled skips when probing unknown-size streams.
 					return hasSeenImageHeader && isPngAncillaryChunk(chunk.type) ? pngFileType : undefined;
@@ -101,10 +101,10 @@ export async function detectPng(tokenizer) {
 				} catch (error) {
 					if (
 						!isUnknownPngStream
-							&& (
-								error instanceof ParserHardLimitError
-								|| error instanceof strtok3.EndOfStreamError
-							)
+						&& (
+							error instanceof ParserHardLimitError
+							|| error instanceof strtok3.EndOfStreamError
+						)
 					) {
 						return pngFileType;
 					}

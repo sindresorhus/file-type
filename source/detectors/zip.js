@@ -543,7 +543,7 @@ export async function detectZip(tokenizer) {
 				}
 
 				default:
-					if (/classes\d*\.dex/.test(zipHeader.filename)) {
+					if (/classes\d*\.dex/v.test(zipHeader.filename)) {
 						fileType = {
 							ext: 'apk',
 							mime: 'application/vnd.android.package-archive',

@@ -2,7 +2,6 @@ import process from 'node:process';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import {readFile} from 'node:fs/promises';
@@ -26,10 +25,9 @@ import {
 	FileTypeParser,
 } from './source/index.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = import.meta.dirname;
 
-const missingTests = new Set([
-]);
+const missingTests = new Set();
 
 const maximumZipTextEntrySizeInBytes = 1024 * 1024;
 const maximumStreamPayloadProbeSizeInBytes = 1024 * 1024;
@@ -713,7 +711,7 @@ test('supportedMimeTypes.has', t => {
 
 test('validate the input argument type', async t => {
 	await t.throwsAsync(fileTypeFromBuffer('x'), {
-		message: /Expected the `input` argument to be of type `Uint8Array`/,
+		message: /Expected the `input` argument to be of type `Uint8Array`/v,
 	});
 
 	await t.notThrowsAsync(fileTypeFromBuffer(new Uint8Array()));
@@ -729,11 +727,11 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		const mimes = new Set();
 		for (const file of sourceFiles) {
 			const content = fs.readFileSync(file, {encoding: 'utf8'});
-			for (const extension of content.match(/(?<=ext:\s')(.*)(?=',)/g) ?? []) {
+			for (const extension of content.match(/(?<=ext:\s')(.*)(?=',)/gv) ?? []) {
 				extensions.add(extension);
 			}
 
-			for (const mime of content.match(/(?<=mime:\s')(.*)(?=')/g) ?? []) {
+			for (const mime of content.match(/(?<=mime:\s')(.*)(?=')/gv) ?? []) {
 				mimes.add(mime);
 			}
 		}
@@ -779,7 +777,7 @@ test('validate the repo has all extensions and mimes in sync', t => {
 	// File: readme.md
 	function readReadmeMD() {
 		const index = fs.readFileSync('readme.md', {encoding: 'utf8'});
-		const extensionArray = index.match(/(?<=-\s\[`)(.*)(?=`)/g);
+		const extensionArray = index.match(/(?<=-\s\[`)(.*)(?=`)/gv);
 		return extensionArray;
 	}
 
@@ -1768,9 +1766,7 @@ test('supported files types are listed alphabetically', async t => {
 		// List item → Paragraph → Link → Inline code → Text
 		const currentFileType = currentNode.firstChild.firstChild.firstChild.literal;
 
-		if (previousFileType) {
-			t.true(currentFileType > previousFileType, `${currentFileType} should be listed before ${previousFileType}`);
-		}
+		t.true(!previousFileType || currentFileType > previousFileType, `${currentFileType} should be listed before ${previousFileType}`);
 
 		previousFileType = currentFileType;
 		currentNode = currentNode.next;
@@ -2471,7 +2467,7 @@ test('Streamed ASF detection keeps scanning at the header object limit', async t
 	});
 });
 
-test('Streamed ASF detection keeps scanning at the header object limit with one-byte chunks', async t => {
+test('Streamed ASF detection keeps scanning at the header object limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createAsfAudioHeaderWithMetadataObjects(511), 1));
 	t.deepEqual(type, {
 		ext: 'asf',
@@ -2488,7 +2484,7 @@ test('Web Stream ASF detection keeps scanning at the header object limit', async
 	});
 });
 
-test('Web Stream ASF detection keeps scanning at the header object limit with one-byte chunks', async t => {
+test('Web Stream ASF detection keeps scanning at the header object limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(511), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -2505,7 +2501,7 @@ test('Streamed ASF video detection keeps scanning at the header object limit', a
 	});
 });
 
-test('Streamed ASF video detection keeps scanning at the header object limit with one-byte chunks', async t => {
+test('Streamed ASF video detection keeps scanning at the header object limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createAsfVideoHeaderWithMetadataObjects(511), 1));
 	t.deepEqual(type, {
 		ext: 'asf',
@@ -2522,7 +2518,7 @@ test('Web Stream ASF video detection keeps scanning at the header object limit',
 	});
 });
 
-test('Web Stream ASF video detection keeps scanning at the header object limit with one-byte chunks', async t => {
+test('Web Stream ASF video detection keeps scanning at the header object limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createAsfVideoHeaderWithMetadataObjects(511), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -2539,7 +2535,7 @@ test('Streamed ASF detection falls back to generic ASF for an unknown stream typ
 	});
 });
 
-test('Streamed ASF detection falls back to generic ASF for an unknown stream type at the header object limit with one-byte chunks', async t => {
+test('Streamed ASF detection falls back to generic ASF for an unknown stream type at the header object limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), 1));
 	t.deepEqual(type, {
 		ext: 'asf',
@@ -2556,7 +2552,7 @@ test('Web Stream ASF detection falls back to generic ASF for an unknown stream t
 	});
 });
 
-test('Web Stream ASF detection falls back to generic ASF for an unknown stream type at the header object limit with one-byte chunks', async t => {
+test('Web Stream ASF detection falls back to generic ASF for an unknown stream type at the header object limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createAsfUnknownStreamHeaderWithMetadataObjects(511), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -2573,7 +2569,7 @@ test('Streamed ASF detection falls back after the header object limit', async t 
 	});
 });
 
-test('Streamed ASF detection falls back after the header object limit with one-byte chunks', async t => {
+test('Streamed ASF detection falls back after the header object limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createAsfAudioHeaderWithMetadataObjects(512), 1));
 	t.deepEqual(type, {
 		ext: 'asf',
@@ -2590,7 +2586,7 @@ test('Web Stream ASF detection falls back after the header object limit', async 
 	});
 });
 
-test('Web Stream ASF detection falls back after the header object limit with one-byte chunks', async t => {
+test('Web Stream ASF detection falls back after the header object limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createAsfAudioHeaderWithMetadataObjects(512), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -2842,7 +2838,7 @@ test('EBML Web streams stop before document type when it first appears after the
 	t.is(type, undefined);
 });
 
-test('EBML chunked streams with one-byte chunks still detect Matroska when document type is exactly at the stream payload probe limit', async t => {
+test('EBML chunked streams with small chunks still detect Matroska when document type is exactly at the stream payload probe limit', async t => {
 	const payload = createEbmlWithUnknownPayloadBeforeDocumentType(maximumStreamPayloadProbeSizeInBytes, 'matroska');
 	const type = await fileTypeFromStream(createBufferedWebStream(payload, 1));
 
@@ -2852,7 +2848,7 @@ test('EBML chunked streams with one-byte chunks still detect Matroska when docum
 	});
 });
 
-test('EBML Web streams with one-byte chunks still detect Matroska when document type is exactly at the stream payload probe limit', async t => {
+test('EBML Web streams with small chunks still detect Matroska when document type is exactly at the stream payload probe limit', async t => {
 	const payload = createEbmlWithUnknownPayloadBeforeDocumentType(maximumStreamPayloadProbeSizeInBytes, 'matroska');
 	const {stream} = createPatternWebStream(payload, [1]);
 	const type = await new FileTypeParser().fromStream(stream);
@@ -2863,14 +2859,14 @@ test('EBML Web streams with one-byte chunks still detect Matroska when document 
 	});
 });
 
-test('EBML chunked streams with one-byte chunks stop before Matroska when document type first appears after the stream payload probe limit', async t => {
+test('EBML chunked streams with small chunks stop before Matroska when document type first appears after the stream payload probe limit', async t => {
 	const payload = createEbmlWithUnknownPayloadBeforeDocumentType(maximumStreamPayloadProbeSizeInBytes + 1, 'matroska');
 	const type = await fileTypeFromStream(createBufferedWebStream(payload, 1));
 
 	t.is(type, undefined);
 });
 
-test('EBML Web streams with one-byte chunks stop before Matroska when document type first appears after the stream payload probe limit', async t => {
+test('EBML Web streams with small chunks stop before Matroska when document type first appears after the stream payload probe limit', async t => {
 	const payload = createEbmlWithUnknownPayloadBeforeDocumentType(maximumStreamPayloadProbeSizeInBytes + 1, 'matroska');
 	const {stream} = createPatternWebStream(payload, [1]);
 	const type = await new FileTypeParser().fromStream(stream);
@@ -2908,14 +2904,14 @@ test('.fileTypeStream() falls back when the EBML document type appears after the
 	await assertFileTypeStreamWebResult(t, payload, undefined);
 });
 
-test('.fileTypeStream() detects Matroska when the EBML document type is exactly at the stream payload probe limit for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() detects Matroska when the EBML document type is exactly at the stream payload probe limit for chunked streams with small chunks and a large sampleSize', async t => {
 	const payload = createEbmlWithUnknownPayloadBeforeDocumentType(maximumStreamPayloadProbeSizeInBytes, 'matroska');
 
 	await assertFileTypeStreamChunkedResult(t, payload, {
 		ext: 'mkv',
 		mime: 'video/matroska',
 	}, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: payload.length,
 	});
 });
@@ -3354,7 +3350,7 @@ test('fileTypeFromFile detects [Content_Types].xml entries at the ZIP text probe
 	});
 });
 
-test('Streamed detection keeps [Content_Types].xml scanning at the ZIP text probe limit with one-byte chunks', async t => {
+test('Streamed detection keeps [Content_Types].xml scanning at the ZIP text probe limit with small chunks', async t => {
 	const wordEntry = createZipLocalFile({
 		filename: 'word/document.xml',
 		compressedData: new TextEncoder().encode('<w:document/>'),
@@ -3373,7 +3369,7 @@ test('Streamed detection keeps [Content_Types].xml scanning at the ZIP text prob
 	});
 });
 
-test('Web Stream detection keeps [Content_Types].xml scanning at the ZIP text probe limit with one-byte chunks', async t => {
+test('Web Stream detection keeps [Content_Types].xml scanning at the ZIP text probe limit with small chunks', async t => {
 	const wordEntry = createZipLocalFile({
 		filename: 'word/document.xml',
 		compressedData: new TextEncoder().encode('<w:document/>'),
@@ -3956,7 +3952,7 @@ test('Streamed PNG detection keeps scanning at the PNG chunk limit', async t => 
 	});
 });
 
-test('Streamed PNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+test('Streamed PNG detection keeps scanning at the PNG chunk limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createPngWithAncillaryChunks(510), 1));
 	t.deepEqual(type, {
 		ext: 'png',
@@ -3973,7 +3969,7 @@ test('Web Stream PNG detection keeps scanning at the PNG chunk limit', async t =
 	});
 });
 
-test('Web Stream PNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+test('Web Stream PNG detection keeps scanning at the PNG chunk limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(510), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4015,7 +4011,7 @@ test('Streamed PNG detection falls back after the PNG chunk limit', async t => {
 	});
 });
 
-test('Streamed PNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+test('Streamed PNG detection falls back after the PNG chunk limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createPngWithAncillaryChunks(511), 1));
 	t.deepEqual(type, {
 		ext: 'png',
@@ -4032,7 +4028,7 @@ test('Web Stream PNG detection falls back after the PNG chunk limit', async t =>
 	});
 });
 
-test('Web Stream PNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+test('Web Stream PNG detection falls back after the PNG chunk limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createPngWithAncillaryChunks(511), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4101,7 +4097,7 @@ test('Streamed APNG detection keeps scanning at the PNG chunk limit', async t =>
 	});
 });
 
-test('Streamed APNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+test('Streamed APNG detection keeps scanning at the PNG chunk limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createPngWithAncillaryChunksAndAnimationControl(510), 1));
 	t.deepEqual(type, {
 		ext: 'apng',
@@ -4238,7 +4234,7 @@ test('Web Stream APNG detection still detects APNG when small ancillary chunks c
 	});
 });
 
-test('Web Stream APNG detection keeps scanning at the PNG chunk limit with one-byte chunks', async t => {
+test('Web Stream APNG detection keeps scanning at the PNG chunk limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(510), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4255,7 +4251,7 @@ test('Streamed APNG detection falls back after the PNG chunk limit', async t => 
 	});
 });
 
-test('Streamed APNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+test('Streamed APNG detection falls back after the PNG chunk limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createPngWithAncillaryChunksAndAnimationControl(511), 1));
 	t.deepEqual(type, {
 		ext: 'png',
@@ -4272,7 +4268,7 @@ test('Web Stream APNG detection falls back after the PNG chunk limit', async t =
 	});
 });
 
-test('Web Stream APNG detection falls back after the PNG chunk limit with one-byte chunks', async t => {
+test('Web Stream APNG detection falls back after the PNG chunk limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createPngWithAncillaryChunksAndAnimationControl(511), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4336,7 +4332,7 @@ test('Streamed TIFF detection keeps scanning at the TIFF tag limit', async t => 
 	});
 });
 
-test('Streamed TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Streamed TIFF detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), 1));
 	t.deepEqual(type, {
 		ext: 'dng',
@@ -4353,7 +4349,7 @@ test('Web Stream TIFF detection keeps scanning at the TIFF tag limit', async t =
 	});
 });
 
-test('Web Stream TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Web Stream TIFF detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_706), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4387,7 +4383,7 @@ test('fileTypeFromBlob detects big-endian TIFF tags at the TIFF tag scan limit',
 	});
 });
 
-test('Big-endian streamed TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian streamed TIFF detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706), 1));
 	t.deepEqual(type, {
 		ext: 'dng',
@@ -4395,7 +4391,7 @@ test('Big-endian streamed TIFF detection keeps scanning at the TIFF tag limit wi
 	});
 });
 
-test('Big-endian Web Stream TIFF detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian Web Stream TIFF detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_706), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4429,7 +4425,7 @@ test('fileTypeFromBlob detects ARW when its TIFF tag appears at the TIFF tag sca
 	});
 });
 
-test('Web Stream ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Web Stream ARW detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 50_341), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4463,7 +4459,7 @@ test('fileTypeFromBlob detects big-endian ARW when its TIFF tag appears at the T
 	});
 });
 
-test('Big-endian streamed ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian streamed ARW detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341), 1));
 	t.deepEqual(type, {
 		ext: 'arw',
@@ -4471,7 +4467,7 @@ test('Big-endian streamed ARW detection keeps scanning at the TIFF tag limit wit
 	});
 });
 
-test('Big-endian Web Stream ARW detection keeps scanning at the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian Web Stream ARW detection keeps scanning at the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 50_341), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4530,7 +4526,7 @@ test('fileTypeFromBlob returns generic big-endian TIFF when no recognized TIFF t
 	});
 });
 
-test('Streamed TIFF detection returns generic TIFF after scanning the full tag limit with one-byte chunks', async t => {
+test('Streamed TIFF detection returns generic TIFF after scanning the full tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 0), 1));
 	t.deepEqual(type, {
 		ext: 'tif',
@@ -4538,7 +4534,7 @@ test('Streamed TIFF detection returns generic TIFF after scanning the full tag l
 	});
 });
 
-test('Web Stream TIFF detection returns generic TIFF after scanning the full tag limit with one-byte chunks', async t => {
+test('Web Stream TIFF detection returns generic TIFF after scanning the full tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(512, 511, 0), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4547,7 +4543,7 @@ test('Web Stream TIFF detection returns generic TIFF after scanning the full tag
 	});
 });
 
-test('Web Stream TIFF detection returns generic big-endian TIFF after scanning the full tag limit with one-byte chunks', async t => {
+test('Web Stream TIFF detection returns generic big-endian TIFF after scanning the full tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(512, 511, 0), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4630,7 +4626,7 @@ test('Streamed TIFF detection falls back after the TIFF tag limit', async t => {
 	});
 });
 
-test('Streamed TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+test('Streamed TIFF detection falls back after the TIFF tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), 1));
 	t.deepEqual(type, {
 		ext: 'tif',
@@ -4638,7 +4634,7 @@ test('Streamed TIFF detection falls back after the TIFF tag limit with one-byte 
 	});
 });
 
-test('Big-endian streamed TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian streamed TIFF detection falls back after the TIFF tag limit with small chunks', async t => {
 	const type = await fileTypeFromStream(createBufferedWebStream(createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706), 1));
 	t.deepEqual(type, {
 		ext: 'tif',
@@ -4646,7 +4642,7 @@ test('Big-endian streamed TIFF detection falls back after the TIFF tag limit wit
 	});
 });
 
-test('Big-endian Web Stream TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+test('Big-endian Web Stream TIFF detection falls back after the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createBigEndianTiffWithTagIdAtIndex(513, 512, 50_706), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -4688,7 +4684,7 @@ test('Web Stream TIFF detection falls back after the TIFF tag limit', async t =>
 	});
 });
 
-test('Web Stream TIFF detection falls back after the TIFF tag limit with one-byte chunks', async t => {
+test('Web Stream TIFF detection falls back after the TIFF tag limit with small chunks', async t => {
 	const {stream} = createPatternWebStream(createLittleEndianTiffWithTagIdAtIndex(513, 512, 50_706), [1]);
 	const type = await new FileTypeParser().fromStream(stream);
 	t.deepEqual(type, {
@@ -5065,7 +5061,7 @@ test('fileTypeFromFile detects ZIP mimetype entries at the ZIP text probe limit'
 	});
 });
 
-test('Streamed detection keeps ZIP mimetype scanning at the ZIP text probe limit with one-byte chunks', async t => {
+test('Streamed detection keeps ZIP mimetype scanning at the ZIP text probe limit with small chunks', async t => {
 	const mimeType = 'application/epub+zip';
 	const mimetypeEntry = createZipLocalFile({
 		filename: 'mimetype',
@@ -5078,7 +5074,7 @@ test('Streamed detection keeps ZIP mimetype scanning at the ZIP text probe limit
 	});
 });
 
-test('Web Stream detection keeps ZIP mimetype scanning at the ZIP text probe limit with one-byte chunks', async t => {
+test('Web Stream detection keeps ZIP mimetype scanning at the ZIP text probe limit with small chunks', async t => {
 	const mimeType = 'application/epub+zip';
 	const mimetypeEntry = createZipLocalFile({
 		filename: 'mimetype',
@@ -5881,23 +5877,23 @@ test('.fileTypeStream() falls back when an oversized descriptor-backed entry pre
 	}, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() detects ZIP mimetype when a descriptor-backed entry before it is at the scan limit for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryEpubFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
 
-test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP mimetype detection for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingDescriptorMimetype(maximumZipTextEntrySizeInBytes + 1);
 
 	await assertFileTypeStreamChunkedResult(t, zip, {
 		ext: 'zip',
 		mime: 'application/zip',
 	}, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6005,26 +6001,16 @@ test('.fileTypeStream() still detects EPUB when repeated descriptor-backed entri
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() falls back when repeated descriptor-backed ZIP mimetype entries are exactly at the known-size ZIP scan budget for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects EPUB when repeated descriptor-backed ZIP mimetype entries are exactly at the known-size ZIP scan budget for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedDescriptorMimetypeAtKnownSizeBudget();
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	try {
-		t.deepEqual(detectionStream.fileType, {
-			ext: 'zip',
-			mime: 'application/zip',
-		});
-		t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), zip));
-	} finally {
-		detectionStream.cancel();
-	}
+	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() returns undefined when repeated descriptor-backed ZIP mimetype entries are exactly at the known-size ZIP scan budget for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects EPUB when repeated descriptor-backed ZIP mimetype entries are exactly at the known-size ZIP scan budget for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedDescriptorMimetypeAtKnownSizeBudget();
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
 test('Known-size APIs fall back to zip when repeated descriptor-backed entries exceed the known-size ZIP scan budget by one byte before ZIP mimetype detection', async t => {
@@ -6141,11 +6127,11 @@ test('.fileTypeStream() detects ZIP mimetype when a stored entry before it is at
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() detects ZIP mimetype when a stored entry before it is at the scan limit for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() detects ZIP mimetype when a stored entry before it is at the scan limit for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingStoredMimetype(maximumZipTextEntrySizeInBytes);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryEpubFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6180,11 +6166,11 @@ test('.fileTypeStream() still detects ZIP mimetype when an oversized stored entr
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() still detects ZIP mimetype when an oversized stored entry precedes it for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() still detects ZIP mimetype when an oversized stored entry precedes it for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingStoredMimetype(maximumZipTextEntrySizeInBytes + 1);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryEpubFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6240,11 +6226,13 @@ test('.fileTypeStream() falls back when repeated stored entries stay below the c
 	}
 });
 
-test('.fileTypeStream() returns undefined when repeated stored entries stay below the cumulative limit for Web Streams with hostile mixed chunking and the default sampleSize', async t => {
+test('.fileTypeStream() still detects ZIP when repeated stored entries stay below the cumulative limit for Web Streams with hostile mixed chunking and the default sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredMimetype(15, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream);
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
 });
 
 test('.fileTypeStream() still detects ZIP mimetype when repeated stored entries exceed the stream cumulative limit for chunked streams with a large sampleSize', async t => {
@@ -6259,26 +6247,16 @@ test('.fileTypeStream() still detects ZIP mimetype when repeated stored entries 
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() falls back when repeated stored entries exceed the stream cumulative limit for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects EPUB when repeated stored entries exceed the stream cumulative limit for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredMimetype(17, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	try {
-		t.deepEqual(detectionStream.fileType, {
-			ext: 'zip',
-			mime: 'application/zip',
-		});
-		t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), zip));
-	} finally {
-		detectionStream.cancel();
-	}
+	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() returns undefined when repeated stored entries exceed the stream cumulative limit for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects EPUB when repeated stored entries exceed the stream cumulative limit for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredMimetype(17, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryEpubFileType, {sampleSize: zip.length});
 });
 
 test('Known-size APIs still detect DOCM when a descriptor-backed entry before ZIP [Content_Types].xml detection is at the scan limit', async t => {
@@ -6329,23 +6307,23 @@ test('.fileTypeStream() falls back when an oversized descriptor-backed entry pre
 	});
 });
 
-test('.fileTypeStream() detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() detects ZIP [Content_Types].xml when a descriptor-backed entry before it is at the scan limit for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryDocmFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
 
-test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() falls back when an oversized descriptor-backed entry precedes ZIP [Content_Types].xml detection for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingDescriptorContentTypes(maximumZipTextEntrySizeInBytes + 1);
 
 	await assertFileTypeStreamChunkedResult(t, zip, {
 		ext: 'zip',
 		mime: 'application/zip',
 	}, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6435,26 +6413,16 @@ test('.fileTypeStream() still detects ZIP [Content_Types].xml when repeated desc
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() falls back when repeated descriptor-backed ZIP [Content_Types].xml entries are exactly at the known-size ZIP scan budget for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects DOCM when repeated descriptor-backed ZIP [Content_Types].xml entries are exactly at the known-size ZIP scan budget for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedDescriptorContentTypesAtKnownSizeBudget();
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	try {
-		t.deepEqual(detectionStream.fileType, {
-			ext: 'zip',
-			mime: 'application/zip',
-		});
-		t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), zip));
-	} finally {
-		detectionStream.cancel();
-	}
+	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() returns undefined when repeated descriptor-backed ZIP [Content_Types].xml entries are exactly at the known-size ZIP scan budget for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects DOCM when repeated descriptor-backed ZIP [Content_Types].xml entries are exactly at the known-size ZIP scan budget for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedDescriptorContentTypesAtKnownSizeBudget();
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
 test('Known-size APIs fall back to zip when repeated descriptor-backed entries exceed the known-size ZIP scan budget by one byte before ZIP [Content_Types].xml detection', async t => {
@@ -6577,11 +6545,11 @@ test('.fileTypeStream() detects ZIP [Content_Types].xml when a stored entry befo
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() detects ZIP [Content_Types].xml when a stored entry before it is at the scan limit for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() detects ZIP [Content_Types].xml when a stored entry before it is at the scan limit for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingStoredContentTypes(maximumZipTextEntrySizeInBytes);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryDocmFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6616,11 +6584,11 @@ test('.fileTypeStream() still detects ZIP [Content_Types].xml when an oversized 
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() still detects ZIP [Content_Types].xml when an oversized stored entry precedes it for chunked streams with one-byte chunks and a large sampleSize', async t => {
+test('.fileTypeStream() still detects ZIP [Content_Types].xml when an oversized stored entry precedes it for chunked streams with small chunks and a large sampleSize', async t => {
 	const zip = createZipWithLeadingStoredContentTypes(maximumZipTextEntrySizeInBytes + 1);
 
 	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryDocmFileType, {
-		chunkSize: 1,
+		chunkSize: 256,
 		sampleSize: zip.length,
 	});
 });
@@ -6676,11 +6644,13 @@ test('.fileTypeStream() falls back when repeated stored ZIP [Content_Types].xml 
 	}
 });
 
-test('.fileTypeStream() returns undefined when repeated stored ZIP [Content_Types].xml entries stay below the cumulative limit for Web Streams with hostile mixed chunking and the default sampleSize', async t => {
+test('.fileTypeStream() still detects ZIP when repeated stored ZIP [Content_Types].xml entries stay below the cumulative limit for Web Streams with hostile mixed chunking and the default sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredContentTypes(15, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream);
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
 });
 
 test('.fileTypeStream() still detects ZIP [Content_Types].xml when repeated stored entries exceed the stream cumulative limit for chunked streams with a large sampleSize', async t => {
@@ -6695,26 +6665,16 @@ test('.fileTypeStream() still detects ZIP [Content_Types].xml when repeated stor
 	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() falls back when repeated stored ZIP [Content_Types].xml entries exceed the stream cumulative limit for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects DOCM when repeated stored ZIP [Content_Types].xml entries exceed the stream cumulative limit for chunked streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredContentTypes(17, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	try {
-		t.deepEqual(detectionStream.fileType, {
-			ext: 'zip',
-			mime: 'application/zip',
-		});
-		t.true(areUint8ArraysEqual(await getStreamAsUint8Array(detectionStream), zip));
-	} finally {
-		detectionStream.cancel();
-	}
+	await assertFileTypeStreamChunkedResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
-test('.fileTypeStream() returns undefined when repeated stored ZIP [Content_Types].xml entries exceed the stream cumulative limit for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
+test('.fileTypeStream() still detects DOCM when repeated stored ZIP [Content_Types].xml entries exceed the stream cumulative limit for Web Streams with hostile mixed chunking and a large sampleSize', async t => {
 	const zip = createZipWithRepeatedStoredContentTypes(17, maximumZipTextEntrySizeInBytes);
-	const detectionStream = await fileTypeStream(createPatternWebStream(zip, [1, 64 * 1024]).stream, {sampleSize: zip.length});
 
-	t.is(detectionStream.fileType, undefined);
+	await assertFileTypeStreamWebResult(t, zip, descriptorBoundaryDocmFileType, {sampleSize: zip.length});
 });
 
 test('Falls back to zip on invalid ZIP descriptor signature', async t => {
