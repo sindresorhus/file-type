@@ -29,6 +29,7 @@ const __dirname = import.meta.dirname;
 
 const missingTests = new Set();
 
+const reasonableDetectionSizeInBytes = 4100;
 const maximumZipTextEntrySizeInBytes = 1024 * 1024;
 const maximumStreamPayloadProbeSizeInBytes = 1024 * 1024;
 const maximumUntrustedSkipSizeInBytes = 16 * 1024 * 1024;
@@ -3098,6 +3099,98 @@ test('OOXML type detection is not affected by ZIP entry order', async t => {
 	t.deepEqual(streamType, {
 		ext: 'docm',
 		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
+test('OOXML directory heuristic detects docx when [Content_Types].xml is beyond the stream sample', async t => {
+	const wordEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new Uint8Array(reasonableDetectionSizeInBytes),
+	});
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'),
+	});
+	const zip = Buffer.concat([wordEntry, contentTypesEntry]);
+
+	// Full buffer: [Content_Types].xml is reachable, gives precise type
+	const bufferType = await fileTypeFromBuffer(zip);
+	t.deepEqual(bufferType, {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+
+	// Truncated stream: [Content_Types].xml is beyond the sample, falls back to directory heuristic
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
+
+test('OOXML directory heuristic detects pptx when [Content_Types].xml is beyond the stream sample', async t => {
+	const pptEntry = createZipLocalFile({
+		filename: 'ppt/presentation.xml',
+		compressedData: new Uint8Array(reasonableDetectionSizeInBytes),
+	});
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/></Types>'),
+	});
+	const zip = Buffer.concat([pptEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'pptx',
+		mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'pptx',
+		mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+	});
+});
+
+test('OOXML directory heuristic detects xlsx when [Content_Types].xml is beyond the stream sample', async t => {
+	const xlEntry = createZipLocalFile({
+		filename: 'xl/workbook.xml',
+		compressedData: new Uint8Array(reasonableDetectionSizeInBytes),
+	});
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/></Types>'),
+	});
+	const zip = Buffer.concat([xlEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'xlsx',
+		mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'xlsx',
+		mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	});
+});
+
+test('OOXML directory heuristic detects 3mf when [Content_Types].xml is beyond the stream sample', async t => {
+	const modelEntry = createZipLocalFile({
+		filename: '3D/3dmodel.model',
+		compressedData: new Uint8Array(reasonableDetectionSizeInBytes),
+	});
+	const contentTypesEntry = createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>'),
+	});
+	const zip = Buffer.concat([modelEntry, contentTypesEntry]);
+
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: '3mf',
+		mime: 'model/3mf',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: '3mf',
+		mime: 'model/3mf',
 	});
 });
 

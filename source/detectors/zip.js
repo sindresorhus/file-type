@@ -232,19 +232,7 @@ function updateOpenXmlZipDetectionStateFromFilename(openXmlState, filename) {
 	}
 }
 
-function getOpenXmlFileTypeFromZipEntries(openXmlState) {
-	// Only use directory-name heuristic when [Content_Types].xml was present in the archive
-	// but its handler was skipped (not invoked, not currently running, and not already resolved).
-	// This avoids guessing from directory names when content-type parsing already gave a definitive answer or failed.
-	if (
-		!openXmlState.hasContentTypesEntry
-		|| openXmlState.hasUnparseableContentTypes
-		|| openXmlState.isParsingContentTypes
-		|| openXmlState.hasParsedContentTypesEntry
-	) {
-		return;
-	}
-
+function getOpenXmlFileTypeFromDirectoryNames(openXmlState) {
 	if (openXmlState.hasWordDirectory) {
 		return {
 			ext: 'docx',
@@ -272,6 +260,22 @@ function getOpenXmlFileTypeFromZipEntries(openXmlState) {
 			mime: 'model/3mf',
 		};
 	}
+}
+
+function getOpenXmlFileTypeFromZipEntries(openXmlState) {
+	// Only use directory-name heuristic when [Content_Types].xml was present in the archive
+	// but its handler was skipped (not invoked, not currently running, and not already resolved).
+	// This avoids guessing from directory names when content-type parsing already gave a definitive answer or failed.
+	if (
+		!openXmlState.hasContentTypesEntry
+		|| openXmlState.hasUnparseableContentTypes
+		|| openXmlState.isParsingContentTypes
+		|| openXmlState.hasParsedContentTypesEntry
+	) {
+		return;
+	}
+
+	return getOpenXmlFileTypeFromDirectoryNames(openXmlState);
 }
 
 function getOpenXmlMimeTypeFromContentTypesXml(xmlContent) {
@@ -562,6 +566,12 @@ export async function detectZip(tokenizer) {
 		if (openXmlState.isParsingContentTypes) {
 			openXmlState.isParsingContentTypes = false;
 			openXmlState.hasUnparseableContentTypes = true;
+		}
+
+		// When the stream was truncated before reaching [Content_Types].xml, use directory names as a fallback.
+		// This handles LibreOffice-created OOXML files where [Content_Types].xml appears after content entries.
+		if (!fileType && error instanceof strtok3.EndOfStreamError && !openXmlState.hasContentTypesEntry) {
+			fileType = getOpenXmlFileTypeFromDirectoryNames(openXmlState);
 		}
 	}
 
