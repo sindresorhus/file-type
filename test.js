@@ -1752,8 +1752,13 @@ test('supported files types are listed alphabetically', async t => {
 
 	while (currentNode) {
 		if (currentNode.type === 'heading' && currentNode.firstChild.literal === 'Supported file types') {
-			// Header → List → First list item
-			currentNode = currentNode.next.firstChild;
+			// Header → (skip non-list nodes) → List → First list item
+			currentNode = currentNode.next;
+			while (currentNode && currentNode.type !== 'list') {
+				currentNode = currentNode.next;
+			}
+
+			currentNode = currentNode.firstChild;
 			break;
 		}
 
