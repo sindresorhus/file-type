@@ -3214,6 +3214,54 @@ test('iWork: detects Keynote (.key) with numbered MasterSlide', async t => {
 	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
 });
 
+test('iWork: streamed detection falls back to zip when only Index/Document.iwa is visible within the default sample size', async t => {
+	const expected = {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	const zip = createZipArchive([
+		{
+			filename: 'Index/Document.iwa',
+			compressedData: new Uint8Array(5000),
+		},
+		{
+			filename: 'Index/MasterSlide.iwa',
+		},
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromFile(await createTemporaryTestFile(t, zip)), expected);
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('iWork: streamed detection falls back to zip when a non-diagnostic entry appears before the real Keynote marker', async t => {
+	const expected = {ext: 'key', mime: 'application/vnd.apple.keynote'};
+	const zip = createZipArchive([
+		{filename: 'Index/Document.iwa'},
+		{filename: 'Metadata/DocumentIdentifier'},
+		{
+			filename: 'Index/SharedStrings.iwa',
+			compressedData: new Uint8Array(5000),
+		},
+		{filename: 'Index/MasterSlide.iwa'},
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromFile(await createTemporaryTestFile(t, zip)), expected);
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+	await assertFileTypeStreamWebResult(t, zip, {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
 test('iWork: detects Numbers (.numbers)', async t => {
 	const expected = {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
 	const zip = Buffer.concat([

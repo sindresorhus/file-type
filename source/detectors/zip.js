@@ -146,6 +146,7 @@ function createIWorkZipDetectionState() {
 		hasDocumentEntry: false,
 		hasMasterSlideEntry: false,
 		hasTablesEntry: false,
+		hasCalculationEngineEntry: false,
 	};
 }
 
@@ -160,6 +161,10 @@ function updateIWorkZipDetectionStateFromFilename(iWorkState, filename) {
 
 	if (filename.startsWith('Index/Tables/')) {
 		iWorkState.hasTablesEntry = true;
+	}
+
+	if (filename === 'Index/CalculationEngine.iwa') {
+		iWorkState.hasCalculationEngineEntry = true;
 	}
 }
 
@@ -176,8 +181,9 @@ function getIWorkFileTypeFromZipEntries(iWorkState) {
 		return {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
 	}
 
-	// Pages has no unique secondary marker; Index/Document.iwa alone is the Pages signature.
-	return {ext: 'pages', mime: 'application/vnd.apple.pages'};
+	if (iWorkState.hasCalculationEngineEntry) {
+		return {ext: 'pages', mime: 'application/vnd.apple.pages'};
+	}
 }
 
 // -- OpenXML helpers --

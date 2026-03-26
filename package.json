@@ -287,6 +287,5 @@
 	],
 	"ava": {
 		"serial": true
-	},
-	"types": "source/index.d.ts"
+	}
 }
