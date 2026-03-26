@@ -181,9 +181,7 @@ function getIWorkFileTypeFromZipEntries(iWorkState) {
 		return {ext: 'numbers', mime: 'application/vnd.apple.numbers'};
 	}
 
-	if (iWorkState.hasCalculationEngineEntry) {
-		return {ext: 'pages', mime: 'application/vnd.apple.pages'};
-	}
+	return {ext: 'pages', mime: 'application/vnd.apple.pages'};
 }
 
 // -- OpenXML helpers --
@@ -630,7 +628,15 @@ export async function detectZip(tokenizer) {
 		}
 	}
 
-	return fileType ?? getOpenXmlFileTypeFromZipEntries(openXmlState) ?? getIWorkFileTypeFromZipEntries(iWorkState) ?? {
+	const iWorkFileType = hasUnknownFileSize(tokenizer)
+		&& iWorkState.hasDocumentEntry
+		&& !iWorkState.hasMasterSlideEntry
+		&& !iWorkState.hasTablesEntry
+		&& !iWorkState.hasCalculationEngineEntry
+		? undefined
+		: getIWorkFileTypeFromZipEntries(iWorkState);
+
+	return fileType ?? getOpenXmlFileTypeFromZipEntries(openXmlState) ?? iWorkFileType ?? {
 		ext: 'zip',
 		mime: 'application/zip',
 	};

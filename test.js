@@ -3276,10 +3276,30 @@ test('iWork: detects Pages (.pages)', async t => {
 	const expected = {ext: 'pages', mime: 'application/vnd.apple.pages'};
 	const zip = Buffer.concat([
 		createZipLocalFile({filename: 'Index/Document.iwa'}),
+	]);
+	t.deepEqual(await fileTypeFromBuffer(zip), expected);
+	t.deepEqual(await fileTypeFromBlob(new Blob([zip])), expected);
+	t.deepEqual(await fileTypeFromFile(await createTemporaryTestFile(t, zip)), expected);
+});
+
+test('iWork: detects Pages (.pages) with CalculationEngine marker', async t => {
+	const expected = {ext: 'pages', mime: 'application/vnd.apple.pages'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
 		createZipLocalFile({filename: 'Index/CalculationEngine.iwa'}),
 	]);
 	t.deepEqual(await fileTypeFromBuffer(zip), expected);
 	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), expected);
+});
+
+test('.fileTypeStream() detects Pages when the stream ends exactly at sampleSize', async t => {
+	const expected = {ext: 'pages', mime: 'application/vnd.apple.pages'};
+	const zip = Buffer.concat([
+		createZipLocalFile({filename: 'Index/Document.iwa'}),
+	]);
+
+	await assertFileTypeStreamChunkedResult(t, zip, expected, {sampleSize: zip.length});
+	await assertFileTypeStreamWebResult(t, zip, expected, {sampleSize: zip.length});
 });
 
 test('iWork: detects Numbers (.numbers) with multiple table entries', async t => {

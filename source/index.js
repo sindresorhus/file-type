@@ -279,6 +279,7 @@ export class FileTypeParser {
 		this.options.signal?.throwIfAborted();
 		const sampleSize = normalizeSampleSize(options?.sampleSize ?? reasonableDetectionSizeInBytes);
 		let detectedFileType;
+		let streamEnded = false;
 
 		const reader = stream.getReader();
 		const chunks = [];
@@ -288,11 +289,25 @@ export class FileTypeParser {
 			while (totalSize < sampleSize) {
 				const {value, done} = await readWithSignal(reader, this.options.signal);
 				if (done || !value) {
+					streamEnded = true;
 					break;
 				}
 
 				chunks.push(value);
 				totalSize += value.length;
+			}
+
+			if (
+				!streamEnded
+				&& totalSize === sampleSize
+			) {
+				const {value, done} = await readWithSignal(reader, this.options.signal);
+				if (done || !value) {
+					streamEnded = true;
+				} else {
+					chunks.push(value);
+					totalSize += value.length;
+				}
 			}
 		} finally {
 			reader.releaseLock();
@@ -308,6 +323,16 @@ export class FileTypeParser {
 				}
 
 				detectedFileType = undefined;
+			}
+
+			if (
+				!streamEnded
+				&& detectedFileType?.ext === 'pages'
+			) {
+				detectedFileType = {
+					ext: 'zip',
+					mime: 'application/zip',
+				};
 			}
 		}
 
