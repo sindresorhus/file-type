@@ -89,9 +89,7 @@ A buffer representing file data. It works best if the buffer contains the entire
 
 Detect the file type of a file path.
 
-This is for Node.js only.
-
-To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob-options).
+Only available in environments where `node:fs` is available, such as Node.js. To read from a [`File`](https://developer.mozilla.org/docs/Web/API/File), see [`fileTypeFromBlob()`](#filetypefromblobblob-options).
 
 The file type is detected by checking the [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files) of the file.
 

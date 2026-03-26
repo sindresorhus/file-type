@@ -12,33 +12,15 @@
 	},
 	"type": "module",
 	"exports": {
-		".": {
-			"node": {
-				"types": "./source/index.d.ts",
-				"import": "./source/index.js",
-				"module-sync": "./source/index.js"
-			},
-			"default": {
-				"types": "./source/core.d.ts",
-				"import": "./source/core.js",
-				"module-sync": "./source/core.js"
-			}
-		},
-		"./core": {
-			"types": "./source/core.d.ts",
-			"default": "./source/core.js"
-		},
-		"./node": {
-			"types": "./source/index.d.ts",
-			"default": "./source/index.js"
-		}
+		"types": "./source/index.d.ts",
+		"default": "./source/index.js"
 	},
 	"sideEffects": false,
 	"engines": {
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "xo && ava && tsd"
+		"test": "xo && ava && tsd --typings source/index.d.ts --files source/index.test-d.ts"
 	},
 	"files": [
 		"source"

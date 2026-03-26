@@ -723,7 +723,7 @@ test('validate the input argument type', async t => {
 test('validate the repo has all extensions and mimes in sync', t => {
 	// File: source/*.js (base truth)
 	function readIndexJS() {
-		const sourceFiles = ['source/core.js', 'source/detectors/zip.js', 'source/detectors/ebml.js', 'source/detectors/png.js', 'source/detectors/asf.js'];
+		const sourceFiles = ['source/index.js', 'source/detectors/zip.js', 'source/detectors/ebml.js', 'source/detectors/png.js', 'source/detectors/asf.js'];
 		const extensions = new Set();
 		const mimes = new Set();
 		for (const file of sourceFiles) {
@@ -796,12 +796,12 @@ test('validate the repo has all extensions and mimes in sync', t => {
 		}, []);
 	}
 
-	// Find extensions/mimes that are in another file but not in `core.js`
+	// Find extensions/mimes that are in another file but not in `index.js`
 	function findExtras(array, set) {
 		return array.filter(element => !set.has(element));
 	}
 
-	// Find extensions/mimes that are in `core.js` but missing from another file
+	// Find extensions/mimes that are in `index.js` but missing from another file
 	function findMissing(array, set) {
 		const missing = [];
 		const other = new Set(array);

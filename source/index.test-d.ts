@@ -1,16 +1,14 @@
 import {ReadableStream as NodeReadableStream} from 'node:stream/web';
 import {expectType} from 'tsd';
 import {
+	type FileTypeResult,
 	type FileTypeResult as FileTypeResultBrowser,
 	type AnyWebReadableByteStreamWithFileType,
-} from './core.js';
-import {
 	fileTypeFromBlob,
 	fileTypeFromBuffer,
 	fileTypeFromFile,
 	fileTypeFromStream,
 	fileTypeStream,
-	type FileTypeResult,
 	FileTypeParser,
 } from './index.js';
 
@@ -43,3 +41,13 @@ import {
 
 // Test that Blob overload returns browser-specific result
 expectType<Promise<FileTypeResultBrowser | undefined>>(fileTypeFromBlob(new Blob([])));
+
+// `fileTypeFromFile`: accepts a file path and options
+expectType<Promise<FileTypeResult | undefined>>(fileTypeFromFile('file.bin'));
+expectType<Promise<FileTypeResult | undefined>>(fileTypeFromFile('file.bin', {signal: AbortSignal.timeout(1000)}));
+
+// `FileTypeParser#fromFile`: accepts a file path
+(async () => {
+	const fileTypeParser = new FileTypeParser();
+	expectType<Promise<FileTypeResult | undefined>>(fileTypeParser.fromFile('file.bin'));
+})();
