@@ -62,6 +62,11 @@ function getKnownFileSizeOrMaximum(fileSize) {
 	return Math.max(0, fileSize);
 }
 
+// Keep the specifier non-literal at the call site so browser bundlers do not try to resolve Node-only imports.
+function importAtRuntime(specifier) {
+	return import(specifier);
+}
+
 // Wrap stream in an identity TransformStream to avoid BYOB readers.
 // Node.js has a bug where calling controller.close() inside a BYOB stream's
 // pull() callback does not resolve pending reader.read() calls, causing
@@ -258,8 +263,8 @@ export class FileTypeParser {
 		this.options.signal?.throwIfAborted();
 		// TODO: Remove this when `strtok3.fromFile()` safely rejects non-regular filesystem objects without a pathname race.
 		const [{default: fsPromises}, {FileTokenizer}] = await Promise.all([
-			import('node:fs/promises'),
-			import('strtok3'),
+			importAtRuntime('node:fs/promises'),
+			importAtRuntime('strtok3'),
 		]);
 		const fileHandle = await fsPromises.open(path, fsPromises.constants.O_RDONLY | fsPromises.constants.O_NONBLOCK);
 		const fileStat = await fileHandle.stat();

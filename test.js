@@ -8,6 +8,7 @@ import {readFile} from 'node:fs/promises';
 import {deflateRawSync, gzipSync} from 'node:zlib';
 import test from 'ava';
 import {Parser as ReadmeParser} from 'commonmark';
+import * as esbuild from 'esbuild';
 import {fromFile} from 'strtok3';
 import * as strtok3 from 'strtok3/core';
 import {areUint8ArraysEqual} from 'uint8array-extras';
@@ -2046,6 +2047,27 @@ test('fileTypeFromFile should allow overriding default file type detectors', asy
 
 	const result = await fileTypeFromFile(file, {customDetectors});
 	t.deepEqual(result, {ext: 'mockPng', mime: 'image/mockPng'});
+});
+
+test('browser bundlers can bundle the main entry without resolving Node-only fromFile imports', async t => {
+	const result = await esbuild.build({
+		bundle: true,
+		format: 'esm',
+		platform: 'browser',
+		write: false,
+		stdin: {
+			contents: `
+				import {fileTypeFromBuffer} from 'file-type';
+
+				console.log(typeof fileTypeFromBuffer);
+			`,
+			resolveDir: __dirname,
+			sourcefile: 'esbuild-entry.js',
+		},
+	});
+
+	t.is(result.errors.length, 0);
+	t.true(result.outputFiles[0].text.includes('fileTypeFromBuffer'));
 });
 
 test('fileTypeFromTokenizer should return undefined when a custom detector changes the tokenizer position and does not return a file type', async t => {
