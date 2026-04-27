@@ -238,6 +238,9 @@ This method can be handy to put in a stream pipeline, but it comes with a price.
 */
 export function fileTypeStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions & FileTypeOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 
+/**
+Not safe for concurrent use. Create a new instance per call if you need concurrency.
+*/
 export declare class FileTypeParser {
 	/**
 	File type detectors.

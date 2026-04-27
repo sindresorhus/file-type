@@ -306,6 +306,9 @@ They allow support for uncommon file types, non-binary formats, or customized de
 Detectors can be added via the constructor options or by directly modifying `FileTypeParser#detectors`.
 Detectors provided through the constructor are executed before the default ones.
 
+> [!NOTE]
+> Not safe for concurrent use. Create a new instance per call if you need concurrency.
+
 ### Example adding a detector
 
 ```js
