@@ -2123,9 +2123,37 @@ test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance
 	t.deepEqual(result, {ext: 'mp3', mime: 'audio/mpeg'}, 'detect an MP3 which 1 byte out of sync');
 });
 
+test('should not detect UTF-16 LE text as MPEG audio', async t => {
+	t.is(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFE])), undefined, 'a lone UTF-16 LE BOM');
+	t.is(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFE, 0x74, 0x00, 0x65, 0x00, 0x78, 0x00, 0x74, 0x00])), undefined, 'UTF-16 LE text with a BOM');
+});
+
+test('should not detect UTF-16 LE text as MPEG audio at a tolerated offset', async t => {
+	const buffer = new Uint8Array([0x00, 0xFF, 0xFE, 0x74, 0x00, 0x65, 0x00, 0x78, 0x00, 0x74, 0x00]);
+	t.is(await fileTypeFromBuffer(buffer, {mpegOffsetTolerance: 1}), undefined, 'UTF-16 LE BOM 1 byte out of sync');
+});
+
+test('should detect an MPEG frame at the deepest tolerated offset', async t => {
+	const buffer = new Uint8Array(reasonableDetectionSizeInBytes);
+	buffer.set([0xFF, 0xFB, 0x90, 0x00], 4096); // MPEG-1 Layer 3, 128 kbps, 44.1 kHz
+	t.deepEqual(await fileTypeFromBuffer(buffer, {mpegOffsetTolerance: Number.MAX_SAFE_INTEGER}), {ext: 'mp3', mime: 'audio/mpeg'});
+});
+
+test('should not detect MPEG audio with reserved header fields', async t => {
+	t.is(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFB, 0xF0, 0x00])), undefined, 'bad bitrate index');
+	t.is(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFB, 0x9C, 0x00])), undefined, 'reserved sampling frequency');
+	t.is(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xEB, 0x90, 0x00])), undefined, 'reserved MPEG version');
+});
+
+test('should detect free-format MPEG audio', async t => {
+	t.deepEqual(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFF, 0x00, 0x00])), {ext: 'mp1', mime: 'audio/mpeg'});
+	t.deepEqual(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFD, 0x00, 0x00])), {ext: 'mp2', mime: 'audio/mpeg'});
+	t.deepEqual(await fileTypeFromBuffer(new Uint8Array([0xFF, 0xFB, 0x00, 0x00])), {ext: 'mp3', mime: 'audio/mpeg'});
+});
+
 test('FileTypeParser clamps mpegOffsetTolerance to a safe value', t => {
 	const parser = new FileTypeParser({mpegOffsetTolerance: Number.MAX_SAFE_INTEGER});
-	t.is(parser.options.mpegOffsetTolerance, 4098);
+	t.is(parser.options.mpegOffsetTolerance, 4096);
 });
 
 function loopEncoding(t, stringValue, encoding) {

@@ -25,7 +25,7 @@ import {detectPng} from './detectors/png.js';
 import {detectAsf} from './detectors/asf.js';
 
 export const reasonableDetectionSizeInBytes = 4100; // A fair amount of file-types are detectable within this range.
-const maximumMpegOffsetTolerance = reasonableDetectionSizeInBytes - 2;
+const maximumMpegOffsetTolerance = reasonableDetectionSizeInBytes - 4; // Keep room for the 4 bytes of the frame header at the deepest scanned offset.
 const maximumNestedGzipDetectionSizeInBytes = maximumUntrustedSkipSizeInBytes;
 const maximumNestedGzipProbeDepth = 1;
 const unknownSizeGzipProbeTimeoutInMilliseconds = 100;
@@ -1729,11 +1729,11 @@ export class FileTypeParser {
 			};
 		}
 
-		// Adjust buffer to `mpegOffsetTolerance`
-		await tokenizer.peekBuffer(this.buffer, {length: Math.min(2 + this.options.mpegOffsetTolerance, fileSize), mayBeLess: true});
+		// Adjust buffer to `mpegOffsetTolerance`, plus the 4 bytes of the frame header itself
+		await tokenizer.peekBuffer(this.buffer, {length: Math.min(4 + this.options.mpegOffsetTolerance, fileSize), mayBeLess: true});
 
 		// Check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE)
-		if (this.buffer.length >= (2 + this.options.mpegOffsetTolerance)) {
+		if (this.buffer.length >= (4 + this.options.mpegOffsetTolerance)) {
 			for (let depth = 0; depth <= this.options.mpegOffsetTolerance; ++depth) {
 				const type = this.scanMpeg(depth);
 				if (type) {
@@ -1865,20 +1865,32 @@ export class FileTypeParser {
 	*/
 	scanMpeg(offset) {
 		if (this.check([0xFF, 0xE0], {offset, mask: [0xFF, 0xE0]})) {
+			// Both (ADTS) MPEG-2 and MPEG-4 are AAC
 			if (this.check([0x10], {offset: offset + 1, mask: [0x16]})) {
-				// Check for (ADTS) MPEG-2
-				if (this.check([0x08], {offset: offset + 1, mask: [0x08]})) {
-					return {
-						ext: 'aac',
-						mime: 'audio/aac',
-					};
-				}
-
-				// Must be (ADTS) MPEG-4
 				return {
 					ext: 'aac',
 					mime: 'audio/aac',
 				};
+			}
+
+			// An MPEG-1 Layer I header with CRC protection enabled is byte-identical to a UTF-16 LE BOM, so text files cannot be told apart from audio. `file(1)` disables MPEG-1 Layer I detection completely for this reason; we only drop the colliding variant.
+			if (this.check([0xFF, 0xFE], {offset})) {
+				return;
+			}
+
+			// Reject the reserved MPEG version `01`
+			if (this.check([0x08], {offset: offset + 1, mask: [0x18]})) {
+				return;
+			}
+
+			// Reject the `bad` (`1111`) bitrate index
+			if (this.check([0xF0], {offset: offset + 2, mask: [0xF0]})) {
+				return;
+			}
+
+			// Reject the reserved sampling frequency `11`
+			if (this.check([0x0C], {offset: offset + 2, mask: [0x0C]})) {
+				return;
 			}
 
 			// MPEG 1 or 2 Layer 3 header
