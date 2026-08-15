@@ -53,11 +53,16 @@ async function decompressDeflateRawWithLimit(data, {maximumLength = maximumZipEn
 
 			totalLength += value.length;
 			if (totalLength > maximumLength) {
-				await reader.cancel();
+				await reader.cancel().catch(() => {});
 				throw new Error(`ZIP entry decompressed data exceeds ${maximumLength} bytes`);
 			}
 
 			chunks.push(value);
+		}
+	} catch (error) {
+		// A ZIP entry with a data descriptor has an unknown compressed size, so the buffered data can contain bytes that follow the deflate stream. Node.js 24 rejects those, unlike other versions. The data decompressed so far is still valid and enough for detection.
+		if (error.code !== 'ERR_TRAILING_JUNK_AFTER_STREAM_END') {
+			throw error;
 		}
 	} finally {
 		reader.releaseLock();

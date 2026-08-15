@@ -6030,6 +6030,72 @@ test('Detects small deflated ZIP [Content_Types].xml descriptor entries', async 
 	});
 });
 
+test.serial('Falls back to ZIP when canceling an oversized deflated descriptor entry reports trailing junk', async t => {
+	const originalDecompressionStream = globalThis.DecompressionStream;
+	const contentTypesXml = new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>');
+	globalThis.DecompressionStream = class {
+		constructor() {
+			let chunkIndex = 0;
+			this.readable = new ReadableStream({
+				pull(controller) {
+					if (chunkIndex === 0) {
+						const chunk = new Uint8Array(maximumZipTextEntrySizeInBytes);
+						chunk.set(contentTypesXml);
+						controller.enqueue(chunk);
+					} else {
+						controller.enqueue(new Uint8Array(1));
+					}
+
+					chunkIndex++;
+				},
+				cancel() {
+					const error = new Error('Trailing junk after deflate stream');
+					error.code = 'ERR_TRAILING_JUNK_AFTER_STREAM_END';
+					throw error;
+				},
+			});
+			this.writable = new WritableStream();
+		}
+	};
+
+	try {
+		const zip = createZipDataDescriptorFile({
+			filename: '[Content_Types].xml',
+			compressedMethod: 8,
+			compressedData: deflateRawSync(contentTypesXml),
+			uncompressedSize: maximumZipTextEntrySizeInBytes + 1,
+		});
+
+		await assertZipTypeFromBuffer(t, zip);
+	} finally {
+		globalThis.DecompressionStream = originalDecompressionStream;
+	}
+});
+
+test('Detects deflated ZIP [Content_Types].xml descriptor entries truncated inside the data descriptor', async t => {
+	const contentTypesXml = '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-word.document.macroenabled.main+xml"/></Types>';
+	const streamedZip = createZipDataDescriptorFile({
+		filename: '[Content_Types].xml',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(Buffer.from(contentTypesXml)),
+		uncompressedSize: Buffer.byteLength(contentTypesXml),
+	});
+	// Cut the file inside the data descriptor, so the descriptor cannot be located and the entry data keeps the bytes that follow the deflate stream.
+	const truncatedZip = streamedZip.subarray(0, -12);
+
+	const bufferType = await fileTypeFromBuffer(truncatedZip);
+	t.deepEqual(bufferType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+
+	const streamType = await fileTypeFromStream(createBufferedWebStream(truncatedZip, 8));
+	t.deepEqual(streamType, {
+		ext: 'docm',
+		mime: 'application/vnd.ms-word.document.macroenabled.12',
+	});
+});
+
 test('Ignores ZIP descriptor signature bytes inside descriptor-backed [Content_Types].xml entries', async t => {
 	const contentTypesXml = Buffer.concat([
 		Buffer.from('<?xml version="1.0" encoding="UTF-8"?><Types>'),
