@@ -1689,6 +1689,32 @@ export class FileTypeParser {
 				mime: 'application/pgp-encrypted',
 			};
 		}
+
+		// ISO 9660 optical disc image: the Primary Volume Descriptor is located in sector 16
+		// (2048-byte sectors), with the 5-byte standard identifier `CD001` at offset 1 within it.
+		const isoStandardIdentifierOffset = 32_769;
+		const isoStandardIdentifierLength = 5;
+		if (
+			tokenizer.position <= isoStandardIdentifierOffset
+			&& (
+				hasUnknownFileSize(tokenizer)
+				|| tokenizer.fileInfo.size >= (isoStandardIdentifierOffset + isoStandardIdentifierLength)
+			)
+		) {
+			const isoStandardIdentifier = new Uint8Array(isoStandardIdentifierLength);
+			await tokenizer.peekBuffer(isoStandardIdentifier, {
+				position: isoStandardIdentifierOffset,
+				length: isoStandardIdentifierLength,
+				mayBeLess: true,
+			});
+
+			if (checkBytes(isoStandardIdentifier, stringToBytes('CD001'))) {
+				return {
+					ext: 'iso',
+					mime: 'application/x-iso9660-image',
+				};
+			}
+		}
 	};
 	// Detections with limited supporting data, resulting in a higher likelihood of false positives
 	detectImprecise = async tokenizer => {

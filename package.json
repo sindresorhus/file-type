@@ -228,7 +228,8 @@
 		"dat",
 		"key",
 		"numbers",
-		"pages"
+		"pages",
+		"iso"
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.4.1",
