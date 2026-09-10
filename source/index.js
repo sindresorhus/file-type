@@ -1690,16 +1690,17 @@ export class FileTypeParser {
 			};
 		}
 
-		// ISO 9660 optical disc image: the Primary Volume Descriptor is located in sector 16
-		// (2048-byte sectors), with the 5-byte standard identifier `CD001` at offset 1 within it.
+		// ISO 9660 optical disc image: the Volume Descriptor Set starts at sector 16 (2048-byte
+		// sectors). Every descriptor in that set carries the 5-byte standard identifier `CD001`
+		// at offset 1, regardless of descriptor type, so checking the first one is sufficient.
+		// Only attempted for random-access inputs (buffer/file/blob, or a stream sampled with a
+		// large enough `sampleSize`): on an unknown-size stream this offset is far past what's
+		// reasonable to buffer just to rule out one format, so it's left undetected there.
 		const isoStandardIdentifierOffset = 32_769;
 		const isoStandardIdentifierLength = 5;
 		if (
-			tokenizer.position <= isoStandardIdentifierOffset
-			&& (
-				hasUnknownFileSize(tokenizer)
-				|| tokenizer.fileInfo.size >= (isoStandardIdentifierOffset + isoStandardIdentifierLength)
-			)
+			tokenizer.supportsRandomAccess()
+			&& tokenizer.fileInfo.size >= (isoStandardIdentifierOffset + isoStandardIdentifierLength)
 		) {
 			const isoStandardIdentifier = new Uint8Array(isoStandardIdentifierLength);
 			await tokenizer.peekBuffer(isoStandardIdentifier, {
