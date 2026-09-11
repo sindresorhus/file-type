@@ -579,6 +579,8 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`zip`](https://en.wikipedia.org/wiki/Zip_(file_format)) - Archive file
 - [`zst`](https://en.wikipedia.org/wiki/Zstandard) - Archive file
 
+ISO 9660 requires random-access input or `fileTypeStream()` with `sampleSize >= 32_774`; `fileTypeFromStream()` is unsupported.
+
 *[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
 The following file types will not be accepted, but most of them are supported by [third-party detectors](#available-third-party-file-type-detectors).
