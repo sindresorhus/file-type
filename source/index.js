@@ -64,7 +64,7 @@ function getKnownFileSizeOrMaximum(fileSize) {
 
 // Keep the specifier non-literal at the call site so browser bundlers do not try to resolve Node-only imports.
 function importAtRuntime(specifier) {
-	return import(specifier);
+	return import(/* @vite-ignore */ /* webpackIgnore: true */ specifier);
 }
 
 // Wrap stream in an identity TransformStream to avoid BYOB readers.

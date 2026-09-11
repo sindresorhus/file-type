@@ -2081,6 +2081,10 @@ test('browser bundlers can bundle the main entry without resolving Node-only fro
 
 	t.is(result.errors.length, 0);
 	t.true(result.outputFiles[0].text.includes('fileTypeFromBuffer'));
+
+	// Vite prebundles dependencies with esbuild, so the ignore comments must survive bundling to suppress its import-analysis warning.
+	t.true(result.outputFiles[0].text.includes('/* @vite-ignore */'));
+	t.true(result.outputFiles[0].text.includes('/* webpackIgnore: true */'));
 });
 
 test('fileTypeFromTokenizer should return undefined when a custom detector changes the tokenizer position and does not return a file type', async t => {
