@@ -489,6 +489,19 @@ test('.fileTypeStream() method - sampleSize option', async t => {
 	t.is(stream.fileType.mime, 'video/ogg');
 });
 
+test('.fileTypeStream() only detects ISO 9660 once sampleSize reaches its Volume Descriptor Set', async t => {
+	const buffer = fs.readFileSync(path.join(__dirname, 'fixture', 'fixture.iso'));
+
+	const defaultSampleStream = await fileTypeStream(new Blob([buffer]).stream());
+	t.is(typeof (defaultSampleStream.fileType), 'undefined', 'file-type cannot be determined with the default sampleSize');
+
+	const largeSampleStream = await fileTypeStream(new Blob([buffer]).stream(), {sampleSize: buffer.length});
+	t.deepEqual(largeSampleStream.fileType, {
+		ext: 'iso',
+		mime: 'application/x-iso9660-image',
+	});
+});
+
 test('.fileTypeStream() preserves large caller-provided sampleSize values', async t => {
 	const id3HeaderLength = 2 * 1024 * 1024;
 	const id3Header = Uint8Array.from([

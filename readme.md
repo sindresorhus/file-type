@@ -464,6 +464,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`ico`](https://en.wikipedia.org/wiki/ICO_(file_format)) - Windows icon file
 - [`ics`](https://en.wikipedia.org/wiki/ICalendar#Data_format) - iCalendar
 - [`indd`](https://en.wikipedia.org/wiki/Adobe_InDesign#File_format) - Adobe InDesign document
+- [`iso`](https://en.wikipedia.org/wiki/ISO_9660) - ISO 9660 disc image
 - [`it`](https://wiki.openmpt.org/Manual:_Module_formats#The_Impulse_Tracker_format_.28.it.29) - Audio module format: Impulse Tracker
 - [`j2c`](https://en.wikipedia.org/wiki/JPEG_2000) - JPEG 2000
 - [`jar`](https://en.wikipedia.org/wiki/JAR_(file_format)) - Java archive

@@ -184,6 +184,7 @@ export const extensions = [
 	'key',
 	'numbers',
 	'pages',
+	'iso',
 ];
 
 export const mimeTypes = [
@@ -365,4 +366,5 @@ export const mimeTypes = [
 	'application/vnd.apple.keynote',
 	'application/vnd.apple.numbers',
 	'application/vnd.apple.pages',
+	'application/x-iso9660-image',
 ];
