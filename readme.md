@@ -581,6 +581,8 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 
 ISO 9660 requires random-access input or `fileTypeStream()` with `sampleSize >= 32_774`; `fileTypeFromStream()` is unsupported.
 
+An OOXML file written to a stream, such as a Google Docs export, leaves its entry sizes out of the local file headers and records them in a data descriptor after each entry. `fileTypeFromStream()` scans forward for those descriptors, bounded to 1 MiB per entry, so it reports `zip` when the entry identifying the format sits behind an entry larger than that — typically embedded media. Random-access input, or `fileTypeStream()` with a `sampleSize` covering the archive, reads the central directory instead and is unaffected.
+
 *[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
 The following file types will not be accepted, but most of them are supported by [third-party detectors](#available-third-party-file-type-detectors).

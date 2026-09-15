@@ -33,6 +33,7 @@ const missingTests = new Set();
 const reasonableDetectionSizeInBytes = 4100;
 const maximumZipTextEntrySizeInBytes = 1024 * 1024;
 const maximumStreamPayloadProbeSizeInBytes = 1024 * 1024;
+const maximumZipDescriptorScanSizeInBytes = 1024 * 1024;
 const maximumUntrustedSkipSizeInBytes = 16 * 1024 * 1024;
 const legacyOversizedZipTextEntrySizeInBytes = 16 * 1024 * 1024;
 
@@ -1386,7 +1387,7 @@ function createDeflatedZipWithUnderstatedContentTypesSize() {
 	]);
 }
 
-function createZipArchive(entries) {
+function createZipArchive(entries, endOfCentralDirectoryOverrides = {}, comment = '') {
 	const localFiles = [];
 	const centralDirectoryEntries = [];
 	let offset = 0;
@@ -1399,16 +1400,26 @@ function createZipArchive(entries) {
 			compressedData = new Uint8Array(0),
 			compressedSize = compressedData.length,
 			uncompressedSize = compressedData.length,
+			centralCompressedSize = compressedSize,
+			centralLocalHeaderOffset,
 		} = entry;
 		const filenameBytes = new TextEncoder().encode(filename);
-		const localFile = createZipLocalFile({
-			filename,
-			generalPurposeBitFlag,
-			compressedMethod,
-			compressedData,
-			compressedSize,
-			uncompressedSize,
-		});
+		// Bit 3 means the local header defers its sizes to a data descriptor written after the entry.
+		const localFile = (generalPurposeBitFlag & 0x08)
+			? createZipDataDescriptorFile({
+				filename,
+				compressedMethod,
+				compressedData,
+				uncompressedSize,
+			})
+			: createZipLocalFile({
+				filename,
+				generalPurposeBitFlag,
+				compressedMethod,
+				compressedData,
+				compressedSize,
+				uncompressedSize,
+			});
 		localFiles.push(localFile);
 
 		const centralDirectoryEntry = new Uint8Array(46 + filenameBytes.length);
@@ -1421,7 +1432,7 @@ function createZipArchive(entries) {
 		view.setUint16(12, 0, true);
 		view.setUint16(14, 0, true);
 		view.setUint32(16, 0, true);
-		view.setUint32(20, compressedSize, true);
+		view.setUint32(20, centralCompressedSize, true);
 		view.setUint32(24, uncompressedSize, true);
 		view.setUint16(28, filenameBytes.length, true);
 		view.setUint16(30, 0, true);
@@ -1429,7 +1440,7 @@ function createZipArchive(entries) {
 		view.setUint16(34, 0, true);
 		view.setUint16(36, 0, true);
 		view.setUint32(38, 0, true);
-		view.setUint32(42, offset, true);
+		view.setUint32(42, centralLocalHeaderOffset ?? offset, true);
 		centralDirectoryEntry.set(filenameBytes, 46);
 		centralDirectoryEntries.push(Buffer.from(centralDirectoryEntry));
 		offset += localFile.length;
@@ -1441,13 +1452,14 @@ function createZipArchive(entries) {
 	view.setUint32(0, 0x06_05_4B_50, true);
 	view.setUint16(4, 0, true);
 	view.setUint16(6, 0, true);
-	view.setUint16(8, entries.length, true);
-	view.setUint16(10, entries.length, true);
-	view.setUint32(12, centralDirectory.length, true);
-	view.setUint32(16, offset, true);
-	view.setUint16(20, 0, true);
+	view.setUint16(8, endOfCentralDirectoryOverrides.entryCount ?? entries.length, true);
+	view.setUint16(10, endOfCentralDirectoryOverrides.entryCount ?? entries.length, true);
+	view.setUint32(12, endOfCentralDirectoryOverrides.centralDirectorySize ?? centralDirectory.length, true);
+	view.setUint32(16, endOfCentralDirectoryOverrides.centralDirectoryOffset ?? offset, true);
+	const commentBytes = new TextEncoder().encode(comment);
+	view.setUint16(20, commentBytes.length, true);
 
-	return Buffer.concat([...localFiles, centralDirectory, Buffer.from(endOfCentralDirectory)]);
+	return Buffer.concat([...localFiles, centralDirectory, Buffer.from(endOfCentralDirectory), Buffer.from(commentBytes)]);
 }
 
 function createZipArchiveWithEntryAtIndex(entryCount, entryIndex, entry) {
@@ -7529,6 +7541,315 @@ test('Streamed ZIP detection falls back to zip when classes.dex first appears af
 	});
 
 	await assertZipTypeFromChunkedStream(t, zip);
+});
+
+const streamedOoxmlPartSizeInBytes = maximumZipDescriptorScanSizeInBytes + 1;
+
+// Google Docs writes its exports as streamed ZIPs, with `[Content_Types].xml` last and the embedded
+// media in front of it. The media entry is sized past the budget that scanning for an entry's
+// trailing data descriptor is allowed to spend, which is what hides `[Content_Types].xml`.
+function createStreamedOoxmlZipArchive({partFilename, contentType, contentTypesEntry}, endOfCentralDirectoryOverrides, comment) {
+	return createZipArchive([
+		{
+			filename: partFilename,
+			generalPurposeBitFlag: 0x08,
+			compressedData: new TextEncoder().encode('<part/>'),
+		},
+		{
+			filename: 'docProps/thumbnail.bin',
+			generalPurposeBitFlag: 0x08,
+			compressedData: new Uint8Array(streamedOoxmlPartSizeInBytes),
+		},
+		{
+			filename: '[Content_Types].xml',
+			generalPurposeBitFlag: 0x08,
+			compressedData: new TextEncoder().encode(`<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="${contentType}"/></Types>`),
+			...contentTypesEntry,
+		},
+	], endOfCentralDirectoryOverrides, comment);
+}
+
+function createSmallStreamedDocxZipArchive(contentTypesEntry) {
+	return createZipArchive([
+		{
+			filename: 'word/document.xml',
+			generalPurposeBitFlag: 0x08,
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		},
+		{
+			filename: '[Content_Types].xml',
+			generalPurposeBitFlag: 0x08,
+			compressedData: new TextEncoder().encode('<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'),
+			...contentTypesEntry,
+		},
+	]);
+}
+
+function createStreamedDocxZipArchive(contentTypesEntry, endOfCentralDirectoryOverrides) {
+	return createStreamedOoxmlZipArchive({
+		partFilename: 'word/document.xml',
+		contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
+		contentTypesEntry,
+	}, endOfCentralDirectoryOverrides);
+}
+
+const streamedOoxmlArchives = [
+	{
+		partFilename: 'word/document.xml',
+		contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
+		fileType: {
+			ext: 'docx',
+			mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		},
+	},
+	{
+		partFilename: 'xl/workbook.xml',
+		contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml',
+		fileType: {
+			ext: 'xlsx',
+			mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		},
+	},
+	{
+		partFilename: 'ppt/presentation.xml',
+		contentType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml',
+		fileType: {
+			ext: 'pptx',
+			mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+		},
+	},
+];
+
+for (const archive of streamedOoxmlArchives) {
+	const {ext} = archive.fileType;
+
+	test(`Detects ${ext.toUpperCase()} written as a streamed ZIP with [Content_Types].xml beyond the descriptor scan budget`, async t => {
+		const zip = createStreamedOoxmlZipArchive(archive);
+
+		t.deepEqual(await fileTypeFromBuffer(zip), archive.fileType);
+		t.deepEqual(await fileTypeFromBlob(new Blob([zip])), archive.fileType);
+		t.deepEqual(await fileTypeFromFile(await createTemporaryTestFile(t, zip)), archive.fileType);
+	});
+
+	test(`Streamed ZIP detection falls back to zip for a streamed ${ext.toUpperCase()} whose [Content_Types].xml is beyond the descriptor scan budget`, async t => {
+		await assertZipTypeFromChunkedStream(t, createStreamedOoxmlZipArchive(archive));
+	});
+}
+
+test('Reads [Content_Types].xml rather than guessing from directory names for a streamed DOCM', async t => {
+	const zip = createStreamedOoxmlZipArchive({
+		partFilename: 'word/document.xml',
+		contentType: 'application/vnd.ms-word.document.macroenabled.main+xml',
+	});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+});
+
+test('.fileTypeStream() detects a streamed DOCX when the sample covers the whole archive', async t => {
+	const zip = createStreamedDocxZipArchive();
+
+	await assertFileTypeStreamChunkedResult(t, zip, {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	}, {sampleSize: zip.length});
+});
+
+test('Falls back to zip when the central directory declares an entry too large to inspect', async t => {
+	const zip = createStreamedDocxZipArchive({centralCompressedSize: 0x7F_FF_FF_FF});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the central directory overstates the last entry into the directory itself', async t => {
+	const zip = createStreamedDocxZipArchive({centralCompressedSize: maximumZipDescriptorScanSizeInBytes - 1});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Streamed ZIP detection still detects a DOCX whose entries stay inside the descriptor scan budget', async t => {
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(createSmallStreamedDocxZipArchive(), 8)), {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
+
+test('Detects a streamed DOCX whose central directory repeats the local header\'s zeroed sizes', async t => {
+	const zip = createSmallStreamedDocxZipArchive({centralCompressedSize: 0});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
+
+test('Falls back to zip when the central directory overstates an entry into the ones that follow it', async t => {
+	const zip = createZipArchive([
+		{
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+			// Still inside the archive, so only the entry's own extent rules this out.
+			centralCompressedSize: descriptorBoundaryContentTypesXml.length + 64,
+		},
+		{
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		},
+	]);
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when a central directory entry points outside the archive', async t => {
+	const zip = createStreamedDocxZipArchive({centralLocalHeaderOffset: 0x0F_FF_FF_FF});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when a central directory entry points at something other than a local file header', async t => {
+	const zip = createStreamedDocxZipArchive({centralLocalHeaderOffset: 64});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when a central directory entry points at the local file header of a different entry', async t => {
+	const decoy = new TextEncoder().encode(descriptorBoundaryContentTypesXml);
+	const zip = createZipArchive([
+		{
+			filename: 'notes/decoy.xml',
+			compressedData: decoy,
+		},
+		{
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode('<Types/>'),
+			centralLocalHeaderOffset: 0,
+			centralCompressedSize: decoy.length,
+		},
+	]);
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the end-of-central-directory record is truncated', async t => {
+	const zip = createStreamedDocxZipArchive();
+
+	await assertZipTypeFromKnownSizeInputs(t, zip.subarray(0, -10));
+});
+
+test('Falls back to zip when the end-of-central-directory record declares a ZIP64 entry count', async t => {
+	const zip = createStreamedDocxZipArchive(undefined, {entryCount: 0xFF_FF});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the end-of-central-directory record declares a ZIP64 central directory offset', async t => {
+	const zip = createStreamedDocxZipArchive(undefined, {centralDirectoryOffset: 0xFF_FF_FF_FF});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the declared central directory is too small to hold its entries', async t => {
+	const zip = createStreamedDocxZipArchive(undefined, {centralDirectorySize: 1});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the central directory records overrun the declared size', async t => {
+	const archive = createStreamedDocxZipArchive();
+	const centralDirectorySize = archive.readUInt32LE(archive.length - 10);
+	const zip = createStreamedDocxZipArchive(undefined, {centralDirectorySize: centralDirectorySize - 1});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the central directory records leave the declared size unfilled', async t => {
+	const zip = createStreamedDocxZipArchive(undefined, {entryCount: 2});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Falls back to zip when the end-of-central-directory record declares more entries than the limit', async t => {
+	const zip = createStreamedDocxZipArchive(undefined, {entryCount: 1025});
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Detects a streamed DOCX whose archive carries a comment after the end-of-central-directory record', async t => {
+	const zip = createStreamedOoxmlZipArchive({
+		partFilename: 'word/document.xml',
+		contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml',
+	}, undefined, 'Exported by a tool that leaves a note here.');
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
+
+test('Still scans local file headers when the end-of-central-directory record claims no entries', async t => {
+	const emptyEndOfCentralDirectory = new Uint8Array(22);
+	new DataView(emptyEndOfCentralDirectory.buffer).setUint32(0, 0x06_05_4B_50, true);
+	const zip = Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+		Buffer.from(emptyEndOfCentralDirectory),
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+});
+
+// The archive below is small enough for the local-file-header scan to detect on its own, so this
+// pins the deliberate choice not to retry that scan once the central directory has been trusted.
+test('Falls back to zip for a scannable archive whose central directory misplaces [Content_Types].xml', async t => {
+	const zip = createZipArchive([
+		{
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<w:document/>'),
+		},
+		{
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+			centralLocalHeaderOffset: 12,
+		},
+	]);
+
+	await assertZipTypeFromKnownSizeInputs(t, zip);
+});
+
+test('Ignores end-of-central-directory signature bytes inside ZIP entry data', async t => {
+	const endOfCentralDirectorySignature = new Uint8Array(22);
+	new DataView(endOfCentralDirectorySignature.buffer).setUint32(0, 0x06_05_4B_50, true);
+	const zip = Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: endOfCentralDirectorySignature,
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+});
+
+test('Still scans local file headers when the central directory is unusable', async t => {
+	const zip = createZipArchive([
+		{
+			filename: 'mimetype',
+			compressedData: new TextEncoder().encode('application/epub+zip'),
+		},
+	], {centralDirectoryOffset: 0xFF_FF_FF_FF});
+
+	t.deepEqual(await fileTypeFromBuffer(zip), {
+		ext: 'epub',
+		mime: 'application/epub+zip',
+	});
 });
 
 test('.fileTypeStream() clamps invalid sampleSize values', async t => {

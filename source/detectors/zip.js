@@ -4,6 +4,7 @@ import {ZipHandler} from '@tokenizer/inflate';
 import {
 	maximumUntrustedSkipSizeInBytes,
 	ParserHardLimitError,
+	getSafeBound,
 	safeIgnore,
 	hasUnknownFileSize,
 	hasExceededUnknownSizeScanBudget,
@@ -14,10 +15,13 @@ const maximumZipEntryCount = 1024;
 const maximumZipBufferedReadSizeInBytes = (2 ** 31) - 1;
 const maximumZipTextEntrySizeInBytes = maximumZipEntrySizeInBytes;
 
+const zipCentralDirectoryMismatchMessage = 'ZIP central-directory entry does not match its local file header';
+
 const recoverableZipErrorMessages = new Set([
 	'Unexpected signature',
 	'Encrypted ZIP',
 	'Expected Central-File-Header signature',
+	zipCentralDirectoryMismatchMessage,
 ]);
 const recoverableZipErrorMessagePrefixes = [
 	'ZIP entry count exceeds ',
@@ -427,11 +431,12 @@ function getRemainingZipScanBudget(zipHandler, startOffset) {
 	return Math.max(0, maximumZipEntrySizeInBytes - zipHandler.knownSizeDescriptorScannedBytes);
 }
 
+function hasDeferredEntrySize(zipHeader) {
+	return zipHeader.dataDescriptor && zipHeader.compressedSize === 0;
+}
+
 async function readZipEntryData(zipHandler, zipHeader, {shouldBuffer, maximumDescriptorLength = maximumZipEntrySizeInBytes} = {}) {
-	if (
-		zipHeader.dataDescriptor
-		&& zipHeader.compressedSize === 0
-	) {
+	if (hasDeferredEntrySize(zipHeader)) {
 		return readZipDataDescriptorEntryWithLimit(zipHandler, {
 			shouldBuffer,
 			maximumLength: maximumDescriptorLength,
@@ -460,6 +465,234 @@ async function readZipEntryData(zipHandler, zipHeader, {shouldBuffer, maximumDes
 	return fileData;
 }
 
+// -- Central directory (random-access input) --
+
+const zipLocalFileHeaderSignature = 0x04_03_4B_50;
+const zipLocalFileHeaderLengthInBytes = 30;
+const zipCentralFileHeaderSignature = 0x02_01_4B_50;
+const zipCentralFileHeaderLengthInBytes = 46;
+const zipEndOfCentralDirectorySignature = 0x06_05_4B_50;
+const zipEndOfCentralDirectoryLengthInBytes = 22;
+const maximumZipCommentLengthInBytes = 0xFF_FF;
+const maximumZipEndOfCentralDirectorySearchLengthInBytes = zipEndOfCentralDirectoryLengthInBytes + maximumZipCommentLengthInBytes;
+const maximumZipCentralDirectorySizeInBytes = maximumZipEntrySizeInBytes;
+const zipUint16Zip64Sentinel = 0xFF_FF;
+const zipUint32Zip64Sentinel = 0xFF_FF_FF_FF;
+
+function findZipEndOfCentralDirectory(searchWindow, windowPosition, fileSize) {
+	for (let index = searchWindow.length - zipEndOfCentralDirectoryLengthInBytes; index >= 0; index--) {
+		if (Token.UINT32_LE.get(searchWindow, index) !== zipEndOfCentralDirectorySignature) {
+			continue;
+		}
+
+		// The signature also occurs inside entry data, so only accept a record the archive ends on.
+		const position = windowPosition + index;
+		const commentLength = Token.UINT16_LE.get(searchWindow, index + 20);
+		if (position + zipEndOfCentralDirectoryLengthInBytes + commentLength !== fileSize) {
+			continue;
+		}
+
+		return {
+			position,
+			entryCountOnDisk: Token.UINT16_LE.get(searchWindow, index + 8),
+			entryCount: Token.UINT16_LE.get(searchWindow, index + 10),
+			centralDirectorySize: Token.UINT32_LE.get(searchWindow, index + 12),
+			centralDirectoryOffset: Token.UINT32_LE.get(searchWindow, index + 16),
+		};
+	}
+}
+
+function isZip64EndOfCentralDirectory({entryCountOnDisk, entryCount, centralDirectorySize, centralDirectoryOffset}) {
+	return (
+		entryCountOnDisk === zipUint16Zip64Sentinel
+		|| entryCount === zipUint16Zip64Sentinel
+		|| centralDirectorySize === zipUint32Zip64Sentinel
+		|| centralDirectoryOffset === zipUint32Zip64Sentinel
+	);
+}
+
+function isUsableZipEndOfCentralDirectory(endOfCentralDirectory, archiveStart) {
+	const {position, entryCount, centralDirectorySize, centralDirectoryOffset} = endOfCentralDirectory;
+	return (
+		!isZip64EndOfCentralDirectory(endOfCentralDirectory)
+		&& entryCount <= maximumZipEntryCount
+		&& centralDirectorySize <= maximumZipCentralDirectorySizeInBytes
+		&& entryCount * zipCentralFileHeaderLengthInBytes <= centralDirectorySize
+		&& archiveStart + centralDirectoryOffset + centralDirectorySize <= position
+	);
+}
+
+async function readZipCentralDirectoryEntries(tokenizer, archiveStart, {entryCount, centralDirectorySize, centralDirectoryOffset}) {
+	const centralDirectory = new Uint8Array(centralDirectorySize);
+	const length = await tokenizer.peekBuffer(centralDirectory, {position: archiveStart + centralDirectoryOffset, mayBeLess: true});
+	if (length !== centralDirectorySize) {
+		return;
+	}
+
+	const decoder = new TextDecoder('utf-8');
+	const entries = [];
+	let offset = 0;
+
+	for (let index = 0; index < entryCount; index++) {
+		if (
+			offset + zipCentralFileHeaderLengthInBytes > centralDirectorySize
+			|| Token.UINT32_LE.get(centralDirectory, offset) !== zipCentralFileHeaderSignature
+		) {
+			return;
+		}
+
+		const filenameLength = Token.UINT16_LE.get(centralDirectory, offset + 28);
+		const extraFieldLength = Token.UINT16_LE.get(centralDirectory, offset + 30);
+		const fileCommentLength = Token.UINT16_LE.get(centralDirectory, offset + 32);
+		const filenameOffset = offset + zipCentralFileHeaderLengthInBytes;
+		const nextOffset = filenameOffset + filenameLength + extraFieldLength + fileCommentLength;
+		const relativeOffsetOfLocalHeader = Token.UINT32_LE.get(centralDirectory, offset + 42);
+		if (
+			nextOffset > centralDirectorySize
+			|| relativeOffsetOfLocalHeader + zipLocalFileHeaderLengthInBytes > centralDirectoryOffset
+		) {
+			return;
+		}
+
+		const generalPurposeBitFlag = Token.UINT16_LE.get(centralDirectory, offset + 8);
+		entries.push({
+			filename: decoder.decode(centralDirectory.subarray(filenameOffset, filenameOffset + filenameLength)),
+			dataDescriptor: Boolean(generalPurposeBitFlag & 0x08),
+			compressedMethod: Token.UINT16_LE.get(centralDirectory, offset + 10),
+			compressedSize: Token.UINT32_LE.get(centralDirectory, offset + 20),
+			uncompressedSize: Token.UINT32_LE.get(centralDirectory, offset + 24),
+			relativeOffsetOfLocalHeader,
+		});
+		offset = nextOffset;
+	}
+
+	// The records have to tile the directory the archive declared, with nothing left over.
+	return entries.length > 0 && offset === centralDirectorySize ? entries : undefined;
+}
+
+async function findZipEndOfCentralDirectoryWithin(tokenizer, archiveStart, searchLength) {
+	const {size: fileSize} = tokenizer.fileInfo;
+	if (searchLength > fileSize - archiveStart) {
+		return;
+	}
+
+	const windowPosition = fileSize - searchLength;
+	const searchWindow = new Uint8Array(searchLength);
+	const length = await tokenizer.peekBuffer(searchWindow, {position: windowPosition, mayBeLess: true});
+	if (length !== searchLength) {
+		return;
+	}
+
+	return findZipEndOfCentralDirectory(searchWindow, windowPosition, fileSize);
+}
+
+async function readZipCentralDirectory(zipHandler, archiveStart) {
+	const {tokenizer} = zipHandler;
+	if (
+		!tokenizer.supportsRandomAccess()
+		|| hasUnknownFileSize(tokenizer)
+	) {
+		return;
+	}
+
+	const {size: fileSize} = tokenizer.fileInfo;
+
+	try {
+		// Only an archive carrying a comment needs more than its last 22 bytes read, and most carry none.
+		const endOfCentralDirectory = await findZipEndOfCentralDirectoryWithin(tokenizer, archiveStart, zipEndOfCentralDirectoryLengthInBytes)
+			?? await findZipEndOfCentralDirectoryWithin(tokenizer, archiveStart, Math.min(fileSize - archiveStart, maximumZipEndOfCentralDirectorySearchLengthInBytes));
+		if (
+			!endOfCentralDirectory
+			|| !isUsableZipEndOfCentralDirectory(endOfCentralDirectory, archiveStart)
+		) {
+			return;
+		}
+
+		const entries = await readZipCentralDirectoryEntries(tokenizer, archiveStart, endOfCentralDirectory);
+		if (!entries) {
+			return;
+		}
+
+		return {
+			archiveStart,
+			entriesEnd: archiveStart + endOfCentralDirectory.centralDirectoryOffset,
+			entries,
+		};
+	} catch (error) {
+		if (!isRecoverableZipError(error)) {
+			throw error;
+		}
+	} finally {
+		tokenizer.setPosition(archiveStart);
+	}
+}
+
+async function readZipLocalFileHeader(tokenizer, position, filename) {
+	const header = new Uint8Array(zipLocalFileHeaderLengthInBytes);
+	const length = await tokenizer.peekBuffer(header, {position, mayBeLess: true});
+	if (
+		length !== zipLocalFileHeaderLengthInBytes
+		|| Token.UINT32_LE.get(header, 0) !== zipLocalFileHeaderSignature
+	) {
+		return;
+	}
+
+	const filenameLength = Token.UINT16_LE.get(header, 26);
+	const filenameBytes = new Uint8Array(filenameLength);
+	await tokenizer.peekBuffer(filenameBytes, {position: position + zipLocalFileHeaderLengthInBytes, mayBeLess: true});
+	if (new TextDecoder('utf-8').decode(filenameBytes) !== filename) {
+		return;
+	}
+
+	return {
+		filenameLength,
+		extraFieldLength: Token.UINT16_LE.get(header, 28),
+	};
+}
+
+async function readZipEntryDataFromCentralDirectory(zipHandler, {archiveStart, entriesEnd}, entry, remainingBudget) {
+	const {tokenizer} = zipHandler;
+	const headerPosition = archiveStart + entry.relativeOffsetOfLocalHeader;
+	const localFileHeader = await readZipLocalFileHeader(tokenizer, headerPosition, entry.filename);
+	if (!localFileHeader) {
+		throw new Error(zipCentralDirectoryMismatchMessage);
+	}
+
+	// Where the data starts is the local header's to say, but how far it runs is not.
+	const dataPosition = headerPosition + zipLocalFileHeaderLengthInBytes + localFileHeader.filenameLength + localFileHeader.extraFieldLength;
+	if (dataPosition + entry.compressedSize > entriesEnd) {
+		throw new Error(zipCentralDirectoryMismatchMessage);
+	}
+
+	tokenizer.setPosition(dataPosition);
+	const maximumLength = Math.max(0, Math.min(remainingBudget, entriesEnd - dataPosition));
+
+	if (hasDeferredEntrySize(entry)) {
+		return readZipEntryData(zipHandler, entry, {shouldBuffer: true, maximumDescriptorLength: maximumLength});
+	}
+
+	const fileData = new Uint8Array(getSafeBound(entry.compressedSize, maximumLength, 'ZIP entry compressed data'));
+	await tokenizer.readBuffer(fileData);
+	return fileData;
+}
+
+async function unzipFromCentralDirectory(zipHandler, centralDirectory, fileCallback) {
+	let bytesRead = 0;
+
+	for (const entry of centralDirectory.entries) {
+		const next = fileCallback(entry);
+		if (next.handler) {
+			const fileData = await readZipEntryDataFromCentralDirectory(zipHandler, centralDirectory, entry, maximumZipEntrySizeInBytes - bytesRead);
+			bytesRead += fileData.length;
+			await zipHandler.inflate(entry, fileData, next.handler);
+		}
+
+		if (next.stop) {
+			break;
+		}
+	}
+}
+
 // Override the default inflate to enforce decompression size limits, since @tokenizer/inflate does not expose a configuration hook for this.
 ZipHandler.prototype.inflate = async function (zipHeader, fileData, callback) {
 	if (zipHeader.compressedMethod === 0) {
@@ -479,6 +712,12 @@ ZipHandler.prototype.unzip = async function (fileCallback) {
 	let zipEntryCount = 0;
 	const zipScanStart = this.tokenizer.position;
 	this.knownSizeDescriptorScannedBytes = 0;
+
+	const centralDirectory = await readZipCentralDirectory(this, zipScanStart);
+	if (centralDirectory) {
+		return unzipFromCentralDirectory(this, centralDirectory, fileCallback);
+	}
+
 	do {
 		if (hasExceededUnknownSizeScanBudget(this.tokenizer, zipScanStart, maximumUntrustedSkipSizeInBytes)) {
 			throw new ParserHardLimitError(`ZIP stream probing exceeds ${maximumUntrustedSkipSizeInBytes} bytes`);
