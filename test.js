@@ -32,6 +32,7 @@ const missingTests = new Set();
 
 const reasonableDetectionSizeInBytes = 4100;
 const maximumZipTextEntrySizeInBytes = 1024 * 1024;
+const maximumZipDescriptorScanSizeInBytes = 1024 * 1024;
 const maximumStreamPayloadProbeSizeInBytes = 1024 * 1024;
 const maximumUntrustedSkipSizeInBytes = 16 * 1024 * 1024;
 const legacyOversizedZipTextEntrySizeInBytes = 16 * 1024 * 1024;
@@ -1007,6 +1008,32 @@ async function assertZipTypeFromAllDirectInputs(t, bytes) {
 	await assertZipTypeFromBlob(t, bytes);
 	await assertZipTypeFromFile(t, bytes);
 	await assertZipTypeFromChunkedStream(t, bytes);
+}
+
+// The shape of a Google Docs export: the media sits in front of `[Content_Types].xml`, so the scan
+// for each entry's trailing data descriptor gives up before reaching the entry that names the format.
+function createStreamedOoxmlZipBeyondScanBudget(partFilename, contentTypesXml) {
+	return Buffer.concat([
+		createZipDataDescriptorFile({
+			filename: partFilename,
+			compressedData: new TextEncoder().encode('<part/>'),
+		}),
+		createZipDataDescriptorFile({
+			filename: 'docProps/thumbnail.bin',
+			compressedData: Buffer.alloc(maximumZipDescriptorScanSizeInBytes + (64 * 1024)),
+		}),
+		createZipDataDescriptorFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(contentTypesXml),
+		}),
+	]);
+}
+
+async function assertFileTypeFromAllDirectInputs(t, bytes, expected) {
+	t.deepEqual(await fileTypeFromBuffer(bytes), expected);
+	t.deepEqual(await fileTypeFromBlob(new Blob([bytes])), expected);
+	t.deepEqual(await fileTypeFromFile(await createTemporaryTestFile(t, bytes)), expected);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(bytes, 64 * 1024)), expected);
 }
 
 async function assertFileTypeStreamFallsBackToZipWithLargeSampleSize(t, bytes) {
@@ -3259,6 +3286,113 @@ test('OOXML directory heuristic detects 3mf when [Content_Types].xml is beyond t
 		ext: '3mf',
 		mime: 'model/3mf',
 	});
+});
+
+// Each of the three archives below declares a macro-enabled content type, which is a type the
+// directory names cannot produce. Detecting the base type is what proves the directory name answered
+// rather than the entry.
+test('OOXML directory heuristic detects docx when [Content_Types].xml is beyond the ZIP descriptor scan budget', async t => {
+	const zip = createStreamedOoxmlZipBeyondScanBudget('word/document.xml', descriptorBoundaryContentTypesXml);
+
+	await assertFileTypeFromAllDirectInputs(t, zip, {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
+
+test('OOXML directory heuristic detects xlsx when [Content_Types].xml is beyond the ZIP descriptor scan budget', async t => {
+	const zip = createStreamedOoxmlZipBeyondScanBudget('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-excel.sheet.macroenabled.main+xml"/></Types>');
+
+	await assertFileTypeFromAllDirectInputs(t, zip, {
+		ext: 'xlsx',
+		mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	});
+});
+
+test('OOXML directory heuristic detects pptx when [Content_Types].xml is beyond the ZIP descriptor scan budget', async t => {
+	const zip = createStreamedOoxmlZipBeyondScanBudget('ppt/presentation.xml', '<?xml version="1.0" encoding="UTF-8"?><Types><Override ContentType="application/vnd.ms-powerpoint.presentation.macroenabled.main+xml"/></Types>');
+
+	await assertFileTypeFromAllDirectInputs(t, zip, {
+		ext: 'pptx',
+		mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+	});
+});
+
+test('Reads [Content_Types].xml rather than guessing when a streamed entry stays inside the ZIP descriptor scan budget', async t => {
+	const zip = Buffer.concat([
+		createZipDataDescriptorFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<part/>'),
+		}),
+		createZipDataDescriptorFile({
+			filename: 'docProps/thumbnail.bin',
+			compressedData: Buffer.alloc(64 * 1024),
+		}),
+		createZipDataDescriptorFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+	]);
+
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), descriptorBoundaryDocmFileType);
+});
+
+// An entry that declares its size is skipped rather than scanned for, so it aborts on a different
+// limit — but abandoning the entry leaves us knowing exactly as much, and the guess still applies.
+test('OOXML directory heuristic detects docx when a declared entry size is too large for a stream to skip', async t => {
+	const zip = Buffer.concat([
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<part/>'),
+		}),
+		createZipLocalFile({
+			filename: 'docProps/thumbnail.bin',
+			compressedData: Buffer.alloc(maximumZipDescriptorScanSizeInBytes + (64 * 1024)),
+		}),
+		createZipLocalFile({
+			filename: '[Content_Types].xml',
+			compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+		}),
+	]);
+
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+	// A known size is skipped without a budget, so the seekable APIs still read the entry itself.
+	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
+});
+
+test('Falls back to zip when the ZIP scan ceiling is reached after an OOXML directory was seen', async t => {
+	const entries = [
+		createZipLocalFile({
+			filename: 'word/document.xml',
+			compressedData: new TextEncoder().encode('<part/>'),
+		}),
+	];
+
+	// Sized exactly at the per-entry skip limit, so abandoning an entry never happens and only the
+	// archive-wide ceiling can end the scan.
+	for (let consumed = 0; consumed < maximumUntrustedSkipSizeInBytes; consumed += maximumZipDescriptorScanSizeInBytes) {
+		entries.push(createZipLocalFile({
+			filename: `media/image-${entries.length}.bin`,
+			compressedData: Buffer.alloc(maximumZipDescriptorScanSizeInBytes),
+		}));
+	}
+
+	entries.push(createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+	}));
+
+	assertZipFileType(t, await fileTypeFromStream(createBufferedWebStream(Buffer.concat(entries), 64 * 1024)));
+});
+
+test('Falls back to zip when [Content_Types].xml is beyond the ZIP descriptor scan budget and no OOXML directory was seen', async t => {
+	const zip = createStreamedOoxmlZipBeyondScanBudget('notes/note.xml', descriptorBoundaryContentTypesXml);
+
+	await assertZipTypeFromAllDirectInputs(t, zip);
 });
 
 test('iWork: detects Keynote (.key)', async t => {

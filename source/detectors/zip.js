@@ -14,6 +14,8 @@ const maximumZipEntryCount = 1024;
 const maximumZipBufferedReadSizeInBytes = (2 ** 31) - 1;
 const maximumZipTextEntrySizeInBytes = maximumZipEntrySizeInBytes;
 
+class ZipEntryScanLimitError extends Error {}
+
 const recoverableZipErrorMessages = new Set([
 	'Unexpected signature',
 	'Encrypted ZIP',
@@ -105,6 +107,10 @@ function isRecoverableZipError(error) {
 	}
 
 	if (error instanceof ParserHardLimitError) {
+		return true;
+	}
+
+	if (error instanceof ZipEntryScanLimitError) {
 		return true;
 	}
 
@@ -392,7 +398,7 @@ async function readZipDataDescriptorEntryWithLimit(zipHandler, {shouldBuffer, ma
 
 		bytesConsumed += chunkLength;
 		if (bytesConsumed > maximumLength) {
-			throw new Error(`ZIP entry compressed data exceeds ${maximumLength} bytes`);
+			throw new ZipEntryScanLimitError(`ZIP entry data descriptor not found within ${maximumLength} bytes`);
 		}
 
 		if (shouldBuffer) {
@@ -439,10 +445,15 @@ async function readZipEntryData(zipHandler, zipHeader, {shouldBuffer, maximumDes
 	}
 
 	if (!shouldBuffer) {
-		await safeIgnore(zipHandler.tokenizer, zipHeader.compressedSize, {
-			maximumLength: hasUnknownFileSize(zipHandler.tokenizer) ? maximumZipEntrySizeInBytes : zipHandler.tokenizer.fileInfo.size,
-			reason: 'ZIP entry compressed data',
-		});
+		try {
+			await safeIgnore(zipHandler.tokenizer, zipHeader.compressedSize, {
+				maximumLength: hasUnknownFileSize(zipHandler.tokenizer) ? maximumZipEntrySizeInBytes : zipHandler.tokenizer.fileInfo.size,
+				reason: 'ZIP entry compressed data',
+			});
+		} catch (error) {
+			throw error instanceof ParserHardLimitError ? new ZipEntryScanLimitError(error.message) : error;
+		}
+
 		return;
 	}
 
@@ -626,9 +637,13 @@ export async function detectZip(tokenizer) {
 			openXmlState.hasUnparseableContentTypes = true;
 		}
 
-		// When the stream was truncated before reaching [Content_Types].xml, use directory names as a fallback.
-		// This handles LibreOffice-created OOXML files where [Content_Types].xml appears after content entries.
-		if (!fileType && error instanceof strtok3.EndOfStreamError && !openXmlState.hasContentTypesEntry) {
+		// Producers are free to put [Content_Types].xml after the content entries, so falling short of
+		// it says nothing about whether this is an OOXML file. Guess from the directory names instead.
+		if (
+			!fileType
+			&& (error instanceof strtok3.EndOfStreamError || error instanceof ZipEntryScanLimitError)
+			&& !openXmlState.hasContentTypesEntry
+		) {
 			fileType = getOpenXmlFileTypeFromDirectoryNames(openXmlState);
 		}
 	}

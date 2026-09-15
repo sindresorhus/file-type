@@ -581,6 +581,8 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 
 ISO 9660 requires random-access input or `fileTypeStream()` with `sampleSize >= 32_774`; `fileTypeFromStream()` is unsupported.
 
+When `[Content_Types].xml` cannot be reached — it may trail the content entries, and only so much of what precedes it is scanned — the type is guessed from the archive's directory names: `word/`, `xl/` and `ppt/` are reported as `docx`, `xlsx` and `pptx`. Macro-enabled and template variants are therefore reported as their base type, and a non-OOXML archive containing one of those directories is reported as OOXML.
+
 *[Pull requests](.github/pull_request_template.md) are welcome for additional commonly used file types.*
 
 The following file types will not be accepted, but most of them are supported by [third-party detectors](#available-third-party-file-type-detectors).
