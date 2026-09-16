@@ -1029,6 +1029,31 @@ function createStreamedOoxmlZipBeyondScanBudget(partFilename, contentTypesXml) {
 	]);
 }
 
+// Every entry declares its size and sits exactly at the per-entry skip limit, so no single entry is
+// ever abandoned and only the archive-wide ceiling can end the scan.
+function createStreamedZipBeyondScanCeiling(partFilename) {
+	const entries = [
+		createZipLocalFile({
+			filename: partFilename,
+			compressedData: new TextEncoder().encode('<part/>'),
+		}),
+	];
+
+	for (let consumed = 0; consumed < maximumUntrustedSkipSizeInBytes; consumed += maximumZipDescriptorScanSizeInBytes) {
+		entries.push(createZipLocalFile({
+			filename: `media/image-${entries.length}.bin`,
+			compressedData: Buffer.alloc(maximumZipDescriptorScanSizeInBytes),
+		}));
+	}
+
+	entries.push(createZipLocalFile({
+		filename: '[Content_Types].xml',
+		compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+	}));
+
+	return Buffer.concat(entries);
+}
+
 async function assertFileTypeFromAllDirectInputs(t, bytes, expected) {
 	t.deepEqual(await fileTypeFromBuffer(bytes), expected);
 	t.deepEqual(await fileTypeFromBlob(new Blob([bytes])), expected);
@@ -3364,29 +3389,19 @@ test('OOXML directory heuristic detects docx when a declared entry size is too l
 	t.deepEqual(await fileTypeFromBuffer(zip), descriptorBoundaryDocmFileType);
 });
 
-test('Falls back to zip when the ZIP scan ceiling is reached after an OOXML directory was seen', async t => {
-	const entries = [
-		createZipLocalFile({
-			filename: 'word/document.xml',
-			compressedData: new TextEncoder().encode('<part/>'),
-		}),
-	];
+test('OOXML directory heuristic detects docx when the ZIP archive scan ceiling is reached', async t => {
+	const zip = createStreamedZipBeyondScanCeiling('word/document.xml');
 
-	// Sized exactly at the per-entry skip limit, so abandoning an entry never happens and only the
-	// archive-wide ceiling can end the scan.
-	for (let consumed = 0; consumed < maximumUntrustedSkipSizeInBytes; consumed += maximumZipDescriptorScanSizeInBytes) {
-		entries.push(createZipLocalFile({
-			filename: `media/image-${entries.length}.bin`,
-			compressedData: Buffer.alloc(maximumZipDescriptorScanSizeInBytes),
-		}));
-	}
+	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	});
+});
 
-	entries.push(createZipLocalFile({
-		filename: '[Content_Types].xml',
-		compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
-	}));
+test('Falls back to zip when the ZIP archive scan ceiling is reached and no OOXML directory was seen', async t => {
+	const zip = createStreamedZipBeyondScanCeiling('notes/note.xml');
 
-	assertZipFileType(t, await fileTypeFromStream(createBufferedWebStream(Buffer.concat(entries), 64 * 1024)));
+	assertZipFileType(t, await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)));
 });
 
 test('Falls back to zip when [Content_Types].xml is beyond the ZIP descriptor scan budget and no OOXML directory was seen', async t => {
@@ -6992,21 +7007,23 @@ test('Web Stream detection still detects DOCM when repeated stored entries stay 
 	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), descriptorBoundaryDocmFileType);
 });
 
-test('Streamed ZIP detection falls back when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async t => {
+// The cumulative limit lands between `word/document.xml` and `[Content_Types].xml`, so the directory
+// name answers. Reporting the base type rather than DOCM is what proves the entry went unread.
+test('Streamed ZIP detection guesses docx when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async t => {
 	const zip = createZipWithRepeatedStoredContentTypesAtCumulativeLimit();
 
 	t.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {
-		ext: 'zip',
-		mime: 'application/zip',
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 	});
 });
 
-test('Web Stream detection falls back when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async t => {
+test('Web Stream detection guesses docx when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async t => {
 	const zip = createZipWithRepeatedStoredContentTypesAtCumulativeLimit();
 
 	t.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), {
-		ext: 'zip',
-		mime: 'application/zip',
+		ext: 'docx',
+		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 	});
 });
 
