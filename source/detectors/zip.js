@@ -51,12 +51,12 @@ async function decompressDeflateRawWithLimit(data, {maximumLength = maximumZipEn
 				break;
 			}
 
-			totalLength += value.length;
-			if (totalLength > maximumLength) {
+			if (totalLength + value.length > maximumLength) {
 				await reader.cancel().catch(() => {});
 				throw new Error(`ZIP entry decompressed data exceeds ${maximumLength} bytes`);
 			}
 
+			totalLength += value.length;
 			chunks.push(value);
 		}
 	} catch (error) {
