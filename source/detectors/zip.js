@@ -392,7 +392,7 @@ async function readZipDataDescriptorEntryWithLimit(zipHandler, {shouldBuffer, ma
 
 		bytesConsumed += chunkLength;
 		if (bytesConsumed > maximumLength) {
-			throw new Error(`ZIP entry compressed data exceeds ${maximumLength} bytes`);
+			throw new ParserHardLimitError(`ZIP entry data descriptor not found within ${maximumLength} bytes`);
 		}
 
 		if (shouldBuffer) {
@@ -626,9 +626,14 @@ export async function detectZip(tokenizer) {
 			openXmlState.hasUnparseableContentTypes = true;
 		}
 
-		// When the stream was truncated before reaching [Content_Types].xml, use directory names as a fallback.
-		// This handles LibreOffice-created OOXML files where [Content_Types].xml appears after content entries.
-		if (!fileType && error instanceof strtok3.EndOfStreamError && !openXmlState.hasContentTypesEntry) {
+		// Producers are free to put [Content_Types].xml after the content entries, so running out of
+		// input or budget before reaching it says nothing about whether this is an OOXML file.
+		// Guess from the directory names instead.
+		if (
+			!fileType
+			&& (error instanceof strtok3.EndOfStreamError || error instanceof ParserHardLimitError)
+			&& !openXmlState.hasContentTypesEntry
+		) {
 			fileType = getOpenXmlFileTypeFromDirectoryNames(openXmlState);
 		}
 	}
