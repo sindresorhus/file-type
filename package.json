@@ -5,11 +5,7 @@
 	"license": "MIT",
 	"repository": "sindresorhus/file-type",
 	"funding": "https://github.com/sindresorhus/file-type?sponsor=1",
-	"author": {
-		"name": "Sindre Sorhus",
-		"email": "sindresorhus@gmail.com",
-		"url": "https://sindresorhus.com"
-	},
+	"author": "Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
 	"type": "module",
 	"exports": {
 		"types": "./source/index.d.ts",
@@ -20,7 +16,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "xo && ava && tsd --typings source/index.d.ts --files source/index.test-d.ts"
+		"test": "xo && node --test && tsd --typings source/index.d.ts --files source/index.test-d.ts"
 	},
 	"files": [
 		"source"
@@ -236,17 +232,16 @@
 		"@tokenizer/inflate": "^0.4.1",
 		"strtok3": "^10.3.5",
 		"token-types": "^6.1.2",
-		"uint8array-extras": "^1.5.0"
+		"uint8array-extras": "^1.6.0"
 	},
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
-		"@types/node": "^25.5.0",
-		"ava": "^7.0.0",
+		"@types/node": "^26.6.4",
 		"commonmark": "^0.31.2",
-		"esbuild": "^0.28.0",
+		"esbuild": "^0.28.2",
 		"get-stream": "^9.0.1",
 		"tsd": "^0.33.0",
-		"xo": "^2.0.2"
+		"xo": "^5.0.1"
 	},
 	"xo": [
 		{
@@ -256,21 +251,24 @@
 		},
 		{
 			"rules": {
-				"no-inner-declarations": "warn",
 				"no-await-in-loop": "warn",
 				"no-bitwise": "off",
-				"@typescript-eslint/no-unsafe-assignment": "off",
-				"unicorn/text-encoding-identifier-case": "off",
 				"unicorn/switch-case-braces": "off",
-				"unicorn/prefer-top-level-await": "off",
-				"n/prefer-global/buffer": "off",
-				"@stylistic/curly-newline": "off",
-				"ava/no-useless-t-pass": "off",
-				"ava/no-conditional-assertion": "off"
+				"unicorn/max-nested-calls": "off",
+				"unicorn/prefer-combined-guards": "off",
+				"unicorn/prefer-ternary": "off",
+				"unicorn/prefer-early-return": "off",
+				"node-test/require-assertion": "off",
+				"node-test/no-conditional-assertion": "off"
+			}
+		},
+		{
+			"files": [
+				"package.json"
+			],
+			"rules": {
+				"package-json/valid-fields": "off"
 			}
 		}
-	],
-	"ava": {
-		"serial": true
-	}
+	]
 }

@@ -64,6 +64,7 @@ function getKnownFileSizeOrMaximum(fileSize) {
 
 // Keep the specifier non-literal at the call site so browser bundlers do not try to resolve Node-only imports.
 function importAtRuntime(specifier) {
+	// eslint-disable-next-line jsdoc/no-bad-blocks
 	return import(/* @vite-ignore */ /* webpackIgnore: true */ specifier);
 }
 
@@ -97,18 +98,18 @@ function readWithSignal(reader, signal) {
 function createByteLimitedReadableStream(stream, maximumBytes) {
 	const reader = stream.getReader();
 	let emittedBytes = 0;
-	let sourceDone = false;
-	let sourceCanceled = false;
+	let isSourceDone = false;
+	let isSourceCanceled = false;
 
 	const cancelSource = async reason => {
 		if (
-			sourceDone
-			|| sourceCanceled
+			isSourceDone
+			|| isSourceCanceled
 		) {
 			return;
 		}
 
-		sourceCanceled = true;
+		isSourceCanceled = true;
 		await reader.cancel(reason);
 	};
 
@@ -125,7 +126,7 @@ function createByteLimitedReadableStream(stream, maximumBytes) {
 				done
 				|| !value
 			) {
-				sourceDone = true;
+				isSourceDone = true;
 				controller.close();
 				return;
 			}
@@ -169,6 +170,10 @@ export async function fileTypeStream(webStream, options) {
 }
 
 export class FileTypeParser {
+	buffer;
+	tokenizer;
+	detectionReentryCount;
+
 	constructor(options) {
 		const normalizedMpegOffsetTolerance = normalizeMpegOffsetTolerance(options?.mpegOffsetTolerance);
 		this.options = {
@@ -177,8 +182,8 @@ export class FileTypeParser {
 		};
 
 		this.detectors = [...(this.options.customDetectors ?? []),
-			{id: 'core', detect: this.detectConfident},
-			{id: 'core.imprecise', detect: this.detectImprecise}];
+			{id: 'core', detect: tokenizer => this.detectConfident(tokenizer)},
+			{id: 'core.imprecise', detect: tokenizer => this.detectImprecise(tokenizer)}];
 		this.tokenizerOptions = {
 			abortSignal: this.options.signal,
 		};
@@ -284,7 +289,7 @@ export class FileTypeParser {
 		this.options.signal?.throwIfAborted();
 		const sampleSize = normalizeSampleSize(options?.sampleSize ?? reasonableDetectionSizeInBytes);
 		let detectedFileType;
-		let streamEnded = false;
+		let hasStreamEnded = false;
 
 		const reader = stream.getReader();
 		const chunks = [];
@@ -294,7 +299,7 @@ export class FileTypeParser {
 			while (totalSize < sampleSize) {
 				const {value, done} = await readWithSignal(reader, this.options.signal);
 				if (done || !value) {
-					streamEnded = true;
+					hasStreamEnded = true;
 					break;
 				}
 
@@ -303,12 +308,12 @@ export class FileTypeParser {
 			}
 
 			if (
-				!streamEnded
+				!hasStreamEnded
 				&& totalSize === sampleSize
 			) {
 				const {value, done} = await readWithSignal(reader, this.options.signal);
 				if (done || !value) {
-					streamEnded = true;
+					hasStreamEnded = true;
 				} else {
 					chunks.push(value);
 					totalSize += value.length;
@@ -331,7 +336,7 @@ export class FileTypeParser {
 			}
 
 			if (
-				!streamEnded
+				!hasStreamEnded
 				&& detectedFileType?.ext === 'pages'
 			) {
 				detectedFileType = {
@@ -432,7 +437,7 @@ export class FileTypeParser {
 	}
 
 	// Detections with a high degree of certainty in identifying the correct file type
-	detectConfident = async tokenizer => {
+	async detectConfident(tokenizer) {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 
 		// Keep reading until EOF if the file size is unknown.
@@ -763,8 +768,8 @@ export class FileTypeParser {
 
 		if (
 			this.check([0x50, 0x4B])
-			&& (this.buffer[2] === 0x3 || this.buffer[2] === 0x5 || this.buffer[2] === 0x7)
-			&& (this.buffer[3] === 0x4 || this.buffer[3] === 0x6 || this.buffer[3] === 0x8)
+			&& [0x3, 0x5, 0x7].includes(this.buffer[2])
+			&& [0x4, 0x6, 0x8].includes(this.buffer[3])
 		) {
 			return {
 				ext: 'zip',
@@ -1093,8 +1098,6 @@ export class FileTypeParser {
 			// We disambiguate based on the next 4 bytes, as done by `file`.
 			// See https://github.com/file/file/blob/master/magic/Magdir/cafebabe
 			const machOArchitectureCount = Token.UINT32_BE.get(this.buffer, 4);
-			const javaClassFileMajorVersion = Token.UINT16_BE.get(this.buffer, 6);
-
 			if (machOArchitectureCount > 0 && machOArchitectureCount <= 30) {
 				return {
 					ext: 'macho',
@@ -1102,6 +1105,7 @@ export class FileTypeParser {
 				};
 			}
 
+			const javaClassFileMajorVersion = Token.UINT16_BE.get(this.buffer, 6);
 			if (javaClassFileMajorVersion > 30) {
 				return {
 					ext: 'class',
@@ -1614,7 +1618,7 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('Kaydara FBX Binary  \u0000')) {
+		if (this.checkString('Kaydara FBX Binary  \0')) {
 			return {
 				ext: 'fbx',
 				mime: 'application/x-ft-fbx',
@@ -1724,9 +1728,10 @@ export class FileTypeParser {
 				};
 			}
 		}
-	};
+	}
+
 	// Detections with limited supporting data, resulting in a higher likelihood of false positives
-	detectImprecise = async tokenizer => {
+	async detectImprecise(tokenizer) {
 		this.buffer = new Uint8Array(reasonableDetectionSizeInBytes);
 		const fileSize = getKnownFileSizeOrMaximum(tokenizer.fileInfo.size);
 
@@ -1776,10 +1781,10 @@ export class FileTypeParser {
 				}
 			}
 		}
-	};
+	}
 
-	async readTiffTag(bigEndian) {
-		const tagId = await this.tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
+	async readTiffTag(isBigEndian) {
+		const tagId = await this.tokenizer.readToken(isBigEndian ? Token.UINT16_BE : Token.UINT16_LE);
 		await this.tokenizer.ignore(10);
 		switch (tagId) {
 			case 50_341:
@@ -1796,8 +1801,8 @@ export class FileTypeParser {
 		}
 	}
 
-	async readTiffIFD(bigEndian) {
-		const numberOfTags = await this.tokenizer.readToken(bigEndian ? Token.UINT16_BE : Token.UINT16_LE);
+	async readTiffIFD(isBigEndian) {
+		const numberOfTags = await this.tokenizer.readToken(isBigEndian ? Token.UINT16_BE : Token.UINT16_LE);
 		if (numberOfTags > maximumTiffTagCount) {
 			return;
 		}
@@ -1810,21 +1815,21 @@ export class FileTypeParser {
 		}
 
 		for (let n = 0; n < numberOfTags; ++n) {
-			const fileType = await this.readTiffTag(bigEndian);
+			const fileType = await this.readTiffTag(isBigEndian);
 			if (fileType) {
 				return fileType;
 			}
 		}
 	}
 
-	async readTiffHeader(bigEndian) {
+	async readTiffHeader(isBigEndian) {
 		const tiffFileType = {
 			ext: 'tif',
 			mime: 'image/tiff',
 		};
 
-		const version = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 2);
-		const ifdOffset = (bigEndian ? Token.UINT32_BE : Token.UINT32_LE).get(this.buffer, 4);
+		const version = (isBigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 2);
+		const ifdOffset = (isBigEndian ? Token.UINT32_BE : Token.UINT32_LE).get(this.buffer, 4);
 
 		if (version === 42) {
 			// TIFF file header
@@ -1837,8 +1842,8 @@ export class FileTypeParser {
 				}
 
 				if (ifdOffset >= 8) {
-					const someId1 = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 8);
-					const someId2 = (bigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 10);
+					const someId1 = (isBigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 8);
+					const someId2 = (isBigEndian ? Token.UINT16_BE : Token.UINT16_LE).get(this.buffer, 10);
 
 					if (
 						(someId1 === 0x1C && someId2 === 0xFE)
@@ -1875,7 +1880,7 @@ export class FileTypeParser {
 
 			let fileType;
 			try {
-				fileType = await this.readTiffIFD(bigEndian);
+				fileType = await this.readTiffIFD(isBigEndian);
 			} catch (error) {
 				if (error instanceof strtok3.EndOfStreamError) {
 					return;
@@ -1895,8 +1900,8 @@ export class FileTypeParser {
 	/**
 	Scan check MPEG 1 or 2 Layer 3 header, or 'layer 0' for ADTS (MPEG sync-word 0xFFE).
 
-	@param offset - Offset to scan for sync-preamble.
-	@returns {{ext: string, mime: string}}
+	@param {number} offset - Offset to scan for sync-preamble.
+	@returns {{ext: string, mime: string} | undefined} The detected file type, if any.
 	*/
 	scanMpeg(offset) {
 		if (this.check([0xFF, 0xE0], {offset, mask: [0xFF, 0xE0]})) {

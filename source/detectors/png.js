@@ -59,6 +59,7 @@ export async function detectPng(tokenizer) {
 
 		const previousPosition = tokenizer.position;
 		const chunk = await readChunkHeader();
+		// eslint-disable-next-line unicorn/no-impossible-length-comparison -- The length is read as a signed 32-bit integer.
 		if (chunk.length < 0) {
 			return; // Invalid chunk length
 		}

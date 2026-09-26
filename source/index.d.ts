@@ -79,12 +79,12 @@ console.log(fileType);
 export function fileTypeFromTokenizer(tokenizer: ITokenizer, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
 
 /**
-Supported file extensions.
+File extensions that can be detected.
 */
 export const supportedExtensions: ReadonlySet<string>;
 
 /**
-Supported MIME types.
+MIME types that can be detected.
 */
 export const supportedMimeTypes: ReadonlySet<string>;
 
@@ -114,7 +114,7 @@ const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 });
 
 console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'text/plain'}
+//=> {ext: 'xml', mime: 'application/xml'}
 ```
 */
 export declare function fileTypeFromBlob(blob: Blob, options?: FileTypeOptions): Promise<FileTypeResult | undefined>;
@@ -209,10 +209,6 @@ export type FileTypeOptions = {
 	*/
 	mpegOffsetTolerance?: number;
 };
-
-export declare class TokenizerPositionError extends Error {
-	constructor(message?: string);
-}
 
 export type AnyWebReadableByteStreamWithFileType = AnyWebReadableStream<Uint8Array> & {
 	readonly fileType?: FileTypeResult;

@@ -475,7 +475,7 @@ ZipHandler.prototype.inflate = async function (zipHeader, fileData, callback) {
 };
 
 ZipHandler.prototype.unzip = async function (fileCallback) {
-	let stop = false;
+	let shouldStop = false;
 	let zipEntryCount = 0;
 	const zipScanStart = this.tokenizer.position;
 	this.knownSizeDescriptorScannedBytes = 0;
@@ -495,7 +495,7 @@ ZipHandler.prototype.unzip = async function (fileCallback) {
 		}
 
 		const next = fileCallback(zipHeader);
-		stop = Boolean(next.stop);
+		shouldStop = Boolean(next.stop);
 		await this.tokenizer.ignore(zipHeader.extraFieldLength);
 		const fileData = await readZipEntryData(this, zipHeader, {
 			shouldBuffer: Boolean(next.handler),
@@ -517,7 +517,7 @@ ZipHandler.prototype.unzip = async function (fileCallback) {
 		if (hasExceededUnknownSizeScanBudget(this.tokenizer, zipScanStart, maximumUntrustedSkipSizeInBytes)) {
 			throw new ParserHardLimitError(`ZIP stream probing exceeds ${maximumUntrustedSkipSizeInBytes} bytes`);
 		}
-	} while (!stop);
+	} while (!shouldStop);
 };
 
 export async function detectZip(tokenizer) {

@@ -155,7 +155,7 @@ const blob = new Blob(['<?xml version="1.0" encoding="ISO-8859-1" ?>'], {
 });
 
 console.log(await fileTypeFromBlob(blob));
-//=> {ext: 'txt', mime: 'text/plain'}
+//=> {ext: 'xml', mime: 'application/xml'}
 ```
 
 #### blob
@@ -266,11 +266,11 @@ if (stream.fileType?.mime === 'image/jpeg') {
 
 ### supportedExtensions
 
-Returns a `Set<string>` of supported file extensions.
+Returns a `Set<string>` of file extensions that can be detected.
 
 ### supportedMimeTypes
 
-Returns a `Set<string>` of supported MIME types.
+Returns a `Set<string>` of MIME types that can be detected.
 
 ### Options
 

@@ -19,7 +19,7 @@ export async function detectEbml(tokenizer) {
 		let mask = 0x80;
 		let ic = 0; // 0 = A, 1 = B, 2 = C, 3 = D
 
-		while ((msb & mask) === 0 && mask !== 0) {
+		while (mask !== 0 && (msb & mask) === 0) {
 			++ic;
 			mask >>= 1;
 		}
@@ -71,7 +71,7 @@ export async function detectEbml(tokenizer) {
 
 				const documentTypeLength = getSafeBound(element.len, maximumEbmlDocumentTypeSizeInBytes, 'EBML DocType');
 				const rawValue = await tokenizer.readToken(new Token.StringType(documentTypeLength));
-				return rawValue.replaceAll(/\0.*$/gv, ''); // Return DocType
+				return rawValue.split('\0', 1)[0]; // Return DocType
 			}
 
 			if (
