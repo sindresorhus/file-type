@@ -692,6 +692,14 @@ export class FileTypeParser {
 			};
 		}
 
+		// Core Audio Format (CAF), version 1, followed by the required Audio Description chunk.
+		if (this.checkString('caff') && this.check([0x00, 0x01], {offset: 4}) && this.checkString('desc', {offset: 8})) {
+			return {
+				ext: 'caf',
+				mime: 'audio/caf', // Non-standard
+			};
+		}
+
 		if (this.checkString('icns', {offset: 0})) {
 			return {
 				ext: 'icns',

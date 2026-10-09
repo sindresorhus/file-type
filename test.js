@@ -7736,6 +7736,24 @@ test('DSDIFF requires both the form chunk ID and DSD form type', async () => {
 	}
 });
 
+test('CAF does not detect truncated headers', async () => {
+	const fixture = await readFile(path.join(__dirname, 'fixture/fixture.caf'));
+
+	for (let length = 0; length < 12; length++) {
+		assert.equal(await fileTypeFromBuffer(fixture.subarray(0, length)), undefined);
+		assert.equal(await fileTypeFromStream(createBufferedWebStream(fixture.subarray(0, length), 1)), undefined);
+	}
+
+	assert.deepEqual(await fileTypeFromBuffer(fixture.subarray(0, 12)), {ext: 'caf', mime: 'audio/caf'});
+});
+
+test('CAF ignores reserved file flags', async () => {
+	const fixture = await readFile(path.join(__dirname, 'fixture/fixture.caf'));
+	fixture.writeUInt16BE(0xFF_FF, 6);
+	assert.deepEqual(await fileTypeFromBuffer(fixture), {ext: 'caf', mime: 'audio/caf'});
+	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(fixture, 1)), {ext: 'caf', mime: 'audio/caf'});
+});
+
 test('every class declared in the types exists at runtime', async () => {
 	// A name that the types export but the module does not is accepted by TypeScript and then
 	// throws a link time `SyntaxError` for whoever imports it.
