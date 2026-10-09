@@ -91,6 +91,7 @@ export const extensions = [
 	'jpx',
 	'mj2',
 	'aif',
+	'caf',
 	'qcp',
 	'odt',
 	'ods',
@@ -282,6 +283,7 @@ export const mimeTypes = [
 	'image/jpm',
 	'image/mj2',
 	'audio/aiff',
+	'audio/caf', // Non-standard
 	'application/xml',
 	'application/x-mobipocket-ebook',
 	'image/heif',
