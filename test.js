@@ -606,7 +606,12 @@ test('.fileTypeFromStream() method - rejects immediately when the signal is alre
 				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
 			}, timeoutMilliseconds);
 		}),
-	]), {name: 'AbortError'});
+	]), error => {
+		assert.ok(error instanceof DOMException);
+		assert.equal(error.name, 'AbortError');
+		assert.equal(error, abortController.signal.reason);
+		return true;
+	});
 });
 
 test('Does not falsely detect DWG for non-digit version strings like scientific notation', async () => {
@@ -710,7 +715,12 @@ test('.fileTypeStream() method - be able to abort stalled stream detection', asy
 				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
 			}, timeoutMilliseconds);
 		}),
-	]), {name: 'AbortError'});
+	]), error => {
+		assert.ok(error instanceof DOMException);
+		assert.equal(error.name, 'AbortError');
+		assert.equal(error, abortController.signal.reason);
+		return true;
+	});
 });
 
 test('.fileTypeFromStream() returns gzip for a stalled unknown-size gzip stream', async () => {
