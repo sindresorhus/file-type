@@ -433,6 +433,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`dat`](https://en.wikipedia.org/wiki/Windows_Registry) - Windows registry hive file
 - [`dcm`](https://en.wikipedia.org/wiki/DICOM#Data_format) - DICOM Image File
 - [`deb`](https://en.wikipedia.org/wiki/Deb_(file_format)) - Debian package
+- [`dff`](https://en.wikipedia.org/wiki/Direct_Stream_Digital#DSD_Interchange_File_Format) - Direct Stream Digital Interchange File Format (DSDIFF)
 - [`dmg`](https://en.wikipedia.org/wiki/Apple_Disk_Image) - Apple Disk Image
 - [`dng`](https://en.wikipedia.org/wiki/Digital_Negative) - Adobe Digital Negative image file
 - [`docm`](https://en.wikipedia.org/wiki/List_of_Microsoft_Office_filename_extensions) - Microsoft Word macro-enabled document

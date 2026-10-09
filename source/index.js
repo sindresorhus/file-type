@@ -1472,6 +1472,14 @@ export class FileTypeParser {
 			};
 		}
 
+		// Direct Stream Digital Interchange File Format (DSDIFF)
+		if (this.checkString('FRM8') && this.checkString('DSD ', {offset: 12})) {
+			return {
+				ext: 'dff',
+				mime: 'audio/x-dff', // Non-standard
+			};
+		}
+
 		// Increase sample size from 32 to 256.
 		await tokenizer.peekBuffer(this.buffer, {length: Math.min(256, tokenizer.fileInfo.size), mayBeLess: true});
 
