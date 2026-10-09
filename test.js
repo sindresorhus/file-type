@@ -7705,3 +7705,18 @@ test('Does not throw on malformed EBML stream child with oversized payload lengt
 
 	t.is(type, undefined);
 });
+
+test('DSDIFF requires both the form chunk ID and DSD form type', async t => {
+	const fixture = await readFile(path.join(__dirname, 'fixture/fixture.dff'));
+	const wrongChunkId = Buffer.from(fixture);
+	wrongChunkId.write('FRM9', 0);
+	t.is(await fileTypeFromBuffer(wrongChunkId), undefined);
+
+	const wrongFormType = Buffer.from(fixture);
+	wrongFormType.write('TEST', 12);
+	t.is(await fileTypeFromBuffer(wrongFormType), undefined);
+
+	for (let length = 4; length < 16; length++) {
+		t.is(await fileTypeFromBuffer(fixture.subarray(0, length)), undefined);
+	}
+});

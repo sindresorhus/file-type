@@ -107,6 +107,7 @@ export const extensions = [
 	'glb',
 	'pcap',
 	'dsf',
+	'dff',
 	'lnk',
 	'alias',
 	'voc',
@@ -297,6 +298,7 @@ export const mimeTypes = [
 	'model/gltf-binary',
 	'application/vnd.tcpdump.pcap',
 	'audio/x-dsf', // Non-standard
+	'audio/x-dff', // Non-standard
 	'application/x-ms-shortcut', // Informal, used by freedesktop.org shared-mime-info
 	'application/x-ft-apple.alias',
 	'audio/x-voc',
