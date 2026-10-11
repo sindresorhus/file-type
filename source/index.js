@@ -272,16 +272,23 @@ export class FileTypeParser {
 			importAtRuntime('strtok3'),
 		]);
 		const fileHandle = await fsPromises.open(path, fsPromises.constants.O_RDONLY | fsPromises.constants.O_NONBLOCK);
-		const fileStat = await fileHandle.stat();
-		if (!fileStat.isFile()) {
-			await fileHandle.close();
-			return;
+		let tokenizer;
+		try {
+			const fileStat = await fileHandle.stat();
+			if (!fileStat.isFile()) {
+				return;
+			}
+
+			tokenizer = new FileTokenizer(fileHandle, {
+				...this.getTokenizerOptions(),
+				fileInfo: {path, size: fileStat.size},
+			});
+		} finally {
+			if (!tokenizer) {
+				await fileHandle.close();
+			}
 		}
 
-		const tokenizer = new FileTokenizer(fileHandle, {
-			...this.getTokenizerOptions(),
-			fileInfo: {path, size: fileStat.size},
-		});
 		return this.fromTokenizer(tokenizer);
 	}
 

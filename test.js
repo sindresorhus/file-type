@@ -590,6 +590,28 @@ test('.fileTypeFromStream() method - be able to abort operation', async () => {
 	assert.equal(result, undefined);
 });
 
+test('.fileTypeFromStream() handles a source error followed by signal abort without crashing', () => {
+	const script = `
+		import assert from 'node:assert/strict';
+		import {fileTypeFromStream} from './source/index.js';
+		const abortController = new AbortController();
+		const streamError = new Error('Source stream failed');
+		const stream = new ReadableStream({start(controller) {controller.error(streamError);}});
+		await assert.rejects(fileTypeFromStream(stream, {signal: abortController.signal}), error => error === streamError);
+		abortController.abort();
+		await new Promise(resolve => setImmediate(resolve));
+		console.log('completed');
+	`;
+	const result = spawnSync(process.execPath, ['--unhandled-rejections=strict', '--input-type=module', '-e', script], {
+		cwd: __dirname,
+		encoding: 'utf8',
+		timeout: 5000,
+	});
+	assert.equal(result.signal, null);
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stdout.trim(), 'completed');
+});
+
 test('.fileTypeFromStream() method - rejects immediately when the signal is already aborted', async () => {
 	const stalledStream = new ReadableStream({
 		pull() {
@@ -606,7 +628,12 @@ test('.fileTypeFromStream() method - rejects immediately when the signal is alre
 				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
 			}, timeoutMilliseconds);
 		}),
-	]), {name: 'AbortError'});
+	]), error => {
+		assert.ok(error instanceof DOMException);
+		assert.equal(error.name, 'AbortError');
+		assert.equal(error, abortController.signal.reason);
+		return true;
+	});
 });
 
 test('Does not falsely detect DWG for non-digit version strings like scientific notation', async () => {
@@ -710,7 +737,12 @@ test('.fileTypeStream() method - be able to abort stalled stream detection', asy
 				reject(new Error(`Timed out after ${timeoutMilliseconds} ms`));
 			}, timeoutMilliseconds);
 		}),
-	]), {name: 'AbortError'});
+	]), error => {
+		assert.ok(error instanceof DOMException);
+		assert.equal(error.name, 'AbortError');
+		assert.equal(error, abortController.signal.reason);
+		return true;
+	});
 });
 
 test('.fileTypeFromStream() returns gzip for a stalled unknown-size gzip stream', async () => {
@@ -3122,6 +3154,58 @@ test('fileTypeFromBuffer still detects Matroska when the EBML document type appe
 		ext: 'mkv',
 		mime: 'video/matroska',
 	});
+});
+
+for (const stage of ['open', 'stat']) {
+	test(`fileTypeFromFile closes the handle when the signal aborts during ${stage}`, async t => {
+		const abortController = new AbortController();
+		const originalOpen = fs.promises.open.bind(fs.promises);
+		let fileHandle;
+		t.mock.method(fs.promises, 'open', async (...arguments_) => {
+			fileHandle = await originalOpen(...arguments_);
+			if (stage === 'open') {
+				abortController.abort();
+			} else {
+				const originalStat = fileHandle.stat.bind(fileHandle);
+				t.mock.method(fileHandle, 'stat', async () => {
+					const stat = await originalStat();
+					abortController.abort();
+					return stat;
+				});
+			}
+
+			return fileHandle;
+		});
+		try {
+			await t.assert.rejects(fileTypeFromFile(path.join(__dirname, 'fixture', 'fixture.jpg'), {
+				signal: abortController.signal,
+			}), {name: 'AbortError'});
+			t.assert.strictEqual(fileHandle.fd, -1);
+			await t.assert.rejects(fileHandle.read(new Uint8Array(1), 0, 1, 0), {code: 'EBADF'});
+		} finally {
+			await fileHandle?.close();
+		}
+	});
+}
+
+test('fileTypeFromFile closes the handle when stat fails', async t => {
+	const originalOpen = fs.promises.open.bind(fs.promises);
+	const statError = new Error('Stat failed');
+	let fileHandle;
+	t.mock.method(fs.promises, 'open', async (...arguments_) => {
+		fileHandle = await originalOpen(...arguments_);
+		t.mock.method(fileHandle, 'stat', async () => {
+			throw statError;
+		});
+		return fileHandle;
+	});
+	try {
+		await t.assert.rejects(fileTypeFromFile(path.join(__dirname, 'fixture', 'fixture.jpg')), error => error === statError);
+		t.assert.strictEqual(fileHandle.fd, -1);
+		await t.assert.rejects(fileHandle.read(new Uint8Array(1), 0, 1, 0), {code: 'EBADF'});
+	} finally {
+		await fileHandle?.close();
+	}
 });
 
 test('fileTypeFromFile returns undefined for FIFOs without blocking', async () => {
