@@ -52,6 +52,8 @@ export function fileTypeFromStream(stream: AnyWebReadableStream<Uint8Array>, opt
 /**
 Detect the file type from an [`ITokenizer`](https://github.com/Borewit/strtok3#tokenizer) source.
 
+Caller-provided tokenizers retain their own allocation limits. Configure a finite `maxBufferSize` when creating a `strtok3` tokenizer to bound tokenizer allocations and stream lookahead.
+
 This method is used internally, but can also be used for a special "tokenizer" reader.
 
 A tokenizer propagates the internal read functions, allowing alternative transport mechanisms, to access files, to be implemented and used.
@@ -194,6 +196,16 @@ export type FileTypeOptions = {
 	customDetectors?: Iterable<Detector>;
 
 	/**
+	Maximum size in bytes of an individual read-buffer allocation or stream lookahead request, including custom-detector reads.
+	Must be a positive safe integer or `Infinity`.
+	Oversized requests reject with `strtok3.BufferSizeError`; gzip content probing falls back to `gz`.
+	Does not cap total memory, detector-allocated buffers, or stream sampling. Caller-provided tokenizers retain their own limits.
+
+	@default Infinity
+	*/
+	maxBufferSize?: number;
+
+	/**
 	An `AbortSignal` to cancel the detection.
 	*/
 	signal?: AbortSignal;
@@ -274,6 +286,8 @@ export declare class FileTypeParser {
 
 	/**
 	Works the same way as {@link fileTypeStream}, additionally taking into account custom detectors (if any were provided to the constructor).
+
+	Configure detection options, including `maxBufferSize`, through the constructor. This method only accepts stream options.
 	*/
-	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions & FileTypeOptions): Promise<AnyWebReadableByteStreamWithFileType>;
+	toDetectionStream(webStream: AnyWebReadableStream<Uint8Array>, options?: StreamOptions): Promise<AnyWebReadableByteStreamWithFileType>;
 }

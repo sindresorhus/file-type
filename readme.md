@@ -288,6 +288,33 @@ const fileType = await fileTypeFromFile('sample.kml', {customDetectors: [detectX
 console.log(fileType);
 ```
 
+#### maxBufferSize
+
+Type: `number`\
+Default: `Infinity`
+
+Maximum size in bytes of an individual buffer allocated to read file content, or a stream lookahead request.
+Must be a positive safe integer or `Infinity`.
+
+File content can determine how much data a detector requests, for example through a field specifying the length of a metadata entry.
+This opt-in limit bounds the memory allocations needed to fulfill those reads, including reads made by custom detectors.
+Setting a finite cap can help prevent excessive read-buffer allocations driven by untrusted file content ([CWE-789: Memory Allocation with Excessive Size Value](https://cwe.mitre.org/data/definitions/789.html)).
+Built-in reads already have format-specific bounds; choose a finite cap to suit your application.
+An oversized request rejects detection with `strtok3.BufferSizeError`, which exposes `requestedSize` and `maxBufferSize`.
+During gzip content probing, this error is suppressed and detection falls back to `gz`; the cap still prevents the oversized allocation.
+
+```js
+const fileType = await fileTypeFromFile('sample.bin', {maxBufferSize: 64 * 1024 * 1024});
+```
+
+This is not a total memory limit.
+It does not cover buffers allocated directly by detectors or `fileTypeStream()` sampling.
+When using `fileTypeFromTokenizer()`, configure `maxBufferSize` on the input reader itself; this option does not override that reader’s limits.
+The built-in format-specific limits, including ZIP text-entry limits, apply independently of this option.
+
+For `FileTypeParser.toDetectionStream()`, configure detection options such as `maxBufferSize` through the parser constructor.
+The method only accepts stream options such as `sampleSize`.
+
 #### mpegOffsetTolerance
 
 Default: `0`

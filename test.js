@@ -2228,6 +2228,192 @@ test('FileTypeParser.fromTokenizer should close the tokenizer it consumes', asyn
 	assert.equal(tokenizer.fileHandle.fd, -1);
 });
 
+const bufferCapSources = [
+	{
+		name: 'buffer',
+		detect: (options, bytes = new Uint8Array([1, 2])) => fileTypeFromBuffer(bytes, options),
+	},
+	{
+		name: 'blob',
+		detect: (options, bytes = new Uint8Array([1, 2])) => fileTypeFromBlob(new Blob([bytes]), options),
+	},
+	{
+		name: 'stream',
+		detect: (options, bytes = new Uint8Array([1, 2])) => fileTypeFromStream(createBufferedWebStream(bytes), options),
+	},
+	{
+		name: 'file',
+		detect: async (options, bytes) => fileTypeFromFile(bytes ? await createTemporaryTestFile(bytes, 'bin') : path.join(__dirname, 'fixture', 'fixture.jpg'), options),
+	},
+];
+
+for (const source of bufferCapSources) {
+	test(`${source.name} detection leaves the allocation cap disabled by default`, async () => {
+		const expected = {ext: 'custom', mime: 'application/x-custom'};
+		const customDetectors = [{
+			id: 'default-allocation-cap',
+			async detect(tokenizer) {
+				assert.equal(tokenizer.maxBufferSize, Infinity);
+				return expected;
+			},
+		}];
+		assert.deepEqual(await source.detect({customDetectors}), expected);
+	});
+
+	for (const operation of ['readToken', 'peekToken']) {
+		test(`${source.name} detection rejects oversized ${operation} requests`, async () => {
+			const maxBufferSize = 8192;
+			const requestedSize = maxBufferSize + 1;
+			const customDetectors = [{
+				id: 'oversized-token',
+				async detect(tokenizer) {
+					await tokenizer[operation]({
+						len: requestedSize,
+						get() {
+							assert.fail('An oversized token must not be decoded');
+						},
+					});
+				},
+			}];
+			await assert.rejects(source.detect({customDetectors, maxBufferSize}), {
+				name: 'BufferSizeError',
+				requestedSize,
+				maxBufferSize,
+			});
+		});
+
+		test(`${source.name} detection allows ${operation} requests above 1 MiB with default, disabled, or custom allocation caps`, async () => {
+			const requestedSize = (1024 * 1024) + 1;
+			const bytes = new Uint8Array(requestedSize);
+			const expected = {ext: 'custom', mime: 'application/x-custom'};
+			const customDetectors = [{
+				id: 'large-token',
+				async detect(tokenizer) {
+					return tokenizer[operation]({len: requestedSize, get: () => expected});
+				},
+			}];
+			for (const maxBufferSize of [undefined, Infinity, requestedSize]) {
+				assert.deepEqual(await source.detect({customDetectors, maxBufferSize}, bytes), expected);
+			}
+		});
+	}
+}
+
+test('stream detection caps distant lookahead even when mayBeLess is enabled', async () => {
+	const maxBufferSize = 8192;
+	const customDetectors = [{
+		id: 'distant-lookahead',
+		async detect(tokenizer) {
+			await tokenizer.peekBuffer(new Uint8Array(1), {
+				position: maxBufferSize,
+				mayBeLess: true,
+			});
+		},
+	}];
+	await assert.rejects(fileTypeFromStream(createBufferedWebStream(new Uint8Array([1, 2])), {customDetectors, maxBufferSize}), {
+		name: 'BufferSizeError',
+		requestedSize: maxBufferSize + 1,
+		maxBufferSize,
+	});
+});
+
+test('fileTypeStream forwards the allocation cap to custom detectors', async () => {
+	const maxBufferSize = 8192;
+	const customDetectors = [{
+		id: 'oversized-token',
+		async detect(tokenizer) {
+			await tokenizer.readToken({len: maxBufferSize + 1, get: () => undefined});
+		},
+	}];
+	await assert.rejects(fileTypeStream(createBufferedWebStream(new Uint8Array([1, 2])), {customDetectors, maxBufferSize}), {
+		name: 'BufferSizeError',
+		requestedSize: maxBufferSize + 1,
+		maxBufferSize,
+	});
+});
+
+test('FileTypeParser.toDetectionStream applies the constructor allocation cap', async () => {
+	const expected = {ext: 'custom', mime: 'application/x-custom'};
+	const customDetectors = [{
+		id: 'nine-byte-token',
+		async detect(tokenizer) {
+			return tokenizer.readToken({len: 9, get: () => expected});
+		},
+	}];
+	const bytes = new Uint8Array(9);
+	const parser = new FileTypeParser({customDetectors, maxBufferSize: 8});
+	await assert.rejects(parser.toDetectionStream(createBufferedWebStream(bytes), {sampleSize: 9}), {
+		name: 'BufferSizeError',
+		requestedSize: 9,
+		maxBufferSize: 8,
+	});
+	const uncappedParser = new FileTypeParser({customDetectors});
+	const stream = await uncappedParser.toDetectionStream(createBufferedWebStream(bytes), {sampleSize: 9});
+	assert.deepEqual(stream.fileType, expected);
+	assert.ok(areUint8ArraysEqual(await getStreamAsUint8Array(stream), bytes));
+});
+
+for (const source of bufferCapSources) {
+	test(`${source.name} gzip probing falls back to gz on an allocation cap error`, async () => {
+		const maxBufferSize = 8192;
+		let probeError;
+		const customDetectors = [{
+			id: 'oversized-gzip-probe',
+			async detect(tokenizer) {
+				const signature = new Uint8Array(2);
+				await tokenizer.peekBuffer(signature);
+				if (signature[0] === 0x1F && signature[1] === 0x8B) {
+					return;
+				}
+
+				try {
+					await tokenizer.readToken({
+						len: maxBufferSize + 1,
+						get() {
+							assert.fail('An oversized gzip probe token must not be decoded');
+						},
+					});
+				} catch (error) {
+					probeError = error;
+					throw error;
+				}
+			},
+		}];
+		const gzip = gzipSync(new Uint8Array(maxBufferSize + 1));
+		assertGzipFileType(await source.detect({customDetectors, maxBufferSize}, gzip));
+		assert.equal(probeError?.name, 'BufferSizeError');
+		assert.equal(probeError.requestedSize, maxBufferSize + 1);
+		assert.equal(probeError.maxBufferSize, maxBufferSize);
+	});
+}
+
+test('fileTypeFromTokenizer retains the caller-provided allocation cap', async () => {
+	const customDetectors = [{
+		id: 'five-byte-token',
+		async detect(tokenizer) {
+			return tokenizer.readToken({len: 5, get: () => ({ext: 'custom', mime: 'application/x-custom'})});
+		},
+	}];
+	await assert.rejects(fileTypeFromTokenizer(strtok3.fromBuffer(new Uint8Array(5), {maxBufferSize: 4}), {customDetectors, maxBufferSize: 8192}), {
+		name: 'BufferSizeError',
+		requestedSize: 5,
+		maxBufferSize: 4,
+	});
+	assert.deepEqual(await fileTypeFromTokenizer(strtok3.fromBuffer(new Uint8Array(5)), {customDetectors, maxBufferSize: 4}), {
+		ext: 'custom',
+		mime: 'application/x-custom',
+	});
+});
+
+test('FileTypeParser rejects invalid allocation caps before acquiring resources', () => {
+	for (const maxBufferSize of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+		assert.throws(() => new FileTypeParser({maxBufferSize}), {
+			name: 'RangeError',
+			message: 'maxBufferSize must be a positive safe integer or Infinity',
+		});
+	}
+});
+
 test('should detect MPEG frame which is out of sync with the mpegOffsetTolerance option', async () => {
 	const badOffset1Path = path.join(__dirname, 'fixture', 'fixture-bad-offset.mp3');
 	const badOffset10Path = path.join(__dirname, 'fixture', 'fixture-bad-offset-10.mp3');
