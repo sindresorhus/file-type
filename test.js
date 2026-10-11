@@ -7750,7 +7750,7 @@ test('CAF does not detect truncated headers', async () => {
 test('CAF ignores reserved file flags', async () => {
 	const fixture = await readFile(path.join(__dirname, 'fixture/fixture.caf'));
 	fixture.writeUInt16BE(0xFF_FF, 6);
-	assert.deepEqual(await fileTypeFromBuffer(fixture), {ext: 'caf', mime: 'audio/caf'});
+	assert.deepEqual(await fileTypeFromBuffer(fixture), {ext: 'caf', mime: 'audio/x-caf'});
 	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(fixture, 1)), {ext: 'caf', mime: 'audio/x-caf'});
 });
 
