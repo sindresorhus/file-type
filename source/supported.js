@@ -283,7 +283,7 @@ export const mimeTypes = [
 	'image/jpm',
 	'image/mj2',
 	'audio/aiff',
-	'audio/caf', // Non-standard
+	'audio/x-caf', // Non-standard
 	'application/xml',
 	'application/x-mobipocket-ebook',
 	'image/heif',
