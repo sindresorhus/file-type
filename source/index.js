@@ -696,7 +696,7 @@ export class FileTypeParser {
 		if (this.checkString('caff') && this.check([0x00, 0x01], {offset: 4}) && this.checkString('desc', {offset: 8})) {
 			return {
 				ext: 'caf',
-				mime: 'audio/caf', // Non-standard
+				mime: 'audio/x-caf', // Non-standard
 			};
 		}
 
