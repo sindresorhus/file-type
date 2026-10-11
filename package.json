@@ -16,7 +16,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "xo && node --test && tsd --typings source/index.d.ts --files source/index.test-d.ts"
+		"test": "xo && node --test && nz"
 	},
 	"files": [
 		"source"
@@ -238,10 +238,11 @@
 	"devDependencies": {
 		"@tokenizer/token": "^0.3.0",
 		"@types/node": "^26.6.4",
+		"@typescript/native": "npm:typescript@^7.0.2",
 		"commonmark": "^0.31.2",
 		"esbuild": "^0.28.2",
 		"get-stream": "^9.0.1",
-		"tsd": "^0.33.0",
+		"nz": "^0.1.0",
 		"xo": "^5.0.1"
 	},
 	"xo": [
