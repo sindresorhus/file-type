@@ -422,6 +422,7 @@ MIME media subtypes prefixed with `x-ft-` are custom and defined by us. They are
 - [`bpg`](https://bellard.org/bpg/) - Better Portable Graphics file
 - [`bz2`](https://en.wikipedia.org/wiki/Bzip2) - Archive file
 - [`cab`](https://en.wikipedia.org/wiki/Cabinet_(file_format)) - Cabinet file
+- [`caf`](https://developer.apple.com/library/archive/documentation/MusicAudio/Reference/CAFSpec/) - Apple Core Audio Format
 - [`cfb`](https://en.wikipedia.org/wiki/Compound_File_Binary_Format) - Compound File Binary Format
 - [`chm`](https://en.wikipedia.org/wiki/Microsoft_Compiled_HTML_Help) - Microsoft Compiled HTML Help
 - [`class`](https://en.wikipedia.org/wiki/Java_class_file) - Java class file
