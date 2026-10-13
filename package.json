@@ -231,7 +231,7 @@
 	],
 	"dependencies": {
 		"@tokenizer/inflate": "^0.4.1",
-		"strtok3": "^10.4.1",
+		"strtok3": "^10.5.0",
 		"token-types": "^6.1.2",
 		"uint8array-extras": "^1.6.0"
 	},
