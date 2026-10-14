@@ -13,6 +13,7 @@ import {Parser as ReadmeParser} from 'commonmark';
 import * as esbuild from 'esbuild';
 import {fromFile} from 'strtok3';
 import * as strtok3 from 'strtok3/core';
+import {ZipHandler, ZipLimitError} from '@tokenizer/inflate';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
 import {stringToBytes} from './source/tokens.js';
@@ -6210,6 +6211,42 @@ test('Does not throw on ZIP with streamed [Content_Types].xml entry without desc
 	await assertZipTypeFromBufferAndChunkedStream(malformedZip);
 });
 
+test('ZIP detection does not modify the dependency prototype or impose limits on other consumers', async () => {
+	const content = Buffer.alloc(maximumZipTextEntrySizeInBytes + 1, 65);
+	const zip = createZipLocalFile({
+		filename: 'large.txt',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(content),
+		uncompressedSize: content.length,
+	});
+	const handler = new ZipHandler(strtok3.fromBuffer(zip));
+	let extracted;
+	await handler.unzip(() => ({
+		async handler(data) {
+			extracted = data;
+		},
+		stop: true,
+	}));
+	assert.deepEqual(extracted, new Uint8Array(content));
+});
+
+test('ZIP dependency exposes its configured output overflow as ZipLimitError', async () => {
+	const content = Buffer.alloc(maximumZipTextEntrySizeInBytes + 1, 65);
+	const zip = createZipLocalFile({
+		filename: 'large.txt',
+		compressedMethod: 8,
+		compressedData: deflateRawSync(content),
+		uncompressedSize: 0,
+	});
+	const handler = new ZipHandler(strtok3.fromBuffer(zip), {maxUncompressedSize: maximumZipTextEntrySizeInBytes});
+	await assert.rejects(handler.unzip(() => ({
+		async handler() {
+			assert.fail('Overflowing entry must not be delivered');
+		},
+		stop: true,
+	})), error => error instanceof ZipLimitError && error.limit === 'maxUncompressedSize');
+});
+
 test('Detects small ZIP mimetype descriptor entries', async () => {
 	const streamedZip = createZipDataDescriptorFile({
 		filename: 'mimetype',
@@ -6291,6 +6328,18 @@ test('Detects small deflated ZIP [Content_Types].xml descriptor entries', async 
 		ext: 'docm',
 		mime: 'application/vnd.ms-word.document.macroenabled.12',
 	});
+});
+
+test('Detects DOCM with an unsigned data descriptor', async () => {
+	// Rebuilt fixture.docm with [Content_Types].xml first, deflated with zero local
+	// sizes and a 12-byte descriptor without a signature (ZIP specification 4.3.9.3).
+	// The archive has a complete central directory and valid CRCs.
+	const zip = await readFile(path.join(__dirname, 'fixture', 'fixture-unsigned-descriptor.docm'));
+
+	await assertFileTypeFromAllDirectInputs(zip, descriptorBoundaryDocmFileType);
+	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 8)), descriptorBoundaryDocmFileType);
+	await assertFileTypeStreamChunkedResult(zip, descriptorBoundaryDocmFileType);
+	await assertFileTypeStreamWebResult(zip, descriptorBoundaryDocmFileType);
 });
 
 test('Falls back to ZIP when canceling an oversized deflated descriptor entry reports trailing junk', async () => {
