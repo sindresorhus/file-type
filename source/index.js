@@ -176,6 +176,11 @@ export class FileTypeParser {
 
 	constructor(options) {
 		const normalizedMpegOffsetTolerance = normalizeMpegOffsetTolerance(options?.mpegOffsetTolerance);
+		const maxBufferSize = options?.maxBufferSize ?? Infinity;
+		if (maxBufferSize !== Infinity && (!Number.isSafeInteger(maxBufferSize) || maxBufferSize <= 0)) {
+			throw new RangeError('maxBufferSize must be a positive safe integer or Infinity');
+		}
+
 		this.options = {
 			...options,
 			mpegOffsetTolerance: normalizedMpegOffsetTolerance,
@@ -186,6 +191,7 @@ export class FileTypeParser {
 			{id: 'core.imprecise', detect: tokenizer => this.detectImprecise(tokenizer)}];
 		this.tokenizerOptions = {
 			abortSignal: this.options.signal,
+			maxBufferSize,
 		};
 		this.gzipProbeDepth = 0;
 	}
