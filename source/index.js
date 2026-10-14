@@ -266,22 +266,21 @@ export class FileTypeParser {
 
 	async fromFile(path) {
 		this.options.signal?.throwIfAborted();
-		// TODO: Remove this when `strtok3.fromFile()` safely rejects non-regular filesystem objects without a pathname race.
-		const [{default: fsPromises}, {FileTokenizer}] = await Promise.all([
-			importAtRuntime('node:fs/promises'),
-			importAtRuntime('strtok3'),
-		]);
-		const fileHandle = await fsPromises.open(path, fsPromises.constants.O_RDONLY | fsPromises.constants.O_NONBLOCK);
-		const fileStat = await fileHandle.stat();
-		if (!fileStat.isFile()) {
-			await fileHandle.close();
-			return;
+		const {fromFile, NotRegularFileError} = await importAtRuntime('strtok3');
+		let tokenizer;
+		try {
+			tokenizer = await fromFile(path, {
+				...this.getTokenizerOptions(),
+				regularFileOnly: true,
+			});
+		} catch (error) {
+			if (error instanceof NotRegularFileError) {
+				return;
+			}
+
+			throw error;
 		}
 
-		const tokenizer = new FileTokenizer(fileHandle, {
-			...this.getTokenizerOptions(),
-			fileInfo: {path, size: fileStat.size},
-		});
 		return this.fromTokenizer(tokenizer);
 	}
 
