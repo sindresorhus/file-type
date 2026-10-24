@@ -230,7 +230,7 @@
 		"iso"
 	],
 	"dependencies": {
-		"@tokenizer/inflate": "^0.5.1",
+		"@tokenizer/inflate": "^0.6.0",
 		"strtok3": "^10.5.0",
 		"token-types": "^6.1.2",
 		"uint8array-extras": "^1.6.0"

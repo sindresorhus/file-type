@@ -1352,14 +1352,14 @@ function createZipWithRepeatedStoredEntries(entryCount, entrySize, trailingEntri
 	return Buffer.concat([...entries, ...trailingEntries]);
 }
 
-function createZipWithRepeatedStoredEntriesAtCumulativeLimit(trailingEntries) {
+function createZipWithRepeatedStoredEntriesAtCumulativeLimit(trailingEntries, maximumLength = maximumUntrustedSkipSizeInBytes) {
 	const entries = [];
 	let consumedBytes = 0;
 
-	for (let index = 0; consumedBytes < maximumUntrustedSkipSizeInBytes; index++) {
+	for (let index = 0; consumedBytes < maximumLength; index++) {
 		const filename = `irrelevant-${index}.bin`;
 		const headerSize = 30 + new TextEncoder().encode(filename).length;
-		const remainingBytes = maximumUntrustedSkipSizeInBytes - consumedBytes;
+		const remainingBytes = maximumLength - consumedBytes;
 		const entrySize = Math.min(maximumZipTextEntrySizeInBytes, remainingBytes - headerSize);
 
 		entries.push(createZipLocalFile({
@@ -6929,17 +6929,35 @@ test('Web Stream detection still detects EPUB when repeated stored entries stay 
 	assert.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), descriptorBoundaryEpubFileType);
 });
 
-test('Streamed ZIP detection still detects EPUB when repeated stored entries are exactly at the cumulative limit', async () => {
+test('Streamed ZIP detection falls back before the mimetype entry when repeated stored entries reach the cumulative limit', async () => {
 	const zip = createZipWithRepeatedStoredMimetypeAtCumulativeLimit();
 
-	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), descriptorBoundaryEpubFileType);
+	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {ext: 'zip', mime: 'application/zip'});
 });
 
-test('Web Stream detection still detects EPUB when repeated stored entries are exactly at the cumulative limit', async () => {
+test('Web Stream detection falls back before the mimetype entry when repeated stored entries reach the cumulative limit', async () => {
 	const zip = createZipWithRepeatedStoredMimetypeAtCumulativeLimit();
 
-	assert.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), descriptorBoundaryEpubFileType);
+	assert.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), {ext: 'zip', mime: 'application/zip'});
 });
+
+for (const exceededBytes of [0, 1]) {
+	test(`ZIP stream probing enforces the total byte limit at the end of mimetype data with ${exceededBytes} excess bytes`, async () => {
+		const mimetypeEntry = createZipLocalFile({
+			filename: 'mimetype',
+			compressedData: new TextEncoder().encode('application/epub+zip'),
+		});
+		const zip = createZipWithRepeatedStoredEntriesAtCumulativeLimit(
+			[mimetypeEntry],
+			maximumUntrustedSkipSizeInBytes - mimetypeEntry.length + exceededBytes,
+		);
+		const tokenizer = strtok3.fromWebStream(createBufferedWebStream(zip, 64 * 1024));
+		assert.deepEqual(await fileTypeFromTokenizer(tokenizer), exceededBytes === 0
+			? descriptorBoundaryEpubFileType
+			: {ext: 'zip', mime: 'application/zip'});
+		assert.ok(tokenizer.position <= maximumUntrustedSkipSizeInBytes);
+	});
+}
 
 test('Streamed ZIP detection keeps repeated stored-entry probing cumulatively bounded when ZIP mimetype detection is beyond the limit', async () => {
 	const chunkSize = 64 * 1024;
@@ -7341,21 +7359,40 @@ test('Web Stream detection still detects DOCM when repeated stored entries stay 
 	assert.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), descriptorBoundaryDocmFileType);
 });
 
-// The cumulative limit lands between `word/document.xml` and `[Content_Types].xml`, so the directory
-// name answers. Reporting the base type rather than DOCM is what proves the entry went unread.
-test('Streamed ZIP detection guesses docx when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async () => {
+// The byte budget ends before the directory hint and content-types headers; neither may be inspected.
+test('Streamed ZIP detection falls back before ZIP directory hints when repeated stored entries reach the cumulative limit', async () => {
 	const zip = createZipWithRepeatedStoredContentTypesAtCumulativeLimit();
 
 	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {
-		ext: 'docx',
-		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		ext: 'zip',
+		mime: 'application/zip',
 	});
 });
 
-test('Web Stream detection guesses docx when repeated stored entries are exactly at the cumulative limit before ZIP [Content_Types].xml detection', async () => {
+test('Web Stream detection falls back before ZIP directory hints when repeated stored entries reach the cumulative limit', async () => {
 	const zip = createZipWithRepeatedStoredContentTypesAtCumulativeLimit();
 
 	assert.deepEqual(await new FileTypeParser().fromStream(createPatternWebStream(zip, [64 * 1024]).stream), {
+		ext: 'zip',
+		mime: 'application/zip',
+	});
+});
+
+test('ZIP scan-limit errors retain directory hints observed before the byte limit', async () => {
+	const documentEntry = createZipLocalFile({
+		filename: 'word/document.xml',
+		compressedData: new TextEncoder().encode('<w:document/>'),
+	});
+	const zip = Buffer.concat([
+		documentEntry,
+		createZipWithRepeatedStoredEntriesAtCumulativeLimit([
+			createZipLocalFile({
+				filename: '[Content_Types].xml',
+				compressedData: new TextEncoder().encode(descriptorBoundaryContentTypesXml),
+			}),
+		], maximumUntrustedSkipSizeInBytes - documentEntry.length),
+	]);
+	assert.deepEqual(await fileTypeFromStream(createBufferedWebStream(zip, 64 * 1024)), {
 		ext: 'docx',
 		mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 	});
