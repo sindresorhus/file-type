@@ -1,17 +1,13 @@
-import * as Token from 'token-types';
 import * as strtok3 from 'strtok3/core';
 import {ZipHandler, ZipLimitError} from '@tokenizer/inflate';
 import {
 	maximumUntrustedSkipSizeInBytes,
 	ParserHardLimitError,
-	safeIgnore,
 	hasUnknownFileSize,
-	hasExceededUnknownSizeScanBudget,
 } from '../parser.js';
 
 const maximumZipEntrySizeInBytes = 1024 * 1024;
 const maximumZipEntryCount = 1024;
-const maximumZipBufferedReadSizeInBytes = (2 ** 31) - 1;
 const maximumZipTextEntrySizeInBytes = maximumZipEntrySizeInBytes;
 
 const recoverableZipErrorMessages = new Set([
@@ -20,10 +16,7 @@ const recoverableZipErrorMessages = new Set([
 	'Expected Central-File-Header signature',
 ]);
 const recoverableZipErrorMessagePrefixes = [
-	'ZIP entry count exceeds ',
 	'Unsupported ZIP compression method:',
-	'ZIP entry compressed data exceeds ',
-	'ZIP entry decompressed data exceeds ',
 	'Expected data-descriptor-signature at position ',
 ];
 const recoverableZipErrorCodes = new Set([
@@ -31,27 +24,6 @@ const recoverableZipErrorCodes = new Set([
 	'Z_DATA_ERROR',
 	'ERR_INVALID_STATE',
 ]);
-
-function mergeByteChunks(chunks, totalLength) {
-	const merged = new Uint8Array(totalLength);
-	let offset = 0;
-
-	for (const chunk of chunks) {
-		merged.set(chunk, offset);
-		offset += chunk.length;
-	}
-
-	return merged;
-}
-
-function getMaximumZipBufferedReadLength(tokenizer) {
-	const fileSize = tokenizer.fileInfo.size;
-	const remainingBytes = Number.isFinite(fileSize)
-		? Math.max(0, fileSize - tokenizer.position)
-		: Number.MAX_SAFE_INTEGER;
-
-	return Math.min(remainingBytes, maximumZipBufferedReadSizeInBytes);
-}
 
 function isRecoverableZipError(error) {
 	if (error instanceof strtok3.EndOfStreamError) {
@@ -85,6 +57,15 @@ function isRecoverableZipError(error) {
 	}
 
 	return false;
+}
+
+function isZipScanLimitError(error) {
+	return error instanceof ZipLimitError && [
+		'maxTotalScanBytes',
+		'maxTotalDataDescriptorScanBytes',
+		'maxDataDescriptorScanBytes',
+		'maxSkippedEntrySize',
+	].includes(error.limit);
 }
 
 function canReadZipEntryForDetection(zipHeader, maximumSize = maximumZipEntrySizeInBytes) {
@@ -304,186 +285,23 @@ function getOpenXmlMimeTypeFromContentTypesXml(xmlContent) {
 	return truncatedContent.slice(firstQuotePosition + 1);
 }
 
-const zipDataDescriptorSignature = 0x08_07_4B_50;
-const zipDataDescriptorLengthInBytes = 16;
-const zipDataDescriptorOverlapLengthInBytes = zipDataDescriptorLengthInBytes - 1;
-
-function findZipDataDescriptorOffset(buffer, bytesConsumed, {allowTruncated = false} = {}) {
-	const lastPossibleDescriptorOffset = buffer.length - (allowTruncated ? 4 : zipDataDescriptorLengthInBytes);
-	for (let index = 0; index <= lastPossibleDescriptorOffset; index++) {
-		if (Token.UINT32_LE.get(buffer, index) !== zipDataDescriptorSignature) {
-			continue;
-		}
-
-		// At EOF, a partial descriptor is sufficient to separate it from the deflate stream.
-		// Validate the compressed size whenever that field is available.
-		if (buffer.length - index < 12) {
-			return index;
-		}
-
-		if (Token.UINT32_LE.get(buffer, index + 8) === bytesConsumed + index) {
-			return index;
-		}
-	}
-
-	return -1;
-}
-
-async function readZipDataDescriptorEntryWithLimit(zipHandler, {shouldBuffer, maximumLength = maximumZipEntrySizeInBytes} = {}) {
-	const {syncBuffer} = zipHandler;
-	const {length: syncBufferLength} = syncBuffer;
-	const chunks = [];
-	let bytesConsumed = 0;
-
-	for (;;) {
-		const length = await zipHandler.tokenizer.peekBuffer(syncBuffer, {mayBeLess: true});
-		const dataDescriptorOffset = findZipDataDescriptorOffset(syncBuffer.subarray(0, length), bytesConsumed, {
-			allowTruncated: length < syncBufferLength,
-		});
-		const retainedLength = dataDescriptorOffset >= 0
-			? 0
-			: (
-				length === syncBufferLength
-					? Math.min(zipDataDescriptorOverlapLengthInBytes, length - 1)
-					: 0
-			);
-		const chunkLength = dataDescriptorOffset >= 0 ? dataDescriptorOffset : length - retainedLength;
-
-		if (chunkLength === 0) {
-			break;
-		}
-
-		bytesConsumed += chunkLength;
-		if (bytesConsumed > maximumLength) {
-			throw new ParserHardLimitError(`ZIP entry data descriptor not found within ${maximumLength} bytes`);
-		}
-
-		if (shouldBuffer) {
-			const data = new Uint8Array(chunkLength);
-			await zipHandler.tokenizer.readBuffer(data);
-			chunks.push(data);
-		} else {
-			await zipHandler.tokenizer.ignore(chunkLength);
-		}
-
-		if (dataDescriptorOffset >= 0) {
-			break;
-		}
-	}
-
-	if (!hasUnknownFileSize(zipHandler.tokenizer)) {
-		zipHandler.knownSizeDescriptorScannedBytes += bytesConsumed;
-	}
-
-	if (!shouldBuffer) {
-		return;
-	}
-
-	return mergeByteChunks(chunks, bytesConsumed);
-}
-
-function getRemainingZipScanBudget(zipHandler, startOffset) {
-	if (hasUnknownFileSize(zipHandler.tokenizer)) {
-		return Math.max(0, maximumUntrustedSkipSizeInBytes - (zipHandler.tokenizer.position - startOffset));
-	}
-
-	return Math.max(0, maximumZipEntrySizeInBytes - zipHandler.knownSizeDescriptorScannedBytes);
-}
-
-async function readZipEntryData(zipHandler, zipHeader, {shouldBuffer, maximumDescriptorLength = maximumZipEntrySizeInBytes} = {}) {
-	if (
-		zipHeader.dataDescriptor
-		&& zipHeader.compressedSize === 0
-	) {
-		return readZipDataDescriptorEntryWithLimit(zipHandler, {
-			shouldBuffer,
-			maximumLength: maximumDescriptorLength,
-		});
-	}
-
-	if (!shouldBuffer) {
-		await safeIgnore(zipHandler.tokenizer, zipHeader.compressedSize, {
-			maximumLength: hasUnknownFileSize(zipHandler.tokenizer) ? maximumZipEntrySizeInBytes : zipHandler.tokenizer.fileInfo.size,
-			reason: 'ZIP entry compressed data',
-		});
-		return;
-	}
-
-	if (zipHeader.compressedSize > maximumZipTextEntrySizeInBytes) {
-		throw new ZipLimitError('maxCompressedSize', zipHeader.compressedSize, maximumZipTextEntrySizeInBytes);
-	}
-
-	const maximumLength = getMaximumZipBufferedReadLength(zipHandler.tokenizer);
-	if (
-		!Number.isFinite(zipHeader.compressedSize)
-		|| zipHeader.compressedSize < 0
-		|| zipHeader.compressedSize > maximumLength
-	) {
-		throw new Error(`ZIP entry compressed data exceeds ${maximumLength} bytes`);
-	}
-
-	const fileData = new Uint8Array(zipHeader.compressedSize);
-	await zipHandler.tokenizer.readBuffer(fileData);
-	return fileData;
-}
-
-// Keep file-type's archive-wide budgets and descriptor-size validation local to detection.
-// The dependency enforces output limits and cancellation through its configured inflate path.
-class DetectionZipHandler extends ZipHandler {
-	async unzip(fileCallback) {
-		let shouldStop = false;
-		let zipEntryCount = 0;
-		const zipScanStart = this.tokenizer.position;
-		this.knownSizeDescriptorScannedBytes = 0;
-		do {
-			if (hasExceededUnknownSizeScanBudget(this.tokenizer, zipScanStart, maximumUntrustedSkipSizeInBytes)) {
-				throw new ParserHardLimitError(`ZIP stream probing exceeds ${maximumUntrustedSkipSizeInBytes} bytes`);
-			}
-
-			const zipHeader = await this.readLocalFileHeader();
-			if (!zipHeader) {
-				break;
-			}
-
-			zipEntryCount++;
-			if (zipEntryCount > maximumZipEntryCount) {
-				throw new Error(`ZIP entry count exceeds ${maximumZipEntryCount}`);
-			}
-
-			const next = fileCallback(zipHeader);
-			shouldStop = Boolean(next.stop);
-			await this.tokenizer.ignore(zipHeader.extraFieldLength);
-			const fileData = await readZipEntryData(this, zipHeader, {
-				shouldBuffer: Boolean(next.handler),
-				maximumDescriptorLength: Math.min(maximumZipEntrySizeInBytes, getRemainingZipScanBudget(this, zipScanStart)),
-			});
-
-			if (next.handler) {
-				await this.inflate(zipHeader, fileData, next.handler);
-			}
-
-			if (zipHeader.dataDescriptor) {
-				const dataDescriptor = new Uint8Array(zipDataDescriptorLengthInBytes);
-				await this.tokenizer.readBuffer(dataDescriptor);
-				if (Token.UINT32_LE.get(dataDescriptor, 0) !== zipDataDescriptorSignature) {
-					throw new Error(`Expected data-descriptor-signature at position ${this.tokenizer.position - dataDescriptor.length}`);
-				}
-			}
-
-			if (hasExceededUnknownSizeScanBudget(this.tokenizer, zipScanStart, maximumUntrustedSkipSizeInBytes)) {
-				throw new ParserHardLimitError(`ZIP stream probing exceeds ${maximumUntrustedSkipSizeInBytes} bytes`);
-			}
-		} while (!shouldStop);
-	}
-}
-
 export async function detectZip(tokenizer) {
 	let fileType;
 	const openXmlState = createOpenXmlZipDetectionState();
 	const iWorkState = createIWorkZipDetectionState();
 
 	try {
-		await new DetectionZipHandler(tokenizer, {
+		await new ZipHandler(tokenizer, {
+			// Keep local-header order and partial-archive detection consistent across input types.
+			useCentralDirectory: false,
+			allowTruncatedDataDescriptor: true,
+			maxEntryCount: maximumZipEntryCount,
+			// Unknown-size input is bounded before each read, including entry metadata.
+			maxTotalScanBytes: hasUnknownFileSize(tokenizer) ? maximumUntrustedSkipSizeInBytes : Infinity,
+			maxTotalDataDescriptorScanBytes: hasUnknownFileSize(tokenizer) ? Infinity : maximumZipEntrySizeInBytes,
+			maxSkippedEntrySize: hasUnknownFileSize(tokenizer) ? maximumZipEntrySizeInBytes : Infinity,
+			maxDataDescriptorScanBytes: maximumZipEntrySizeInBytes,
+			maxCompressedSize: maximumZipTextEntrySizeInBytes,
 			maxUncompressedSize: maximumZipTextEntrySizeInBytes,
 		}).unzip(zipHeader => {
 			updateOpenXmlZipDetectionStateFromFilename(openXmlState, zipHeader.filename);
@@ -590,7 +408,7 @@ export async function detectZip(tokenizer) {
 		// Guess from the directory names instead.
 		if (
 			!fileType
-			&& (error instanceof strtok3.EndOfStreamError || error instanceof ParserHardLimitError)
+			&& (error instanceof strtok3.EndOfStreamError || error instanceof ParserHardLimitError || isZipScanLimitError(error))
 			&& !openXmlState.hasContentTypesEntry
 		) {
 			fileType = getOpenXmlFileTypeFromDirectoryNames(openXmlState);
