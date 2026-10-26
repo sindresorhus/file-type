@@ -3206,6 +3206,30 @@ test('EBML recognition leaves the borrowed source open without draining the head
 	}
 });
 
+test('Known-size EBML streams reject child payloads larger than the physical source before skipping them', async () => {
+	const sourceSize = 2 * 1024 * 1024;
+	const chunkSize = 2 * 1024;
+	const sample = Buffer.alloc(sourceSize);
+	const prefix = Buffer.concat([
+		Buffer.from(ebmlRootId),
+		Buffer.from(encodeEbmlVariableSizeInteger(8 * 1024 * 1024)),
+		Buffer.from([0x81]),
+		Buffer.from(encodeEbmlVariableSizeInteger(4 * 1024 * 1024)),
+	]);
+	sample.set(prefix);
+
+	const {state, stream} = createPatternWebStream(sample, [chunkSize]);
+	const tokenizer = strtok3.fromWebStream(stream, {fileInfo: {size: sample.length}});
+
+	assert.equal(await fileTypeFromTokenizer(tokenizer), undefined);
+	assert.equal(tokenizer.position, prefix.length);
+	// The default Web Stream strategy may prefetch one additional chunk.
+	assert.ok(
+		state.emittedBytes <= 2 * chunkSize,
+		`Expected at most ${2 * chunkSize} bytes to be emitted, got ${state.emittedBytes}`,
+	);
+});
+
 test('Repeated unknown EBML chunked stream probing stays cumulatively bounded', async () => {
 	const maximumEbmlScanBudgetInBytes = 16 * 1024 * 1024;
 	const chunkSize = 64 * 1024;

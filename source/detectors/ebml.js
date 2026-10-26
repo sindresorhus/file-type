@@ -89,7 +89,7 @@ export async function detectEbml(tokenizer) {
 			}
 
 			await safeIgnore(header, element.len, {
-				maximumLength: isUnknownFileSize ? maximumEbmlElementPayloadSizeInBytes : header.fileInfo.size,
+				maximumLength: isUnknownFileSize ? maximumEbmlElementPayloadSizeInBytes : tokenizer.fileInfo.size,
 				reason: 'EBML payload',
 			}); // ignore payload
 
