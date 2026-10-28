@@ -17,6 +17,7 @@ import {ZipHandler, ZipLimitError} from '@tokenizer/inflate';
 import {areUint8ArraysEqual} from 'uint8array-extras';
 import {getStreamAsArrayBuffer} from 'get-stream';
 import {stringToBytes} from './source/tokens.js';
+import {detectEbml} from './source/detectors/ebml.js';
 import {
 	fileTypeFromBuffer,
 	fileTypeFromStream,
@@ -3122,6 +3123,111 @@ test('Repeated non-zero ID3 Web streams still detect MP3 below the cumulative li
 		ext: 'mp3',
 		mime: 'audio/mpeg',
 	});
+});
+
+const ebmlRootId = [0x1A, 0x45, 0xDF, 0xA3];
+const webmDocumentType = createEbmlElement([0x42, 0x82], new TextEncoder().encode('webm'));
+
+for (const source of ['buffer', 'blob', 'stream', 'advertised stream']) {
+	async function detectEbmlSample(payload) {
+		let tokenizer;
+		switch (source) {
+			case 'buffer': {
+				tokenizer = strtok3.fromBuffer(payload);
+				break;
+			}
+
+			case 'blob': {
+				tokenizer = strtok3.fromBlob(new Blob([payload]));
+				break;
+			}
+
+			default: {
+				const {stream} = createPatternWebStream(payload, [1, 2, 3]);
+				tokenizer = strtok3.fromWebStream(stream, {
+					fileInfo: source === 'advertised stream' ? {size: payload.length} : undefined,
+				});
+			}
+		}
+
+		return fileTypeFromTokenizer(tokenizer);
+	}
+
+	for (const [name, payload] of [
+		['empty header', new Uint8Array()],
+		['complete unknown child', createEbmlElement([0x81], new Uint8Array([0]))],
+		['partial element ID', new Uint8Array([0x42])],
+		['missing element size', new Uint8Array([0x42, 0x82])],
+		['partial element size', new Uint8Array([0x42, 0x82, 0x40])],
+		['DocType payload crossing the boundary', webmDocumentType.subarray(0, -1)],
+		['unknown child payload crossing the boundary', new Uint8Array([0x81, 0x85, 0])],
+	]) {
+		test(`EBML ${name} cannot read a DocType outside the header (${source})`, async () => {
+			const sample = Buffer.concat([createEbmlElement(ebmlRootId, payload), webmDocumentType]);
+			assert.equal(await detectEbmlSample(sample), undefined);
+		});
+	}
+
+	test(`EBML detects a DocType ending exactly at the header boundary (${source})`, async () => {
+		const sample = createEbmlElement(ebmlRootId, Buffer.concat([
+			createEbmlElement([0x81], new Uint8Array([0])),
+			webmDocumentType,
+		]));
+		assert.deepEqual(await detectEbmlSample(sample), {ext: 'webm', mime: 'video/webm'});
+	});
+
+	test(`EBML truncated DocType inside the declared header remains undetected (${source})`, async () => {
+		const sample = Buffer.concat([
+			Buffer.from(ebmlRootId),
+			Buffer.from(encodeEbmlVariableSizeInteger(webmDocumentType.length)),
+			webmDocumentType.subarray(0, -1),
+		]);
+		assert.equal(await detectEbmlSample(sample), undefined);
+	});
+}
+
+test('EBML recognition leaves the borrowed source open without draining the header remainder', async () => {
+	const prefix = Buffer.concat([
+		Buffer.from(ebmlRootId),
+		Buffer.from(encodeEbmlVariableSizeInteger(1024 * 1024)),
+		webmDocumentType,
+	]);
+	const tokenizer = strtok3.fromBuffer(Buffer.concat([prefix, Buffer.from([42])]));
+	const close = tokenizer.close.bind(tokenizer);
+	tokenizer.close = async () => assert.fail('Detector must not close the borrowed source');
+	try {
+		assert.deepEqual(await detectEbml(tokenizer), {ext: 'webm', mime: 'video/webm'});
+		assert.equal(tokenizer.position, prefix.length);
+		const next = new Uint8Array(1);
+		await tokenizer.readBuffer(next);
+		assert.equal(next[0], 42);
+	} finally {
+		await close();
+	}
+});
+
+test('Known-size EBML streams reject child payloads larger than the physical source before skipping them', async () => {
+	const sourceSize = 2 * 1024 * 1024;
+	const chunkSize = 2 * 1024;
+	const sample = Buffer.alloc(sourceSize);
+	const prefix = Buffer.concat([
+		Buffer.from(ebmlRootId),
+		Buffer.from(encodeEbmlVariableSizeInteger(8 * 1024 * 1024)),
+		Buffer.from([0x81]),
+		Buffer.from(encodeEbmlVariableSizeInteger(4 * 1024 * 1024)),
+	]);
+	sample.set(prefix);
+
+	const {state, stream} = createPatternWebStream(sample, [chunkSize]);
+	const tokenizer = strtok3.fromWebStream(stream, {fileInfo: {size: sample.length}});
+
+	assert.equal(await fileTypeFromTokenizer(tokenizer), undefined);
+	assert.equal(tokenizer.position, prefix.length);
+	// The default Web Stream strategy may prefetch one additional chunk.
+	assert.ok(
+		state.emittedBytes <= 2 * chunkSize,
+		`Expected at most ${2 * chunkSize} bytes to be emitted, got ${state.emittedBytes}`,
+	);
 });
 
 test('Repeated unknown EBML chunked stream probing stays cumulatively bounded', async () => {
