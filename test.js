@@ -283,6 +283,8 @@ const names = {
 	cpio: [
 		'fixture-bin',
 		'fixture-ascii',
+		'fixture-newc',
+		'fixture-crc',
 	],
 	vsdx: [
 		'fixture-vsdx',
