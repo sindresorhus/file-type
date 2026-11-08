@@ -68,6 +68,10 @@ const names = {
 		'fixture-adts-mpeg4-2',
 		'fixture-id3v2',
 	],
+	aif: [
+		'fixture',
+		'fixture-aiff',
+	],
 	asar: [
 		'fixture',
 		'fixture2',
@@ -333,6 +337,11 @@ const names = {
 // Define an entry here only if the file type has potential
 // for false-positives
 const falsePositives = {
+	aif: [
+		'fixture-iff-ilbm',
+		'fixture-iff-8svx',
+		'fixture-form-text',
+	],
 	png: [
 		'fixture-corrupt',
 	],
