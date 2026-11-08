@@ -1199,7 +1199,11 @@ export class FileTypeParser {
 			}
 		}
 
-		if (this.checkString('070707')) {
+		if (
+			this.checkString('070701') // `newc` (SVR4 new ASCII, no CRC)
+			|| this.checkString('070702') // `crc` (SVR4 new ASCII, with CRC)
+			|| this.checkString('070707') // `odc` (old portable ASCII)
+		) {
 			return {
 				ext: 'cpio',
 				mime: 'application/x-cpio',
