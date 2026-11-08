@@ -690,7 +690,13 @@ export class FileTypeParser {
 			};
 		}
 
-		if (this.checkString('FORM')) {
+		if (
+			this.checkString('FORM')
+			&& (
+				this.checkString('AIFF', {offset: 8}) // Audio Interchange File Format
+				|| this.checkString('AIFC', {offset: 8}) // AIFF-C (compressed)
+			)
+		) {
 			return {
 				ext: 'aif',
 				mime: 'audio/aiff',
