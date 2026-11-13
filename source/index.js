@@ -77,24 +77,6 @@ function toDefaultStream(stream) {
 	return stream.pipeThrough(new TransformStream());
 }
 
-function readWithSignal(reader, signal) {
-	if (signal === undefined) {
-		return reader.read();
-	}
-
-	signal.throwIfAborted();
-
-	return Promise.race([
-		reader.read(),
-		new Promise((_resolve, reject) => {
-			signal.addEventListener('abort', () => {
-				reject(signal.reason);
-				reader.cancel(signal.reason).catch(() => {});
-			}, {once: true});
-		}),
-	]);
-}
-
 function createByteLimitedReadableStream(stream, maximumBytes) {
 	const reader = stream.getReader();
 	let emittedBytes = 0;
@@ -297,12 +279,20 @@ export class FileTypeParser {
 		let hasStreamEnded = false;
 
 		const reader = stream.getReader();
+		const {signal} = this.options;
+		const onAbort = () => {
+			reader.cancel(signal.reason).catch(() => {});
+		};
+
 		const chunks = [];
 		let totalSize = 0;
 
 		try {
+			signal?.addEventListener('abort', onAbort, {once: true});
+			signal?.throwIfAborted();
 			while (totalSize < sampleSize) {
-				const {value, done} = await readWithSignal(reader, this.options.signal);
+				const {value, done} = await reader.read();
+				signal?.throwIfAborted();
 				if (done || !value) {
 					hasStreamEnded = true;
 					break;
@@ -316,7 +306,8 @@ export class FileTypeParser {
 				!hasStreamEnded
 				&& totalSize === sampleSize
 			) {
-				const {value, done} = await readWithSignal(reader, this.options.signal);
+				const {value, done} = await reader.read();
+				signal?.throwIfAborted();
 				if (done || !value) {
 					hasStreamEnded = true;
 				} else {
@@ -325,6 +316,7 @@ export class FileTypeParser {
 				}
 			}
 		} finally {
+			signal?.removeEventListener('abort', onAbort);
 			reader.releaseLock();
 		}
 
