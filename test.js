@@ -1,5 +1,6 @@
 import process from 'node:process';
 import os from 'node:os';
+import {getEventListeners} from 'node:events';
 import path from 'node:path';
 import http from 'node:http';
 import {spawnSync} from 'node:child_process';
@@ -756,6 +757,113 @@ test('.fileTypeStream() method - be able to abort stalled stream detection', asy
 		assert.equal(error, abortController.signal.reason);
 		return true;
 	});
+});
+
+test('.fileTypeStream() shares one abort listener throughout sampling and removes it afterwards', async t => {
+	const bytes = await readFile(path.join(__dirname, 'fixture', 'fixture.opus'));
+	const abortController = new AbortController();
+	const existingListener = () => {};
+	abortController.signal.addEventListener('abort', existingListener);
+	try {
+		for (const sampleSize of [64, 64, bytes.length + 1]) {
+			let samplingAbortListener;
+			let offset = 0;
+			const source = new ReadableStream({
+				pull(controller) {
+					if (offset <= sampleSize) {
+						const listeners = getEventListeners(abortController.signal, 'abort');
+						t.assert.strictEqual(listeners.length, 2);
+						t.assert.strictEqual(listeners[0], existingListener);
+						samplingAbortListener ??= listeners[1];
+						t.assert.strictEqual(listeners[1], samplingAbortListener);
+					}
+
+					if (offset === bytes.length) {
+						controller.close();
+						return;
+					}
+
+					controller.enqueue(bytes.subarray(offset, ++offset));
+				},
+			});
+			const result = await fileTypeStream(source, {sampleSize, signal: abortController.signal});
+			t.assert.deepStrictEqual(result.fileType, {ext: 'opus', mime: 'audio/ogg; codecs=opus'});
+			t.assert.deepStrictEqual(getEventListeners(abortController.signal, 'abort'), [existingListener]);
+			t.assert.deepStrictEqual(new Uint8Array(await getStreamAsArrayBuffer(result)), new Uint8Array(bytes));
+			t.assert.deepStrictEqual(getEventListeners(abortController.signal, 'abort'), [existingListener]);
+		}
+	} finally {
+		abortController.signal.removeEventListener('abort', existingListener);
+	}
+});
+
+test('.fileTypeStream() removes the abort listener after a sample read error', async () => {
+	const abortController = new AbortController();
+	const readError = new Error('Sample read failed');
+	const source = new ReadableStream({
+		pull(controller) {
+			controller.error(readError);
+		},
+	});
+	await assert.rejects(fileTypeStream(source, {signal: abortController.signal}), error => error === readError);
+	assert.deepEqual(getEventListeners(abortController.signal, 'abort'), []);
+	assert.equal(source.locked, false);
+});
+
+test('.fileTypeStream() removes the abort listener and cancels a pending sample read', async () => {
+	const abortController = new AbortController();
+	const reason = new Error('Stop sampling');
+	const cancellations = [];
+	const source = new ReadableStream({
+		pull() {
+			return new Promise(() => {});
+		},
+		cancel(cancelReason) {
+			cancellations.push(cancelReason);
+		},
+	});
+	const detection = fileTypeStream(source, {signal: abortController.signal});
+	abortController.abort(reason);
+	await assert.rejects(detection, error => error === reason);
+	assert.deepEqual(cancellations, [reason]);
+	assert.deepEqual(getEventListeners(abortController.signal, 'abort'), []);
+	assert.equal(source.locked, false);
+});
+
+test('.fileTypeStream() aborts later sampling and lookahead reads even if source cancellation fails', async () => {
+	const bytes = await readFile(path.join(__dirname, 'fixture', 'fixture.opus'));
+	for (const prefixLength of [1, 64]) {
+		for (const cancellationFails of [false, true]) {
+			const abortController = new AbortController();
+			const reason = new Error('Stop sampling');
+			const cancellations = [];
+			let hasSentPrefix = false;
+			const source = new ReadableStream({
+				pull(controller) {
+					if (!hasSentPrefix) {
+						hasSentPrefix = true;
+						controller.enqueue(bytes.subarray(0, prefixLength));
+						return;
+					}
+
+					queueMicrotask(() => {
+						abortController.abort(reason);
+					});
+					return new Promise(() => {});
+				},
+				cancel(cancelReason) {
+					cancellations.push(cancelReason);
+					if (cancellationFails) {
+						throw new Error('Source cancellation failed');
+					}
+				},
+			}, {highWaterMark: 0});
+			await assert.rejects(fileTypeStream(source, {sampleSize: 64, signal: abortController.signal}), error => error === reason);
+			assert.deepEqual(cancellations, [reason]);
+			assert.deepEqual(getEventListeners(abortController.signal, 'abort'), []);
+			assert.equal(source.locked, false);
+		}
+	}
 });
 
 test('.fileTypeFromStream() returns gzip for a stalled unknown-size gzip stream', async () => {
@@ -3459,6 +3567,35 @@ test('fileTypeFromBuffer still detects Matroska when the EBML document type appe
 		mime: 'video/matroska',
 	});
 });
+
+for (const [extension, expected] of [
+	['opus', {ext: 'opus', mime: 'audio/ogg; codecs=opus'}],
+	['flac', {ext: 'flac', mime: 'audio/flac'}],
+	['jpg', {ext: 'jpg', mime: 'image/jpeg'}],
+	['aif', {ext: 'aif', mime: 'audio/aiff'}],
+]) {
+	test(`fileTypeFromFile detects ${extension} across partial filesystem reads`, async t => {
+		const originalOpen = fs.promises.open.bind(fs.promises);
+		let fileHandle;
+		let readCount = 0;
+		t.mock.method(fs.promises, 'open', async (...arguments_) => {
+			fileHandle = await originalOpen(...arguments_);
+			const originalRead = fileHandle.read.bind(fileHandle);
+			t.mock.method(fileHandle, 'read', async (buffer, offset, length, position) => {
+				readCount++;
+				return originalRead(buffer, offset, Math.min(length, 3), position);
+			});
+			return fileHandle;
+		});
+		try {
+			t.assert.deepStrictEqual(await fileTypeFromFile(path.join(__dirname, 'fixture', `fixture.${extension}`)), expected);
+			t.assert.ok(readCount > 1);
+			t.assert.strictEqual(fileHandle.fd, -1);
+		} finally {
+			await fileHandle?.close();
+		}
+	});
+}
 
 for (const stage of ['open', 'stat']) {
 	test(`fileTypeFromFile closes the handle when the signal aborts during ${stage}`, async t => {
